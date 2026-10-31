@@ -31,11 +31,12 @@ var classFuncs = map[string]bool{"BodyClasses": true}
 var quotedKey = regexp.MustCompile(`['"]([^'"]+)['"]\s*:`)
 
 // subpackages are the directories below the root that also hold ui components: the code
-// package renders Tailwind classes too. Missing directories are skipped.
-var subpackages = []string{"code"}
+// package renders Tailwind classes too, and markdown is scanned so that any class it adds is
+// listed. Missing directories are skipped.
+var subpackages = []string{"code", "markdown"}
 
 // Classes returns the sorted, de-duplicated classes the non-test Go files of fsys's root
-// directory and of the subpackages (code/) can emit. A class is a class-shaped token of a string that
+// directory and of the subpackages (code/, markdown/) can emit. A class is a class-shaped token of a string that
 // reaches a class-bearing call: an argument of .Class, .AddClass, .ToggleClass, Classes, or the
 // name of datastar.Class (and the keys of datastar.Classes). Identifiers in those arguments are
 // followed to the constants, variables, map and slice literals, assignments and call-site
