@@ -7,6 +7,7 @@ import (
 	"github.com/go-htemel/htemel/html"
 
 	"github.com/go-htemel/ui"
+	"github.com/go-htemel/ui/code"
 )
 
 // CDN assets for the showcase only. A real application builds its CSS with the Tailwind CLI
@@ -141,10 +142,20 @@ func exampleView(e Example) *html.SectionElement {
 				ui.IconChevronRight().Class("size-3.5 shrink-0 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none"),
 				html.Span().Text("Show source"),
 			).Class("inline-flex cursor-pointer list-none items-center gap-1 rounded-control text-xs font-medium text-neutral-500 transition-colors duration-150 select-none hover:text-neutral-900 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-primary-600 [&::-webkit-details-marker]:hidden dark:text-neutral-400 dark:hover:text-white dark:focus-visible:outline-primary-500"),
-			html.Pre(html.Code().Text(e.Source)).
-				Class(ui.Classes("mt-2 max-h-[32rem] min-w-0 overflow-auto rounded-surface bg-neutral-50 p-4 text-xs/5 text-neutral-800 ring-1 ring-neutral-950/5 dark:bg-black/40 dark:text-neutral-100 dark:ring-white/10")),
+			sourceBlocks(e),
 		).Class("ui-details group mt-3"),
 	).Class("mt-10")
+}
+
+// sourceBlocks is the highlighted source of an example: the Go function, then any snippets. The
+// blocks scroll inside a capped height; the copy button is the default of the code package.
+func sourceBlocks(e Example) *htemel.GroupElement {
+	const capHeight = "mt-2 [--ui-code-max-height:32rem]"
+	nodes := []htemel.Node{code.Block("go", e.Source, code.WithLineNumbers()).AddClass(capHeight)}
+	for _, s := range e.Snippets {
+		nodes = append(nodes, code.Block(s.Lang, s.Src, code.WithTitle(s.Title), code.WithLineNumbers()).AddClass(capHeight))
+	}
+	return htemel.Group(nodes...)
 }
 
 func indexPage() htemel.Node {

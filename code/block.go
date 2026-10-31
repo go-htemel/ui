@@ -64,9 +64,6 @@ func Block(lang, src string, opts ...Option) *BlockElement {
 		cond(c.wrap, "ui-code-wrap"),
 		cond(c.title != "", "ui-code-titled"),
 	))
-	if langClass != "" {
-		fig.Data("lang", langClass)
-	}
 	fig.Aria("label", label(c.title, lang))
 	if c.lineNumbers {
 		digits := max(len(strconv.Itoa(c.start+len(lines)-1)), 2)

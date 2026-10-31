@@ -84,9 +84,9 @@ func tags(t *testing.T, label, doc string, allowed map[string]bool) []tag {
 		case html.StartTagToken, html.SelfClosingTagToken:
 			tok := z.Token()
 			for _, a := range tok.Attr {
-				// data-ui-* attributes belong to assets/ui.js, not Datastar, which ignores
-				// attributes whose plugin it does not know.
-				if strings.HasPrefix(a.Key, "data-") && !strings.HasPrefix(a.Key, "data-ui-") && !allowed[datastarBase(a.Key)] {
+				// data-ui-* attributes belong to assets/ui.js, and data-hl (a highlighted line) to the
+				// code package, not Datastar, which ignores attributes whose plugin it does not know.
+				if strings.HasPrefix(a.Key, "data-") && !strings.HasPrefix(a.Key, "data-ui-") && a.Key != "data-hl" && !allowed[datastarBase(a.Key)] {
 					t.Errorf("%s: <%s %s>: %s is not a Datastar v1.0.4 attribute", label, tok.Data, a.Key, datastarBase(a.Key))
 				}
 			}
@@ -199,7 +199,7 @@ func TestExamplesHaveSource(t *testing.T) {
 			t.Errorf("group %s has no examples", g.Slug)
 		}
 		for _, e := range g.Examples {
-			if !strings.HasPrefix(e.Source, "func ") || !strings.Contains(e.Source, "ui.") {
+			if !strings.HasPrefix(e.Source, "func ") || !strings.Contains(e.Source, "ui.") && !strings.Contains(e.Source, "code.") {
 				t.Errorf("%s / %s: unexpected source %q", g.Slug, e.Title, e.Source)
 			}
 		}

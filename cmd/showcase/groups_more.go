@@ -6,9 +6,9 @@ import (
 	"github.com/go-htemel/ui"
 )
 
-// withCSS appends a stylesheet to an example's source, under a comment naming it.
+// withCSS adds a stylesheet to an example's source blocks, titled with label.
 func withCSS(e Example, label, css string) Example {
-	e.Source += "\n\n/* " + label + " */\n" + strings.TrimSpace(css)
+	e.Snippets = append(append([]Snippet(nil), e.Snippets...), Snippet{Lang: "css", Title: label, Src: strings.TrimSpace(css)})
 	return e
 }
 
@@ -55,6 +55,19 @@ func init() {
 			Examples: []Example{
 				withCSS(ex("Live theme switch", themeSwitcher), "Page CSS: the [data-theme] token overrides", themeDemoCSS),
 				withCSS(ex("Default tokens", tokenSwatches), "ui.ThemeCSS(): the default tokens", ui.ThemeCSS()),
+			},
+		},
+		Group{
+			Slug: "code", Title: "Code",
+			Intro: "Server-side syntax highlighting from the code package (chroma): no highlighter script in the browser. Line numbers are CSS counters, so copying never includes them; the copy button needs Datastar.",
+			Examples: []Example{
+				ex("Go with a title, line numbers and highlighted lines", codeGo),
+				ex("JSON", codeJSON),
+				ex("Bash with line numbers", codeBash),
+				ex("Inline code in a sentence", codeInline),
+				ex("Scroll or soft wrap", codeWrap),
+				ex("Without the copy button", codeNoCopy),
+				ex("Capped height", codeMaxHeight),
 			},
 		},
 	)

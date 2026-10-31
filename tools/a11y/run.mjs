@@ -29,7 +29,7 @@ const CDN_DIR = process.env.A11Y_CDN_DIR || "";
 const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.indexOf("--json") + 1] : "";
 
 const PAGES = ["/", ...["buttons", "display", "layout", "feedback", "forms", "overlays", "disclosure",
-  "drag-and-drop", "data", "navigation", "status", "theming"].map((s) => `/components/${s}`)];
+  "drag-and-drop", "data", "navigation", "status", "theming", "code"].map((s) => `/components/${s}`)];
 const SCHEMES = ["light", "dark"];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
 const WCAG = /^wcag\d+a{1,3}$/;
@@ -96,6 +96,28 @@ const STATES = {
       },
     },
   ],
+  "/components/code": [
+    {
+      // The copy button writes the block's source to the clipboard (permissions are granted to the
+      // context), shows the check mark and announces "Copied" through its live region; the
+      // signal resets after 1.5s, which close waits for.
+      name: "code copied",
+      async open(page) {
+        const fig = page.locator("figure.ui-code").first();
+        await fig.getByRole("button", { name: "Copy code" }).click();
+        await fig.locator("[aria-live=polite]").getByText("Copied").waitFor({ timeout: 5000 });
+        const [clip, src] = await page.evaluate(async () => {
+          const f = document.querySelector("figure.ui-code");
+          return [await navigator.clipboard.readText(), f.querySelector("template").content.textContent];
+        });
+        if (clip !== src || !clip.startsWith("// Save stores")) throw new Error(`clipboard holds ${JSON.stringify(clip.slice(0, 40))}, want the block source`);
+      },
+      async close(page) {
+        await page.locator("figure.ui-code").first().locator("[aria-live=polite]").getByText("Copied").waitFor({ state: "detached", timeout: 5000 }).catch(() => {});
+        await page.waitForFunction(() => document.querySelector("figure.ui-code [aria-live=polite]").textContent === "", null, { timeout: 5000 });
+      },
+    },
+  ],
   "/components/disclosure": [
     {
       name: "tab switched",
@@ -147,6 +169,76 @@ const STATES = {
 // Behaviour checks beyond axe, keyed by page. Each returns a list of failure messages; any
 // failure fails the run (exit 1) like a WCAG violation.
 const CHECKS = {
+  "/components/code": [
+    {
+      // Line numbers are generated content: selecting the whole code and reading the selection
+      // gives exactly the source, with no numbers (and no doubled newlines).
+      name: "line numbers are not selected",
+      async run(page) {
+        // The "Show source" blocks are in closed <details>, whose content is not rendered: open them.
+        await page.evaluate(() => document.querySelectorAll("details.ui-details").forEach((d) => { d.open = true; }));
+        await page.waitForTimeout(400);
+        const r = await page.evaluate(() => [...document.querySelectorAll("figure.ui-code-lines")].map((f) => {
+          const pre = f.querySelector("pre");
+          const sel = getSelection();
+          sel.removeAllRanges();
+          const range = document.createRange();
+          range.selectNodeContents(pre.querySelector("code"));
+          sel.addRange(range);
+          const got = sel.toString().replace(/\r/g, "");
+          sel.removeAllRanges();
+          const want = f.querySelector("template")?.content.textContent ?? pre.textContent;
+          const before = getComputedStyle(pre.querySelector(".line"), "::before");
+          return { got, want, select: before.userSelect, counter: before.content };
+        }));
+        if (!r.length) return ["no figure.ui-code-lines on the page"];
+        return r.flatMap((x, i) => [
+          ...(x.got === x.want ? [] : [`block ${i}: selection differs from the source: ${JSON.stringify(x.got.slice(0, 60))} vs ${JSON.stringify(x.want.slice(0, 60))}`]),
+          ...(/\d/.test(x.got.split("\n")[0].slice(0, 3)) && !/^\d/.test(x.want) ? [`block ${i}: the selection starts with a line number`] : []),
+          ...(x.select === "none" ? [] : [`block ${i}: gutter user-select is ${x.select}`]),
+        ]);
+      },
+    },
+    {
+      // Highlighted lines carry a tint and a bar; scrolling blocks scroll, wrapping blocks do not;
+      // the page never scrolls sideways.
+      name: "highlight, scroll and wrap",
+      async run(page) {
+        const r = await page.evaluate(() => {
+          const hl = [...document.querySelectorAll(".line[data-hl]")].map((l) => getComputedStyle(l));
+          const pres = [...document.querySelectorAll("figure.ui-code pre")].map((p) => ({ wrap: !!p.closest(".ui-code-wrap"), over: p.scrollWidth > p.clientWidth, tab: p.tabIndex }));
+          return { hl: hl.map((c) => [c.backgroundColor, c.boxShadow]), pres, page: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+        });
+        const f = [];
+        if (r.hl.length !== 4) f.push(`${r.hl.length} highlighted lines, want 4`);
+        for (const [bg, bar] of r.hl) {
+          if (/rgba?\(0, 0, 0, 0\)|transparent/.test(bg)) f.push("highlighted line has no tint");
+          if (!/inset/.test(bar)) f.push("highlighted line has no bar");
+        }
+        if (r.pres.some((p) => p.tab !== 0)) f.push("a <pre> is not focusable");
+        if (r.pres.some((p) => p.wrap && p.over)) f.push("a wrapping block scrolls horizontally");
+        if (!r.pres.some((p) => !p.wrap && p.over)) f.push("no scrolling block overflows");
+        if (r.page > 0) f.push(`the page scrolls sideways by ${r.page}px`);
+        return f;
+      },
+    },
+    {
+      // The copy icon swap fades in 150ms, and the live region exists, empty, before any click.
+      name: "copy button fade",
+      async run(page) {
+        const r = await page.evaluate(() => {
+          const b = document.querySelector("figure.ui-code button[aria-label='Copy code']");
+          const [a, c] = b.querySelectorAll("svg");
+          return { d: [a, c].map((i) => getComputedStyle(i).transitionDuration), live: b.parentElement.querySelector("[aria-live]").textContent, checkOpacity: getComputedStyle(c).opacity };
+        });
+        const f = [];
+        if (r.d.some((d) => d !== "0.15s")) f.push(`icon transition is ${r.d}, want 0.15s`);
+        if (r.live !== "") f.push(`live region starts as ${JSON.stringify(r.live)}`);
+        if (r.checkOpacity !== "0") f.push(`check icon opacity ${r.checkOpacity} before a click`);
+        return f;
+      },
+    },
+  ],
   "/components/navigation": [
     {
       // Container queries: the narrow frame's navbar shows the menu button and hides the links;
@@ -385,7 +477,7 @@ async function checkNoFlash() {
 try {
   await checkNoFlash();
   for (const scheme of SCHEMES) {
-    const context = await browser.newContext({ colorScheme: scheme, viewport: { width: 1280, height: 900 } });
+    const context = await browser.newContext({ colorScheme: scheme, viewport: { width: 1280, height: 900 }, permissions: ["clipboard-read", "clipboard-write"] });
     for (const path of PAGES) {
       const page = await context.newPage();
       await page.addInitScript(FIX_NONE);

@@ -24,9 +24,14 @@ var exampleFiles embed.FS
 type Example struct {
 	Title  string
 	Source string
+	// Snippets are more code shown under Source, such as the CSS behind an example.
+	Snippets []Snippet
 	// Node builds the example. It is called on every request, so examples can show live state.
 	Node func() htemel.FlowContent
 }
+
+// Snippet is a titled block of code in some language.
+type Snippet struct{ Lang, Title, Src string }
 
 // Group is one showcase page.
 type Group struct {
