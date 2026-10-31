@@ -130,5 +130,5 @@ func radiusSide(base string) (string, bool) {
 // dark mode, and antialiasing.
 func BodyClasses() string {
 	t := CurrentTheme()
-	return t.Font + " " + t.Classes("bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100")
+	return t.Font + " " + t.Classes("bg-zinc-50 text-zinc-900 antialiased has-[dialog:modal]:overflow-hidden dark:bg-zinc-950 dark:text-zinc-100")
 }
