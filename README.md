@@ -760,7 +760,7 @@ expressions. Each component's Go documentation lists exactly what it covers.
 | Component | Semantics | Keyboard and focus |
 | --- | --- | --- |
 | `Dialog` | native `<dialog>` opened with `showModal()`, `aria-labelledby` the title | native: page inert behind it, Tab and Shift+Tab stay inside, Escape closes, focus returns to the trigger; initial focus on `autofocus` (`DialogActions` sets it on its first button) |
-| `Drawer` | the same native modal `<dialog>` as `Dialog`, pinned to an edge | as `Dialog`; initial focus on the X button or an `autofocus` field; `Navbar`'s mobile menu is one |
+| `Drawer` | the same native modal `<dialog>` as `Dialog`, pinned to an edge | as `Dialog`; initial focus on an `autofocus` element, else the first form control, else the drawer itself (never a ring on the X); `Navbar`'s mobile menu is one |
 | `Dropdown` | trigger `popovertarget`, `aria-haspopup`, `aria-controls`, bound `aria-expanded`; `popover="auto"` `role="menu"` and `menuitem` | native: Escape closes and returns focus, click outside closes; ArrowDown/ArrowUp open from the trigger and move between items; Home/End; Tab closes |
 | `Tooltip` | `role="tooltip"`, trigger `aria-describedby` | shown on hover and focus (CSS) |
 | `Tabs` | `tablist`, `tab`, `tabpanel`, `aria-selected`, `aria-controls`, roving `tabindex` | ArrowLeft/ArrowRight, Home/End |

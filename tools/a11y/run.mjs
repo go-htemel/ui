@@ -30,6 +30,12 @@ const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.inde
 
 const PAGES = ["/", ...["buttons", "display", "layout", "feedback", "forms", "overlays", "disclosure",
   "drag-and-drop", "data", "navigation", "status", "theming", "code", "markdown", "prose"].map((s) => `/components/${s}`)];
+// A11Y_PAGES=forms,overlays limits the run to those pages (by the last path segment, "/" for the
+// home page) while iterating; task a11y always runs them all.
+if (process.env.A11Y_PAGES) {
+  const only = process.env.A11Y_PAGES.split(",").map((p) => p.trim());
+  PAGES.splice(0, PAGES.length, ...PAGES.filter((p) => only.includes(p === "/" ? "/" : p.split("/").pop())));
+}
 const SCHEMES = ["light", "dark"];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
 const WCAG = /^wcag\d+a{1,3}$/;
@@ -432,6 +438,48 @@ const CHECKS = {
     },
   ],
   "/components/overlays": [
+    {
+      // Initial focus, opened from the keyboard (so :focus-visible heuristics are at their
+      // strictest): the drawer with a form focuses its first field; the Delete dialog its
+      // autofocus Cancel; the share sheet (buttons only, no form control) the <dialog> itself,
+      // with no outline painted on it or on the X button. Tab then reaches the X first.
+      name: "dialog initial focus",
+      async run(page) {
+        const open = async (trigger, id) => {
+          await page.getByRole("button", { name: trigger, exact: true }).focus();
+          await page.keyboard.press("Enter");
+          await page.locator(`#${id}-dialog[open]`).waitFor({ timeout: 5000 });
+          await page.waitForTimeout(50);
+          return page.evaluate((id) => {
+            const a = document.activeElement, d = document.getElementById(id + "-dialog");
+            const x = d.querySelector("button[aria-label=Close]");
+            const cs = getComputedStyle(a);
+            return {
+              tag: a.tagName.toLowerCase(), id: a.id, text: a.textContent.trim().slice(0, 20), isDialog: a === d,
+              outline: cs.outlineStyle === "none" || parseFloat(cs.outlineWidth) === 0 ? "none" : cs.outlineStyle + " " + cs.outlineWidth,
+              xFocusVisible: x.matches(":focus-visible"),
+            };
+          }, id);
+        };
+        const close = async (id) => { await page.keyboard.press("Escape"); await page.locator(`#${id}-dialog`).waitFor({ state: "hidden", timeout: 5000 }); };
+        const f = [];
+        const drawer = await open("Edit profile", "profileDrawer");
+        if (drawer.id !== "drawerName") f.push(`drawer with a form: focus on ${drawer.tag}#${drawer.id}, want the Name input`);
+        await close("profileDrawer");
+        const del = await open("Delete project", "confirmDelete");
+        if (del.text !== "Cancel") f.push(`Delete dialog: focus on ${del.tag} "${del.text}", want Cancel`);
+        await close("confirmDelete");
+        const sheet = await open("Share", "shareSheet");
+        if (!sheet.isDialog) f.push(`share sheet: focus on ${sheet.tag}#${sheet.id} "${sheet.text}", want the dialog`);
+        if (sheet.outline !== "none") f.push(`share sheet: the focused dialog paints an outline (${sheet.outline})`);
+        if (sheet.xFocusVisible) f.push("share sheet: the X button matches :focus-visible on open");
+        await page.keyboard.press("Tab");
+        const next = await page.evaluate(() => document.activeElement.getAttribute("aria-label"));
+        if (next !== "Close") f.push(`Tab from the focused sheet went to ${next}, want the Close button`);
+        await close("shareSheet");
+        return f;
+      },
+    },
     {
       // The dialog fades in and out (opacity via @starting-style and transition-discrete) in 200ms.
       name: "dialog open/close transitions",

@@ -116,8 +116,8 @@ func menuKeys() string {
 }
 
 const menuItemClass = "flex w-full cursor-pointer items-center gap-x-2 rounded-control px-3 py-2 text-left text-sm text-neutral-700 transition-colors duration-150 " +
-	"hover:bg-neutral-100 hover:text-neutral-900 focus-visible:bg-neutral-100 focus-visible:outline-none " +
-	"dark:text-neutral-300 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5"
+	"hover:bg-neutral-100 hover:text-neutral-900 focus-visible:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 " +
+	"dark:focus-visible:outline-primary-400 dark:text-neutral-300 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5"
 
 // MenuItem returns a menu entry, <button role="menuitem">. attrs usually include a Datastar click
 // handler: MenuItem("Archive", datastar.OnClick(datastar.Post("/archive"))).

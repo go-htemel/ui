@@ -120,7 +120,8 @@ func matrix() []spec {
 
 	add("Button/Secondary", "default", "button.go:16", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/10"))
 	add("Button/Secondary", "hover", "button.go:16", text, on("text-neutral-900", "hover:bg-neutral-50"), on("dark:text-white", "dark:hover:bg-white/20"))
-	add("Button/Secondary", "focus-visible outline", "button.go:16", nonText, on("focus-visible:outline-neutral-500", ""), on("focus-visible:outline-neutral-500", ""))
+	add("Button/Secondary", "focus-visible outline", "button.go:16,button.go:17", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
+	add("Button/Secondary", "focus-visible outline on a card", "button.go:16,button.go:17", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	disabled("Button/Secondary", "disabled", "button.go:16", on("text-neutral-900", "bg-white").grp(0.5).with(dis), on("dark:text-white", "dark:bg-white/10").grp(0.5).with(dis))
 
 	add("Button/Outline", "default", "button.go:18", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
@@ -131,7 +132,11 @@ func matrix() []spec {
 
 	add("Button/Ghost", "default", "button.go:20", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
 	add("Button/Ghost", "hover", "button.go:20", text, on("text-neutral-700", "hover:bg-neutral-100"), on("dark:text-neutral-300", "dark:hover:bg-white/10"))
-	add("Button/Ghost", "focus-visible outline", "button.go:20", nonText, on("focus-visible:outline-neutral-500", ""), on("focus-visible:outline-neutral-500", ""))
+	// Ghost buttons are the X of Dialog, Drawer and Toast and the MarkdownEditor tools, so their
+	// primary focus ring is measured on the card / panel surfaces too (neutral-900 and -800).
+	add("Button/Ghost", "focus-visible outline", "button.go:20,button.go:21", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
+	add("Button/Ghost", "focus-visible outline on a card", "button.go:20,button.go:21", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	add("Button/Ghost", "focus-visible outline on a raised panel", "button.go:20,button.go:21", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over("dark:bg-neutral-800"))
 	disabled("Button/Ghost", "disabled", "button.go:20", on("text-neutral-700", "").grp(0.5).with(dis), on("dark:text-neutral-300", "").grp(0.5).with(dis))
 
 	add("Button/Danger", "default", "button.go:22", text, on("text-white", "bg-danger-600"), on("text-white", "dark:bg-danger-700"))
@@ -158,6 +163,8 @@ func matrix() []spec {
 		// alert.go:33 renders the body at full opacity in the tone color (it used to be opacity-90,
 		// which took Success below 4.5:1).
 		add("Alert/"+t.name, "body on tint", "badge.go:"+t.line, text, on(t.lfg, t.lbg), on(t.dfg, t.dbg))
+		// The dismiss X of AlertDismissible (closeButton, signals.go:46) rings in primary on the tint.
+		add("Alert/"+t.name, "close focus-visible outline on tint", "signals.go:46", nonText, on("focus-visible:outline-primary-600", t.lbg), on("dark:focus-visible:outline-primary-500", t.dbg))
 		add("Toast/"+t.name, "accent border (toast.go:41)", "toast.go:"+strconv.Itoa(42+indexOf(t.name)), nonText,
 			on(t.lborder, "bg-white"), on(t.dborder, "dark:bg-neutral-800"))
 	}
@@ -294,8 +301,13 @@ func matrix() []spec {
 	// The X button of Dialog and Drawer is a Ghost IconButton (ghostClose, signals.go): no ring.
 	add("Dialog", "close icon", "button.go:20", nonText, on("text-neutral-700", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 	add("Dialog", "close icon, hover", "button.go:20", nonText, on("text-neutral-700", "hover:bg-neutral-100").over(cardL), on("dark:text-neutral-300", "dark:hover:bg-white/10").over(cardD))
-	add("Dialog", "body text", "dialog.go:54", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+	add("Dialog", "body text", "dialog.go:57", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 	add("Drawer", "body text", "drawer.go:96", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+
+	// Menu items (dropdown.go:118-121): roving focus draws a 2px primary ring inset over the
+	// neutral-100 / white-5% focus tint of the white / neutral-800 menu; in dark it is primary-400,
+	// since primary-500 is 2.8:1 on the tinted neutral-800.
+	add("MenuItem", "focus-visible outline", "dropdown.go:119,dropdown.go:120", nonText, on("focus-visible:outline-primary-600", "focus-visible:bg-neutral-100").over(cardL), on("dark:focus-visible:outline-primary-400", "dark:focus-visible:bg-white/5").over("dark:bg-neutral-800"))
 
 	// Other focus rings that sit on the page background.
 	add("Disclosure", "focus-visible outline", "disclosure.go:68", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))

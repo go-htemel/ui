@@ -32,9 +32,12 @@ import (
 //   - The rest of the page is inert while the dialog is open: it cannot be clicked or focused
 //     and is hidden from assistive technology, so a screen reader's virtual cursor stays inside.
 //   - Tab and Shift+Tab therefore stay inside the dialog (and the browser's own UI).
-//   - Initial focus goes to the first element with autofocus, else the first focusable element
-//     (the X button). DialogActions puts autofocus on its first button unless one of its children
-//     already has it; an autofocus element earlier in the body wins over it.
+//   - Initial focus goes to the first element with autofocus (DialogActions puts it on its first
+//     button unless one of its children already has it; an autofocus element earlier in the body
+//     wins over it). With none, it goes to the first enabled form control of the body (input,
+//     select, textarea); with none of those either, to the dialog itself (it has tabindex="-1"
+//     and no focus outline), so opening never paints a focus ring on the X button. The X stays
+//     the first stop of Tab (and Shift+Tab wraps to the last control).
 //   - On close, focus returns to the element that was focused when the dialog opened, normally
 //     the trigger. (Safari does not focus a button on click, so there it may return to the page.)
 //   - Escape closes it (a close request); so does a click on the backdrop: natively through
@@ -83,7 +86,8 @@ func modal(signal, titleID string, panel *html.DivElement, class string) *html.D
 		Id(domID(signal)+"-dialog").
 		Aria("labelledby", titleID).
 		Closedby(html.ClosedbyAny).
-		Class(class).
+		Tabindex(-1).
+		Class(Classes(class, "outline-none")).
 		Attrs(
 			initially(signal, "false"),
 			datastar.Effect(dialogEffect(signal)),
@@ -100,9 +104,18 @@ func dialogHeader(signal, titleID, title, class string) *html.DivElement {
 }
 
 // dialogEffect opens the dialog as a modal while the signal is true and closes it when the
-// signal turns false, without calling showModal or close twice.
+// signal turns false, without calling showModal or close twice. After showModal it moves the
+// initial focus when nothing inside has autofocus: showModal would focus the first focusable
+// element, the X button, so focus goes instead to the first enabled form control of the body or,
+// failing that, to the dialog itself (tabindex="-1", outline-none). This runs in the same task as
+// showModal, before the browser paints, so the X never shows a ring on open.
 func dialogEffect(signal string) string {
-	return "$" + signal + " ? (el.open || el.showModal()) : (el.open && el.close())"
+	body := domID(signal) + "-body"
+	return "if (!$" + signal + ") { if (el.open) el.close(); return } " +
+		"if (el.open) return; el.showModal(); " +
+		"if (el.querySelector('[autofocus]')) return; " +
+		"const f = el.querySelector(\"[id='" + body + "'] :is(input:not([type=hidden]), select, textarea):not(:disabled)\"); " +
+		"f ? f.focus() : el.focus({preventScroll: true})"
 }
 
 // dialogBackdropClick closes the dialog on a click outside its panel, only in browsers without

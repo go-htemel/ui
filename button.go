@@ -13,12 +13,12 @@ const buttonBase = "inline-flex items-center justify-center gap-x-1.5 rounded-co
 var buttonVariants = map[Variant]string{
 	Primary: "bg-primary-600 text-white shadow-xs hover:bg-primary-700 focus-visible:outline-primary-600 " +
 		"dark:bg-primary-600 dark:hover:bg-primary-500 dark:focus-visible:outline-primary-500",
-	Secondary: "bg-white text-neutral-900 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 focus-visible:outline-neutral-500 " +
-		"dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/10 dark:hover:bg-white/20",
+	Secondary: "bg-white text-neutral-900 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 focus-visible:outline-primary-600 " +
+		"dark:focus-visible:outline-primary-500 dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/10 dark:hover:bg-white/20",
 	Outline: "ring-1 ring-inset ring-primary-600 text-primary-600 hover:bg-primary-50 hover:text-primary-700 focus-visible:outline-primary-600 " +
 		"dark:ring-primary-500 dark:focus-visible:outline-primary-500 dark:text-primary-400 dark:hover:text-primary-400 dark:hover:bg-primary-500/10",
-	Ghost: "text-neutral-700 hover:bg-neutral-100 focus-visible:outline-neutral-500 " +
-		"dark:text-neutral-300 dark:hover:bg-white/10",
+	Ghost: "text-neutral-700 hover:bg-neutral-100 focus-visible:outline-primary-600 " +
+		"dark:focus-visible:outline-primary-500 dark:text-neutral-300 dark:hover:bg-white/10",
 	Danger: "bg-danger-600 text-white shadow-xs hover:bg-danger-700 focus-visible:outline-danger-600 " +
 		"dark:bg-danger-700 dark:hover:bg-danger-600 dark:focus-visible:outline-danger-500",
 	Link: "text-primary-600 underline-offset-4 hover:text-primary-700 hover:underline focus-visible:outline-primary-600 " +

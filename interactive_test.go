@@ -125,8 +125,8 @@ func TestDialogAccessibility(t *testing.T) {
 		`<dialog id="confirmDelete-dialog" aria-labelledby="confirmDelete-title" closedby="any"`, `id="confirmDelete-title"`,
 		`backdrop:bg-neutral-950/50`, `m-auto`,
 		`data-signals:confirm-delete__ifmissing="false"`,
-		`data-effect="$confirmDelete ? (el.open || el.showModal()) : (el.open && el.close())"`, // signal -> dialog
-		`data-on:close="$confirmDelete = false"`,                                               // Escape, closedby, method=dialog -> signal
+		`data-effect="if (!$confirmDelete) { if (el.open) el.close(); return } if (el.open) return; el.showModal(); `, // signal -> dialog
+		`data-on:close="$confirmDelete = false"`,                                                                      // Escape, closedby, method=dialog -> signal
 		`data-on:click__outside="if ('closedBy' in HTMLDialogElement.prototype) return; $confirmDelete = false"`,
 		`aria-label="Close" title="Close" data-on:click="$confirmDelete = false"`,
 		`autofocus>Cancel</button>`, // initial focus on the first action
@@ -136,7 +136,7 @@ func TestDialogAccessibility(t *testing.T) {
 			t.Errorf("native dialog output still contains %q:\n%s", gone, got)
 		}
 	}
-	if n := strings.Count(got, "autofocus"); n != 1 {
+	if n := strings.Count(got, " autofocus>"); n != 1 {
 		t.Errorf("want exactly one autofocus, got %d:\n%s", n, got)
 	}
 
@@ -159,7 +159,10 @@ func TestDrawer(t *testing.T) {
 	))
 	wantAll(t, got,
 		`<dialog id="filters-dialog" aria-labelledby="filters-title" closedby="any"`, `<h2 id="filters-title"`,
-		`data-effect="$filters ? (el.open || el.showModal()) : (el.open && el.close())"`,
+		`data-effect="if (!$filters) { if (el.open) el.close(); return } if (el.open) return; el.showModal(); if (el.querySelector('[autofocus]')) return; `,
+		`[id='filters-body'] :is(input:not([type=hidden]), select, textarea):not(:disabled)`, // first control, else the dialog
+		`f ? f.focus() : el.focus({preventScroll: true})`,
+		`tabindex="-1"`, `outline-none`,
 		`data-on:close="$filters = false"`,
 		`aria-label="Close" title="Close" data-on:click="$filters = false"`,
 		`m-0 mt-auto`, `translate-y-full open:translate-y-0 starting:open:translate-y-full`,
@@ -167,7 +170,7 @@ func TestDrawer(t *testing.T) {
 		// The actions are pinned after the scrolling body, whatever their position among children.
 		`<p>body</p><p>more</p></div><div class="flex shrink-0 justify-end`,
 	)
-	if strings.Contains(got, "autofocus") {
+	if strings.Contains(got, " autofocus") {
 		t.Errorf("DrawerActions must not set autofocus:\n%s", got)
 	}
 	for side, want := range map[ui.DrawerSide]string{

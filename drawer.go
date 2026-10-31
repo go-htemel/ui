@@ -34,7 +34,7 @@ type DrawerActionsElement struct {
 // DrawerActions returns the button row at the bottom of a Drawer, aligned right. Pass it among
 // the Drawer's children (usually last): the Drawer renders it as a footer that stays in view
 // while the body scrolls. Unlike DialogActions it sets no autofocus, so a drawer holding a form
-// opens with focus on its first focusable element (the X button, or an autofocus field).
+// opens with focus on an autofocus field, else its first form control (see Dialog).
 func DrawerActions(children ...htemel.FlowContent) *DrawerActionsElement {
 	return &DrawerActionsElement{html.Div(children...).Class(Classes(
 		"flex shrink-0 justify-end gap-3 border-t border-neutral-200 px-6 py-4 dark:border-white/10"))}
@@ -64,8 +64,8 @@ func DrawerActions(children ...htemel.FlowContent) *DrawerActionsElement {
 // # Accessibility
 //
 // The same as Dialog, since it is the same native modal: the page behind is inert, Tab stays
-// inside, initial focus goes to the first autofocus element or else the first focusable one (the
-// X button), focus returns to the trigger on close, and <dialog aria-labelledby> names it after
+// inside, initial focus goes to the first autofocus element, else the first form control of the
+// body, else the drawer itself (no ring is painted on the X button on open), focus returns to the trigger on close, and <dialog aria-labelledby> names it after
 // the title. The scroll lock note of Dialog applies too.
 func Drawer(signal string, side DrawerSide, title string, children ...htemel.FlowContent) *html.DialogElement {
 	size := Md
