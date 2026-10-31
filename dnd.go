@@ -14,8 +14,25 @@ import (
 //	ui.Draggable("card-42", card)
 //	ui.DropZone(ui.DropInto("dragged", datastar.Post("/board/done")), column...)
 //
-// The handler then reads {"dragged": "card-42"} with datastar-go's ReadSignals. Touch screens do
-// not fire HTML drag events; offer a button or menu as well where touch matters.
+// The handler then reads {"dragged": "card-42"} with datastar-go's ReadSignals.
+//
+// # Accessibility and touch
+//
+// HTML drag events come from a mouse (or pen) only: touch screens and keyboards cannot start a
+// drag, and no Datastar expression can synthesize one. The fallback is "pick up, then move
+// here", which runs the same action with the payload held in a signal instead of read from the
+// drag data: put PickUp(signal, payload) on a button inside the draggable, and a MoveHere button
+// in the DropZone. MoveHere appears only while something is picked up, so the keyboard and
+// touch flow is: activate "Pick up" on a card, then activate "Move here" in the target zone.
+//
+//	ui.Draggable("card-42", card, ui.Button(ui.Ghost, "Pick up").Attrs(ui.PickUp("dragged", "card-42")))
+//	ui.DropZone(ui.DropInto("dragged", act), ui.MoveHere("dragged", "Move here", act), column...)
+//
+// During a mouse drag the draggable carries data-dragging (and aria-grabbed="true", the
+// deprecated but still read ARIA 1.0 state) and a DropZone under the pointer carries data-over,
+// which the built-in classes style. They are element attributes rather than Datastar signals
+// because a signal needs a name unique to each zone and draggable, which these constructors
+// cannot choose, and every signal would be sent to the server with each request.
 
 // DragData is the expression that reads the dropped payload in a DropZone action.
 const DragData = "evt.dataTransfer.getData('text/plain')"
@@ -24,26 +41,65 @@ const DragData = "evt.dataTransfer.getData('text/plain')"
 func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).
 		Draggable(html.DraggableTrue).
-		Class(Classes("cursor-grab active:cursor-grabbing")).
-		Attrs(datastar.On("dragstart",
-			"evt.dataTransfer.setData('text/plain', "+datastar.Quote(payload)+"); evt.dataTransfer.effectAllowed = 'move'"))
+		Aria("grabbed", "false").
+		Class(Classes("cursor-grab active:cursor-grabbing data-dragging:opacity-50")).
+		Attrs(
+			datastar.On("dragstart",
+				"evt.dataTransfer.setData('text/plain', "+datastar.Quote(payload)+"); evt.dataTransfer.effectAllowed = 'move'; "+
+					"el.toggleAttribute('data-dragging', true); el.setAttribute('aria-grabbed', 'true')"),
+			datastar.On("dragend", "el.toggleAttribute('data-dragging', false); el.setAttribute('aria-grabbed', 'false')"),
+		)
 }
 
 // DropZone returns a <div> that accepts drops and runs action, a Datastar expression, on each
 // drop. It cancels dragover (which is what makes an element a drop target) and the browser's
-// default drop handling (which would otherwise navigate to dropped text in some browsers).
+// default drop handling (which would otherwise navigate to dropped text in some browsers). While
+// a drag is over the zone it has the data-over attribute, styled with an outline and tint; dragenter
+// and dragleave toggle it, ignoring the enter/leave pairs fired when the pointer crosses a child.
 func DropZone(action string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).
+		Class(Classes("data-over:outline-2 data-over:outline-dashed data-over:outline-sky-500 data-over:bg-sky-500/10")).
 		Attrs(
-			datastar.On("dragover", "evt.preventDefault()"),
-			datastar.On("drop", action, datastar.Prevent()),
+			datastar.On("dragenter", "evt.preventDefault(); el.toggleAttribute('data-over', true)"),
+			datastar.On("dragover", "evt.preventDefault(); evt.dataTransfer.dropEffect = 'move'"),
+			datastar.On("dragleave", "if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-over', false)"),
+			datastar.On("drop", "el.toggleAttribute('data-over', false); "+action, datastar.Prevent()),
 		)
 }
 
-// DropInto returns a drop action that stores the payload in signal and then runs action:
-// DropInto("dragged", datastar.Post("/move")) is "$dragged = <DragData>; @post('/move')".
-// Declare the signal on an ancestor, for example with datastar.Signal("dragged", datastar.Quote("")), so
-// that it exists before the first drop.
+// PickUp is the click handler of a "pick up" button inside a Draggable: it stores payload in
+// signal, the touch and keyboard counterpart of starting a drag. Declare the signal on an
+// ancestor, as for DropInto.
+func PickUp(signal, payload string) htemel.Attribute {
+	return datastar.OnClick("$" + signal + " = " + datastar.Quote(payload))
+}
+
+// MoveHere returns the button of a DropZone that drops the picked-up item there: it runs action,
+// the same expression the zone's drop runs but without DropInto, since PickUp already put the
+// payload in signal, and then clears the signal. It is shown only while signal is not empty.
+//
+//	ui.DropZone(ui.DropInto("dragged", act), ui.MoveHere("dragged", "Move here", act))
+//
+// Pass the plain action (datastar.Post(...)), not the DropInto expression.
+func MoveHere(signal, label, action string) *html.ButtonElement {
+	return html.Button().
+		Type(html.ButtonTypeButton).
+		Class(Classes("w-full cursor-pointer rounded-md border border-dashed border-sky-500 px-3 py-2 text-sm font-medium text-sky-700",
+			"hover:bg-sky-500/10 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-sky-400")).
+		Style(hiddenUntilDatastar).
+		Attrs(
+			datastar.Show("$"+signal+" !== ''"),
+			datastar.OnClick(action+"; setTimeout(() => { $"+signal+" = '' })"),
+		).
+		Text(label)
+}
+
+// DropInto returns a drop action that stores the payload in signal, runs action and then clears
+// the signal again: DropInto("dragged", datastar.Post("/move")) is
+// "$dragged = <DragData>; @post('/move'); setTimeout(() => { $dragged = ” })". The request has
+// already read the signal when the timeout fires, and clearing it keeps MoveHere hidden after a
+// mouse drop. Declare the signal on an ancestor, for example with
+// datastar.Signal("dragged", datastar.Quote("")), so that it exists before the first drop.
 func DropInto(signal, action string) string {
-	return "$" + signal + " = " + DragData + "; " + action
+	return "$" + signal + " = " + DragData + "; " + action + "; setTimeout(() => { $" + signal + " = '' })"
 }

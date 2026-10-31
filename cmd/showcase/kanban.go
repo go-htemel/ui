@@ -84,6 +84,7 @@ func (b *board) view() *html.DivElement {
 		}
 		root.Children(ui.DropZone(
 			ui.DropInto("dragged", datastar.Post("/demo/kanban/move/"+col.key)),
+			ui.MoveHere("dragged", "Move here", datastar.Post("/demo/kanban/move/"+col.key)),
 			html.Div(
 				html.H3().Class("text-sm font-semibold text-zinc-900 dark:text-white").Text(col.title),
 				ui.Badge(ui.Neutral, strconv.Itoa(len(in))),
@@ -98,7 +99,8 @@ func (b *board) view() *html.DivElement {
 func kanbanCardView(c kanbanCard) *html.DivElement {
 	return ui.Draggable(c.ID,
 		ui.IconGripVertical().Class("size-4 shrink-0 text-zinc-400"),
-		html.Span().Text(c.Title),
+		html.Span().Class("flex-1").Text(c.Title),
+		ui.Button(ui.Ghost, "Pick up", ui.WithSize(ui.Xs)).Attrs(ui.PickUp("dragged", c.ID)),
 	).Id("card-" + c.ID).
 		AddClass(ui.Classes("flex items-center gap-2 rounded-md bg-white p-3 text-sm text-zinc-800 shadow-xs ring-1 ring-zinc-950/5",
 			"dark:bg-zinc-800 dark:text-zinc-100 dark:ring-white/10"))
