@@ -84,7 +84,7 @@ func avatars() htemel.FlowContent {
 
 func keyboard() htemel.FlowContent {
 	return html.P(
-		htemel.Text("Press "), ui.Kbd("⌘"), htemel.Text(" "), ui.Kbd("K"),
+		htemel.Text("Press "), ui.Kbd("Ctrl"), htemel.Text(" "), ui.Kbd("K"),
 		htemel.Text(" to search, or "), ui.Kbd("Esc"), htemel.Text(" to close a dialog."),
 	).Class("text-sm text-neutral-700 dark:text-neutral-300")
 }

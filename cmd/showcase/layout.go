@@ -93,10 +93,15 @@ func exampleView(e Example) *html.SectionElement {
 		html.H2().Class("text-sm font-semibold text-neutral-900 dark:text-white").Text(e.Title),
 		html.Div(e.Node()).Class(ui.Classes("mt-3 min-w-0 rounded-surface bg-white p-6 ring-1 ring-neutral-950/5 dark:bg-neutral-900 dark:ring-white/10")),
 		html.Details(
-			html.Summary().Class("cursor-pointer select-none text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white").Text("Show source"),
+			// list-none and the -webkit- rule hide the browser's disclosure triangle; the chevron icon
+			// rotates via group-open: instead.
+			html.Summary(
+				ui.IconChevronRight().Class("size-3.5 shrink-0 transition-transform duration-150 group-open:rotate-90"),
+				html.Span().Text("Show source"),
+			).Class("inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-neutral-500 select-none hover:text-neutral-900 [&::-webkit-details-marker]:hidden dark:text-neutral-400 dark:hover:text-white"),
 			html.Pre(html.Code().Text(e.Source)).
 				Class(ui.Classes("mt-2 max-h-[32rem] min-w-0 overflow-auto rounded-surface bg-neutral-900 p-4 text-xs/5 text-neutral-100 ring-1 ring-white/10 dark:bg-black/40")),
-		).Class("mt-3"),
+		).Class("group mt-3"),
 	).Class("mt-10")
 }
 

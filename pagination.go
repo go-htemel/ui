@@ -123,7 +123,7 @@ func paginationNav(page, pages int, item func(int) htemel.FlowContent, prev, nex
 	list := html.Ul(html.Li(prev))
 	for _, n := range pageWindow(page, pages) {
 		if n == 0 {
-			list.Children(html.Li(html.Span().Class(Classes(pageGapClass)).Text("…").Aria("hidden", "true")))
+			list.Children(html.Li(html.Span(IconEllipsis().Class("size-4")).Class(Classes(pageGapClass)).Aria("hidden", "true")))
 			continue
 		}
 		list.Children(html.Li(item(n)))
