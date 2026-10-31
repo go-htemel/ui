@@ -82,7 +82,9 @@ func tags(t *testing.T, label, doc string, allowed map[string]bool) []tag {
 		case html.StartTagToken, html.SelfClosingTagToken:
 			tok := z.Token()
 			for _, a := range tok.Attr {
-				if strings.HasPrefix(a.Key, "data-") && !allowed[datastarBase(a.Key)] {
+				// data-ui-* attributes belong to assets/ui.js, not Datastar, which ignores
+				// attributes whose plugin it does not know.
+				if strings.HasPrefix(a.Key, "data-") && !strings.HasPrefix(a.Key, "data-ui-") && !allowed[datastarBase(a.Key)] {
 					t.Errorf("%s: <%s %s>: %s is not a Datastar v1.0.4 attribute", label, tok.Data, a.Key, datastarBase(a.Key))
 				}
 			}

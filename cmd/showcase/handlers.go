@@ -28,6 +28,7 @@ func routes() http.Handler {
 		renderPage(w, groupPage(g))
 	})
 	r.Get("/avatar.svg", avatarSVG)
+	r.Mount("/assets", http.StripPrefix("/assets", ui.Assets()))
 
 	r.Route("/demo", func(r chi.Router) {
 		r.Post("/toast", pushToast)

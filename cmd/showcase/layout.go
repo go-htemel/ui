@@ -36,6 +36,7 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 				html.Style().Attr("type", "text/tailwindcss").Text(fontTheme),
 				html.Script().Type(html.ScriptTypeModule).Src(datastarJS),
 				html.Link().Rel("stylesheet").Href(fontAwesomeCSS),
+				ui.ScriptTag("/assets"),
 			),
 			html.Body(
 				html.Div(

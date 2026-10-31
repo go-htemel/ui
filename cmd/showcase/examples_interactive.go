@@ -56,9 +56,10 @@ func accordion() htemel.FlowContent {
 
 func kanbanBoard() htemel.FlowContent {
 	// Drag a card to another column: the drop posts {"dragged": "<card id>"} and the server
-	// patches the whole board back. The board lives in server memory.
+	// patches the whole board back. The board lives in server memory. Sortable adds touch
+	// dragging when ui.js is loaded; the grip buttons (Pick up / Move here) work without it.
 	return html.Div(
-		demoBoard.view(),
+		ui.Sortable(demoBoard.view()),
 		html.Div(ui.Button(ui.Ghost, "Reset board", ui.WithSize(ui.Sm)).
 			Attrs(datastar.OnClick(datastar.Post("/demo/kanban/reset")))).Class("mt-4"),
 	)

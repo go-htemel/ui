@@ -33,6 +33,14 @@
 // with datastar-go) and hide themselves after a timeout, which pauses while the pointer or focus
 // is on the toast.
 //
+// # Assets
+//
+// One optional embedded script, served by Assets and loaded with ScriptTag, defines the
+// <ui-sortable> custom element that Sortable renders: it adds touch dragging to Draggable and
+// DropZone and nothing else. Every component works without it (the PickUp and MoveHere buttons
+// are the touch fallback), and it needs no inline script, so a strict Content-Security-Policy
+// allows it.
+//
 // # Accessibility
 //
 // Dialog, Dropdown, Tabs, Disclosure, Accordion, Draggable and Toast carry their ARIA roles and

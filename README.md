@@ -112,6 +112,44 @@ Tailwind v4 is required (the components use `shadow-xs`, `has-checked:` and `*:`
 showcase uses the Tailwind browser build from a CDN; real applications should build their CSS
 with the Tailwind CLI.
 
+## Assets and progressive enhancement
+
+Everything works without JavaScript files of your own. The one exception is optional: `ui.js`, a
+small embedded script (vanilla ES2020, no dependencies, about 150 lines) that defines the
+`<ui-sortable>` custom element for touch dragging. Serve it with `ui.Assets()` and load it with
+`ui.ScriptTag()`:
+
+```go
+mux.Handle("/assets/", http.StripPrefix("/assets", ui.Assets()))   // GET /assets/ui.js
+
+html.Head(ui.ScriptTag("/assets")) // <script type="module" src="/assets/ui.js?v=<hash>">
+```
+
+The script is served as `text/javascript` with `Cache-Control: public, max-age=31536000,
+immutable` and an `ETag`; the `?v=` hash in the tag changes whenever the script does, so a
+library upgrade is never stale. It is a module script (deferred), loaded from your own origin and
+needing no inline script, so a Content-Security-Policy of `script-src 'self'` allows it. The
+components still use Datastar's `data-on` attributes, which Datastar evaluates itself. Skip
+`ScriptTag` and nothing breaks: each enhancement has a no-script fallback.
+
+### Touch drag
+
+HTML drag events never come from a touch screen. Wrap your board in `ui.Sortable` and load
+`ui.js`, and a long press (about 150 ms; a swipe before that still scrolls) on a `Draggable` lifts
+a copy that follows the finger. Releasing it over a `DropZone` runs the same action a mouse drop
+runs, so `DropInto` needs no change:
+
+```go
+ui.Sortable(board) // board contains DropZone(DropInto("dragged", act), ...) and Draggable(...)
+```
+
+`Draggable` and `DropZone` carry `data-ui-drag`, `data-ui-payload` and `data-ui-dropzone` for the
+script. It dispatches bubbling `ui:dragstart` (on the dragged element), `ui:drop` (on the zone;
+`detail.payload`) and `ui:dragend` (`detail.payload`, `detail.dropped`) events, and sets
+`data-over` and `data-dragging` like the native path. Mouse pointers are ignored by the script
+and keep the browser's native drag and drop. Without `ui.js`, the `PickUp` and `MoveHere` buttons
+remain the touch and keyboard fallback.
+
 ## Showcase
 
 ```shell
