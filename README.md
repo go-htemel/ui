@@ -55,6 +55,7 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader`), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
 | Navigation | `Navbar`/`NavbarSignal` with `NavLink` (collapses by container width), `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`BreadcrumbsLabel`/`Crumb`, `Steps`/`StepsLabel` | ready; no arrow keys yet |
 | Progress | `Progress`, `ProgressSignal`, `Skeleton`, `Spinner` | ready |
+| Code | `code.Block`, `code.Inline` (subpackage `ui/code`, server-side highlighting; see Code blocks) | ready |
 | Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` (labelled by `Field` through its inner control) | ready |
 | Planned | Command palette | — |
 
@@ -341,6 +342,62 @@ switch knob meet 3:1 (SC 1.4.11) in both schemes; the contrast test has a row fo
 | Chrome / Edge 135+ | customizable picker (`appearance: base-select`) |
 | Firefox, Safari (at the time of writing), older Chromium | native popup; the closed select is styled the same |
 
+## Code blocks
+
+Syntax highlighting runs on the server, in its own package so that applications that do not use it
+do not link the highlighter ([chroma](https://github.com/alecthomas/chroma) v2; the root `ui`
+package has no dependency on it):
+
+```go
+import "github.com/go-htemel/ui/code"
+
+code.Block("go", src, code.WithLineNumbers(), code.WithTitle("main.go"), code.WithHighlight(3))
+html.P(htemel.Text("Call "), code.Inline("go", `ui.Button(ui.Primary, "Save")`))
+```
+
+`Block(lang, src, opts...)` returns a `*code.BlockElement`, a `<figure class="ui-code">` (flow
+content; `Attrs`, `SetAttr` and `AddClass` reach the figure) with an optional toolbar, a focusable
+`<pre><code>` with one `<span class="line">` per line, and a `<template>` holding the raw source.
+`Inline(lang, src)` returns a highlighted `<code>`. `lang` is a chroma lexer name or alias (`go`,
+`css`, `html`, `js`, `json`, `bash`, `sql`, `yaml`, `markdown`, ...); an unknown or empty one, or a
+lexer that fails, renders plain text, never an error. All text is escaped.
+
+| Option | Effect |
+| --- | --- |
+| `WithLineNumbers()` | gutter of CSS counters: never selected, copied or announced |
+| `WithStart(n)` | number of the first line; highlight numbers follow it |
+| `WithHighlight(lines...)`, `WithHighlightRange(from, to)` | `data-hl` on those lines: primary tint and a left bar |
+| `WithTitle(s)` | file name in a toolbar above the code; also the figure's `aria-label` |
+| `WithWrap()` | soft wrap instead of horizontal scrolling (the default) |
+| `WithoutCopyButton()` | the copy button is on by default |
+| `WithID(s)` | name of the copy button's signal, see below |
+
+Cap the height with `AddClass("[--ui-code-max-height:24rem]")`; the code scrolls, the toolbar stays.
+
+**Copy button.** An `IconButton` (`IconCopy`, which fades to `IconCheck` for 1.5s in 150ms,
+without motion under `prefers-reduced-motion`) writes the template's text to the clipboard, so
+the copy is the source, not the rendered lines; it needs Datastar and a secure context (https or
+localhost). A visually hidden `aria-live="polite"` region says "Copied". The signal behind it is
+local to the browser (`_copied_<id>`, the underscore keeps it out of requests) and `<id>` is the
+first 8 hex digits of a SHA-1 of language and source, so the same input renders the same HTML.
+Two blocks with identical language and source on one page share that signal and would both show
+the check mark; give them distinct `WithID` values.
+
+**Tokens and colours.** Chroma's token types are reduced to 14 classes: `tok-keyword`,
+`tok-builtin`, `tok-name`, `tok-function`, `tok-type`, `tok-string`, `tok-number`, `tok-literal`,
+`tok-attribute`, `tok-tag`, `tok-comment`, `tok-operator`, `tok-punctuation`, `tok-error`
+(plain identifiers and whitespace have no span). The colours are variables in `assets/ui.css`,
+light on `:root` and dark under `.dark`: `--color-code-keyword` (primary 700 / 300),
+`-builtin` (primary 600 / 400), `-name` (neutral 800 / 200), `-function` (info 700 / 300),
+`-type` (info 800 / 200), `-string` (success 800 / 300), `-number` and `-literal` (warning 800 /
+300), `-attribute` (info 700 / 300), `-tag` and `-error` (danger 700 / 300), `-comment` and
+`-punctuation` (neutral 600 / 400), `-operator` (neutral 700 / 300), plus `-text`, `-gutter`,
+`-title`, `-surface`, `-border`, `-highlight` and `-highlight-bar`. Override them in your own
+`:root` / `.dark` rules to retheme. Every pair is at least 4.5:1 on the code surface (neutral-50;
+black/40 in dark), on the surface over a card and on a highlighted line; the contrast test has
+the rows (`Code/...`). Regenerate `ui.theme.css` (`cmd/themecss`) to get the rules, and
+`tailwind.safelist.txt` (`cmd/safelist` reads `code/` as well as the root package).
+
 ## Assets and progressive enhancement
 
 Everything works without JavaScript files of your own. The one exception is optional: `ui.js`, a
@@ -395,6 +452,7 @@ go run ./cmd/showcase -addr :8081
 `cmd/showcase` renders one page per component group with each live component next to the Go
 source that produced it, plus datastar-go demos: server-pushed toasts, live form validation, a
 kanban board whose drops post to the server and a table that sorts and pages on the server. The
+Code page shows the `code` package, and the
 Theming page switches token sets live through `<html data-theme>`. Example functions live in
 `cmd/showcase/examples_*.go`; those files are embedded and parsed at startup, so the displayed
 source is always the code that ran.
