@@ -8,6 +8,11 @@ import (
 
 // Disclosure returns a button that shows and hides children, open while signal is true (the
 // signal starts false unless the page defines it).
+//
+// The button is a real <button> with aria-expanded bound to the signal and aria-controls naming
+// the panel, which is a role="region" labelled by the button. The panel is shown and hidden with
+// data-show only (an inline display: none), not the hidden attribute: the two would fight, since
+// removing data-show's style would leave hidden in force.
 func Disclosure(signal, title string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(
 		disclosureParts(domID(signal), title, "$"+signal, Toggle(signal), children)...,
@@ -27,12 +32,14 @@ func AccordionItem(key, title string, children ...htemel.FlowContent) AccordionP
 }
 
 // Accordion returns stacked disclosures of which at most one is open: signal holds the key of
-// the open item, or "" when all are closed (the default unless the page defines the signal).
+// the open item, or "" when all are closed (the default unless the page defines the signal). Each
+// item is a Disclosure; ArrowDown / ArrowUp move focus between the item buttons (wrapping) and
+// Home / End jump to the first / last.
 func Accordion(signal string, items ...AccordionPanel) *html.DivElement {
 	sig := "$" + signal
 	root := html.Div().
 		Class(Classes("divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-white/10 dark:border-white/10")).
-		Attrs(initially(signal, "''"))
+		Attrs(initially(signal, "''"), datastar.OnKeyDown(accordionKeys))
 	for _, it := range items {
 		key := datastar.Quote(it.key)
 		open := sig + " === " + key
@@ -47,11 +54,13 @@ func Accordion(signal string, items ...AccordionPanel) *html.DivElement {
 // disclosureParts builds the toggle button and the panel shown while open is true.
 func disclosureParts(id, title, open, toggle string, children []htemel.FlowContent) []htemel.FlowContent {
 	panelID := id + "-panel"
+	buttonID := id + "-button"
 	button := html.Button(
 		html.Span().Text(title),
 		IconChevronDown().Class("size-5 shrink-0 text-zinc-400 transition-transform duration-200").
 			Attrs(datastar.Class("rotate-180", open)),
 	).Type(html.ButtonTypeButton).
+		Id(buttonID).
 		Class(Classes("flex w-full cursor-pointer items-center justify-between gap-x-4 py-3 text-left text-sm font-semibold",
 			"text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-white")).
 		Aria("controls", panelID).
@@ -59,8 +68,18 @@ func disclosureParts(id, title, open, toggle string, children []htemel.FlowConte
 		Attrs(datastar.OnClick(toggle))
 	panel := html.Div(children...).
 		Id(panelID).
+		Role("region").
+		Aria("labelledby", buttonID).
 		Class(Classes("pb-4 text-sm text-zinc-600 dark:text-zinc-300")).
 		Style(hiddenUntilDatastar).
 		Attrs(datastar.Show(open))
 	return []htemel.FlowContent{button, panel}
 }
+
+// accordionKeys moves focus among the item buttons, which are the first child of each item.
+const accordionKeys = "const b = [...el.children].map(d => d.firstElementChild), i = b.indexOf(document.activeElement), k = evt.key; " +
+	"if (i < 0) return; " +
+	"const n = k === 'ArrowDown' ? (i + 1) % b.length : k === 'ArrowUp' ? (i + b.length - 1) % b.length " +
+	": k === 'Home' ? 0 : k === 'End' ? b.length - 1 : -1; " +
+	"if (n < 0) return; " +
+	"evt.preventDefault(); b[n].focus()"
