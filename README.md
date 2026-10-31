@@ -827,6 +827,33 @@ article, and the Theming page switches token sets live through `<html data-theme
 `cmd/showcase/examples_*.go`; those files are embedded and parsed at startup, so the displayed
 source is always the code that ran.
 
+### Admin demo
+
+"Admin demo" in the showcase sidebar opens `/admin`, a believable blog/CMS admin built only from
+this library, as full-page routes outside the component pages' frame (`cmd/showcase/admin_*.go`;
+a "back to showcase" link sits in its top bar). It is the integration test of the component
+list: an `AppShell` with a collapsible rail (its state persists across routes), nav with icons
+and a post-count badge, an account `Dropdown` and `ColorSchemeToggle` in the footer; a dashboard
+(`StatGrid`, a `Table` of recent activity, `Progress`); a **posts list** with a `FilterBar`,
+`SortableTh` columns, bulk select, row menus, confirm `Dialog`s, `PaginationSignal` and an
+`EmptyState`, all served by one `GET /admin/posts/list` SSE handler that reads the signals and
+patches only the table body, the select-all cell, the pager and the count line (so the search
+field keeps its focus while you type); a **post editor** (`StackedLayout`, `SlugField`,
+`MarkdownEditor` with a server-rendered split preview, `TagInput`, `FileUpload`, a Publish card,
+`ErrorSignal` validation, a toast and a patched "Saved" line, a preview `Drawer`); **settings**
+(`SettingsLayout`, `Prose` help text, the `data-theme` switch of the Theming page, remembered in
+`localStorage`); **notes** (`SplitLayout` with server search and an inline Edit toggle) and a 404
+`EmptyState`. Posts, notes and settings live in server memory, like the kanban board, and are
+restored by `POST /admin/reset` ("Reset demo data" under Settings). The pages hold no
+hand-written `data-*` attributes and no script but `ColorSchemeBootstrap`, which tests guard.
+
+Screenshots are not stored in the repository. `task a11y` drives every admin page and state
+(and `A11Y_PAGES=admin` limits a run to them); to look at the pages run `task run` and open
+<http://localhost:8080/admin>. The review screenshots (dashboard light and dark, the posts list
+with its bulk bar, the editor in dark, notes, settings, and the phone-width dashboard with its
+drawer) were written to `/tmp/claude-0/-home-user/6cbb6813-54d5-5200-9cd8-e90c002cf8a2/scratchpad/admin/` by a throwaway Playwright script and are not part of
+the module.
+
 ## Datastar version
 
 The library targets Datastar v1.0.4 and emits its colon key syntax (`data-on:click`,
