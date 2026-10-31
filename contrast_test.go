@@ -277,6 +277,9 @@ func matrix() []spec {
 
 	// Other focus rings that sit on the page background.
 	add("Disclosure", "focus-visible outline", "disclosure.go:68", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
+
+	// Code blocks (assets/ui.css, --color-code-*): see contrast_code_test.go.
+	m = append(m, codeRows()...)
 	return m
 }
 
@@ -517,24 +520,34 @@ func TestContrastMatrixInSync(t *testing.T) {
 	}
 	lines := map[string][]string{}
 	for _, sp := range matrix() {
-		m := srcRef.FindStringSubmatch(sp.src)
-		if m == nil {
-			t.Errorf("%s/%s: bad src %q", sp.component, sp.state, sp.src)
-			continue
-		}
-		if lines[m[1]] == nil {
-			b, err := os.ReadFile(m[1])
-			if err != nil {
-				t.Fatal(err)
+		// src is one or more comma-separated file:line references; a class may be on any of them.
+		var cited []string
+		bad := false
+		for _, ref := range strings.Split(sp.src, ",") {
+			m := srcRef.FindStringSubmatch(ref)
+			if m == nil {
+				t.Errorf("%s/%s: bad src %q", sp.component, sp.state, ref)
+				bad = true
+				break
 			}
-			lines[m[1]] = strings.Split(string(b), "\n")
+			if lines[m[1]] == nil {
+				b, err := os.ReadFile(m[1])
+				if err != nil {
+					t.Fatal(err)
+				}
+				lines[m[1]] = strings.Split(string(b), "\n")
+			}
+			n, _ := strconv.Atoi(m[2])
+			if n < 1 || n > len(lines[m[1]]) {
+				t.Errorf("%s/%s: %s is out of range", sp.component, sp.state, ref)
+				bad = true
+				break
+			}
+			cited = append(cited, m[1]+"\x00"+lines[m[1]][n-1])
 		}
-		n, _ := strconv.Atoi(m[2])
-		if n < 1 || n > len(lines[m[1]]) {
-			t.Errorf("%s/%s: %s is out of range", sp.component, sp.state, sp.src)
+		if bad {
 			continue
 		}
-		line := lines[m[1]][n-1]
 		found := false
 		var all []string
 		for _, s := range []side{sp.light, sp.dark} {
@@ -543,7 +556,11 @@ func TestContrastMatrixInSync(t *testing.T) {
 					continue
 				}
 				all = append(all, c)
-				inLine := hasClass(line, c) || strings.HasSuffix(m[1], ".css") && cssHasColor(line, c)
+				inLine := false
+				for _, cl := range cited {
+					file, line, _ := strings.Cut(cl, "\x00")
+					inLine = inLine || hasClass(line, c) || strings.HasSuffix(file, ".css") && cssHasColor(line, c)
+				}
 				// Tone-keyed maps render one tone per golden; those classes are covered by the
 				// source line check alone.
 				if !rendered[c] && !inLine {
