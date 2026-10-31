@@ -18,6 +18,7 @@ import (
 var demoThemes = []struct {
 	name, primary, neutral, control, surface, font string
 }{
+	{name: "sky", primary: "sky", control: "var(--radius-md)", surface: "var(--radius-md)"},
 	{name: "indigo", primary: "indigo", control: "var(--radius-lg)", surface: "var(--radius-xl)"},
 	{name: "emerald", primary: "emerald", neutral: "stone", control: "calc(infinity * 1px)", surface: "var(--radius-2xl)"},
 	{name: "editorial", primary: "rose", neutral: "slate", control: "0", surface: "0",
@@ -53,7 +54,8 @@ func themeSwitcher() htemel.FlowContent {
 	// variables defined under [data-theme="..."] (shown below) retheme every component on the page.
 	return ui.Stack(ui.Lg,
 		ui.Field("theme", "Theme", ui.Select("theme",
-			ui.Choice("", "Default (sky, zinc, md corners)"),
+			ui.Choice("", "Default (Emerald Sky, zinc, md corners)"),
+			ui.Choice("sky", "Sky (Tailwind stock)"),
 			ui.Choice("indigo", "Indigo (lg and xl corners)"),
 			ui.Choice("emerald", "Emerald on stone (pill controls)"),
 			ui.Choice("editorial", "Editorial (rose on slate, square, serif)"),

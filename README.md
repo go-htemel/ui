@@ -127,7 +127,7 @@ Components never name a palette color. They use semantic tokens, defined as CSS 
 
 | Token | Utilities | Default | Used for |
 | --- | --- | --- | --- |
-| `--color-primary-{50..950}` | `bg-primary-700`, `text-primary-700`, `outline-primary-700`, ... | `sky` | primary buttons, links, focus rings, selected and active states, drop targets |
+| `--color-primary-{50..950}` | `bg-primary-600`, `text-primary-600`, `outline-primary-600`, ... | Emerald Sky (tuned, literal OKLCH) | primary buttons, links, focus rings, selected and active states, drop targets |
 | `--color-neutral-{50..950}` | `bg-neutral-50`, `text-neutral-500`, `ring-neutral-950/5`, ... | `zinc` | surfaces, text, borders, dividers, the page background |
 | `--color-success-{50..950}` | `bg-success-50`, `text-success-700`, ... | `green` | Success tone (Badge, Alert, Toast, Progress), positive Stat deltas |
 | `--color-warning-{50..950}` | `bg-warning-50`, `text-warning-800`, ... | `amber` | Warning tone |
@@ -147,20 +147,48 @@ The shipped defaults meet WCAG 2.1 AA (4.5:1 for text, 3:1 for borders, focus ri
 light and dark, and the Go contrast test (`go test -run Contrast .`) measures every pair the
 components render. The steps follow one convention:
 
-- Solid surfaces with white text (Primary button, current page, completed step) use
-  `bg-primary-700`, hover `bg-primary-800`, in both schemes; Danger uses `bg-danger-600`, hover
-  `bg-danger-700`. Links and active labels are `text-primary-700` (hover `800`) in light and
-  `dark:text-primary-400` in dark.
-- Focus rings are `outline-primary-700` (`outline-neutral-500` on neutral controls) in light and
+- Solid surfaces with white text (Primary button, current page) use `bg-primary-600`, hover
+  `bg-primary-700` in light. In dark they start at `dark:bg-primary-700` and hover to the
+  *lighter* `dark:hover:bg-primary-600`: the tuned 500 is only 3.2:1 with white, so the usual
+  600 to 500 dark hover would miss 4.5:1. Danger is `bg-danger-600`, hover `700` in light and
+  `dark:bg-danger-700`, hover `dark:hover:bg-danger-600` (lighter, 4.8:1) in dark. Progress
+  fills and completed Steps sit at 600 (light) and 500 (dark fill).
+- Links and active labels are `text-primary-600` (hover `700`) in light and
+  `dark:text-primary-400` (hover `300`) in dark.
+- Focus rings are `outline-primary-600` (`outline-neutral-500` on neutral controls) in light and
   `primary-500` in dark; input borders are `outline-neutral-500` / `dark:outline-white/35`;
   placeholders `neutral-500` / `dark:neutral-400`.
 
-Light hues such as sky (the default), cyan, amber, lime and yellow only reach 4.5:1 against
-white text at the 700 step, which is why the solids use it; a darker hue (indigo, blue, violet)
-has room to spare. The test guards the shipped defaults only (the aliases in `assets/ui.css`).
-After retheming, run it against your palette: change those aliases in a checkout of this module
-and rerun it (`CONTRAST_REPORT=contrast.md go test -run 'Contrast$' .` writes the full table
-with a suggested step for every failing pair).
+#### The default primary: Emerald Sky
+
+The default `primary` is not a Tailwind palette alias. It is a tuned version of a hand-made
+palette, "Emerald Sky", written as literal `oklch(...)` values in `assets/ui.css`: its hue drifts
+from green (about 150 at 50) to blue (about 247 at 950) and each step keeps its original chroma.
+The original had one step just under AA (600 was 4.42:1 with white) and uneven lightness (300 to
+400 and 800 to 900 nearly identical). `go run ./cmd/palettetune` re-derives it: per step it keeps
+hue and chroma (reducing chroma only to stay in the sRGB gamut) and sets lightness to satisfy:
+
+- 600: white text at least 4.8:1 (solids; as link text it stays at 4.5:1 or more on the
+  `neutral-50` page, which 4.6 would not); 700: at least 6:1; 800: at least 8:1.
+- 500: white at least 3.1:1 (non-text). It is deliberately not solved for 4.5:1, which would
+  collapse it into 600.
+- 400 and 300: at least 6:1 and 8:1 on `neutral-900`/`neutral-950` (dark-mode text).
+- 50 to 200: `neutral-900` text at least 12:1 on them.
+- Consecutive steps differ by at least 0.06 in OKLCH lightness (about 0.09 across 400, 500, 600).
+
+Stock Tailwind `sky` is still available (`--color-primary-600: var(--color-sky-600)`, ...; the
+showcase's Theming page has it as "Sky (Tailwind stock)"), but see the next section.
+
+#### Retheming to a stock palette
+
+The test guards the shipped defaults only (the tokens in `assets/ui.css`). Light hues such as
+sky, cyan, amber, lime and yellow only reach 4.5:1 against white text at the 700 step, so with
+one of those the solids need `bg-primary-700` (hover 800) and links `text-primary-700`: map the
+tokens one step darker (`--color-primary-600: var(--color-sky-700)`, `--color-primary-700:
+var(--color-sky-800)`) or accept the contrast failures. A darker hue (indigo, blue, violet) has
+room to spare. After retheming, run the test against your palette: change the tokens in a
+checkout of this module and rerun it (`CONTRAST_REPORT=contrast.md go test -run 'Contrast$' .`
+writes the full table with a suggested step for every failing pair).
 
 ### Overriding tokens
 
@@ -179,7 +207,7 @@ Override in your `@theme` block, after the import, to change the default for the
 ```
 
 Alias the whole scale of a family you change: components use several steps (for example
-`bg-primary-700 hover:bg-primary-800 dark:text-primary-400`). Any CSS color works as a value
+`bg-primary-600 hover:bg-primary-700 dark:text-primary-400`). Any CSS color works as a value
 (`oklch(...)`, hex), not only a Tailwind palette variable. The token families share their names
 with nothing in Tailwind's palette except `neutral`: `ui.theme.css` redefines Tailwind's `neutral`
 scale as the zinc alias, so `bg-neutral-*` in your own markup follows the token too.
@@ -209,7 +237,7 @@ html.Div(content...).Attr("data-theme", "emerald") // or set it on <html> to swi
 
 Switching `data-theme` (the showcase's Theming page does it with a `<select>`, a signal and
 `data-effect`) needs no CSS build either. Override the semantic token (`--color-primary-600`), not
-the palette color it aliases (`--color-sky-600`): the alias resolves where it is declared, on
+the palette color it aliases (for a stock theme, `--color-sky-600`): the alias resolves where it is declared, on
 `:root`. Tailwind emits the palette variables your CSS references (`var(--color-emerald-600)`
 above), but CSS it never sees, such as a per-tenant `style="--color-primary-600: ..."` added at
 runtime, should use literal color values.

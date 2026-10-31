@@ -59,8 +59,8 @@
 // neutral (surfaces, text, borders), success, warning, danger and info (bg-primary-600,
 // text-neutral-500, ring-danger-600/20), the radii rounded-control and rounded-surface, and
 // Tailwind's own font-sans. ThemeCSS (also cmd/themecss, and /ui.css from Assets) holds the
-// default tokens as a Tailwind @theme block that aliases sky, zinc, green, amber, red and blue and
-// md corners. Applications retheme by overriding those CSS variables, globally in their own
+// default tokens as a Tailwind @theme block: a tuned Emerald Sky primary written as literal OKLCH,
+// zinc, green, amber, red and blue aliases, and md corners. Applications retheme by overriding those CSS variables, globally in their own
 // @theme or per scope under a selector such as [data-theme="indigo"]; no Go code changes and
 // nothing is rewritten at render time. Classes joins and normalizes class lists for your own
 // components. Tailwind only generates classes it finds in your sources, so add the safelist

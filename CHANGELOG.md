@@ -2,8 +2,10 @@
 
 ## Unreleased
 
+- **Visual change: new default `primary`.** The default is now a tuned "Emerald Sky" palette (green at 50 drifting to blue at 950), literal `oklch(...)` values in `assets/ui.css` instead of an alias of Tailwind `sky`; `cmd/palettetune` derives it from the original and prints the before/after table. Stock sky is a selectable theme in the showcase.
+- Components return to the conventional steps: Primary button, current page and completed step are `bg-primary-600` (hover `700`), links and active tabs `text-primary-600` (hover `700`), focus rings `outline-primary-600`. Dark-mode hovers go lighter: Primary starts at `dark:bg-primary-700` and hovers to `600`; Danger hovers from `dark:bg-danger-700` to `600`. Retheming to a light stock hue (sky, cyan, amber, lime, yellow) now needs the 700 mapping described in the README.
 - `DrawerSized(signal, side, size, title, ...)` sets the panel width of left/right drawers (`Xs`…`Xl` → `max-w-xs`…`max-w-2xl`); `Drawer` keeps `Md` right / `Xs` left. Chaining a `max-w-*` class is unreliable because two utilities would compete.
-- Danger buttons use `danger-700` (hover `800`) in dark mode; pure `red-600` glowed on dark surfaces. Still 6:1 with white text.
+- Danger buttons use `danger-700` (hover `600`, lighter) in dark mode; pure `red-600` glowed on dark surfaces. Still 6:1 with white text.
 - `Select` returns `*SelectElement`: a grid wrapper with the library chevron over an `appearance-none` native select (the browser arrow was heavy and unthemed, especially in dark mode). `Attrs`/`SetAttr` still target the `<select>`, and `Field` labels it through `Control()`.
 
 ### Motion
