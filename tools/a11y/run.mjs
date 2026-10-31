@@ -1,6 +1,8 @@
 // Accessibility scan of the showcase: every page, light and dark, plus interactive states
 // (open dialog, drawer and bottom sheet, open dropdown, switched tab, expanded accordion, open
-// mobile nav drawer, the color scheme toggle switched to the other scheme).
+// mobile nav drawer of the narrow navbar, the open customizable select picker, the color scheme
+// toggle switched to the other scheme). Every page must also load without console errors
+// (requests to the blocked external CDNs excepted).
 //
 // Dark mode follows the .dark class on <html> (ui.css's @custom-variant), set by the inline
 // ui.ColorSchemeBootstrap script from localStorage or, in system mode, from prefers-color-scheme.
@@ -113,10 +115,25 @@ const STATES = {
       },
     },
   ],
+  "/components/forms": [
+    {
+      // appearance: base-select (Chromium 135+) makes the picker DOM in the top layer, so axe can
+      // scan its options. Skipped where the browser lacks base-select.
+      name: "select picker open",
+      async open(page) {
+        const supported = await page.evaluate(() => CSS.supports("appearance", "base-select"));
+        if (!supported) { console.log("  (base-select unsupported: picker state skipped)"); return; }
+        await page.locator("select#plan").click();
+        await page.waitForFunction(() => document.querySelector("select#plan").matches(":open"), null, { timeout: 5000 });
+      },
+      async close(page) { await page.keyboard.press("Escape"); },
+    },
+  ],
   "/components/navigation": [
     {
+      // The navbar collapses by container width: the 380px demo frame shows the menu button at
+      // any viewport size.
       name: "mobile nav drawer open",
-      viewport: { width: 390, height: 800 },
       async open(page) {
         await page.getByRole("button", { name: "Open menu" }).first().click();
         await page.locator('button[aria-label="Open menu"][aria-expanded=true]').first().waitFor({ timeout: 5000 });
@@ -130,6 +147,48 @@ const STATES = {
 // Behaviour checks beyond axe, keyed by page. Each returns a list of failure messages; any
 // failure fails the run (exit 1) like a WCAG violation.
 const CHECKS = {
+  "/components/navigation": [
+    {
+      // Container queries: the narrow frame's navbar shows the menu button and hides the links;
+      // the full-width one shows the links and hides the button.
+      name: "navbar follows its container width",
+      async run(page) {
+        const r = await page.evaluate(() => [...document.querySelectorAll("nav[aria-label^='Demo']")].map((n) => ({
+          label: n.getAttribute("aria-label"), width: Math.round(n.getBoundingClientRect().width),
+          button: getComputedStyle(n.querySelector("button[aria-label='Open menu']")).display,
+          links: getComputedStyle(n.querySelector("ul")).display,
+        })));
+        const f = [];
+        const narrow = r.find((x) => x.label.includes("narrow")), wide = r.find((x) => x.label.includes("wide"));
+        if (!narrow || !wide) return [`demo navbars not found: ${JSON.stringify(r)}`];
+        if (narrow.button === "none" || narrow.links !== "none") f.push(`narrow navbar (${narrow.width}px): button ${narrow.button}, links ${narrow.links}`);
+        if (wide.button !== "none" || wide.links === "none") f.push(`wide navbar (${wide.width}px): button ${wide.button}, links ${wide.links}`);
+        return f;
+      },
+    },
+  ],
+  "/components/drag-and-drop": [
+    {
+      // A drop (mouse or the touch ui:drop event) must not show the Move here buttons, which
+      // only belong to the pick-up flow, not even for one frame.
+      name: "no Move here flash on drop",
+      async run(page) {
+        const seen = await page.evaluate(async () => {
+          const zone = document.querySelector("[data-ui-dropzone]");
+          const moves = () => [...zone.closest("#kanban").querySelectorAll("button")].filter((b) => /Move here/.test(b.textContent));
+          const out = [];
+          const rec = () => out.push(moves().filter((m) => getComputedStyle(m).display !== "none").length);
+          // The payload names no card, so the server move is a no-op and the board is unchanged.
+          zone.dispatchEvent(new CustomEvent("ui:drop", { bubbles: true, detail: { payload: "none" } }));
+          rec();
+          await new Promise((r) => requestAnimationFrame(() => { rec(); r(); }));
+          await new Promise((r) => requestAnimationFrame(() => { rec(); r(); }));
+          return out;
+        });
+        return seen.some((n) => n > 0) ? [`Move here buttons visible after a drop: ${JSON.stringify(seen)}`] : [];
+      },
+    },
+  ],
   "/components/disclosure": [
     {
       // The tablist scrolls horizontally (overflow-x: auto, which makes overflow-y auto too), so
@@ -333,10 +392,21 @@ try {
       if (CDN_DIR) await routeCDN(page);
       const url = BASE + path;
       page.on("pageerror", (e) => console.error(`  [pageerror] ${path}: ${e.message}`));
+      // Console errors fail the run, except failed loads of the external CDNs (blocked or stubbed
+      // in sandboxes), which say nothing about the showcase.
+      const consoleErrors = [];
+      page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text()); });
+      page.on("requestfailed", (r) => {
+        if (!/^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//.test(r.url())) consoleErrors.push(`request failed: ${r.url()}`);
+      });
       const resp = await page.goto(url, { waitUntil: "load" });
       if (!resp || !resp.ok()) throw new Error(`${url}: HTTP ${resp && resp.status()}`);
       await page.emulateMedia({ colorScheme: scheme });
       await waitForStyles(page, scheme, url);
+      for (const m of consoleErrors.filter((t) => !/ERR_BLOCKED_BY_CLIENT|ERR_FAILED|ERR_NAME_NOT_RESOLVED|ERR_TUNNEL|ERR_PROXY/.test(t))) {
+        checkFailures.push(`${path} (${scheme}) [console]: ${m}`);
+      }
+      process.stdout.write(`checked ${scheme.padEnd(5)} ${path} [console errors]: ${consoleErrors.length ? consoleErrors.length + " (see failures if any are not external)" : "ok"}\n`);
       incompleteTotal += await scan(page, { page: path, scheme, state: "default" });
       process.stdout.write(`scanned ${scheme.padEnd(5)} ${path}\n`);
 
