@@ -6,9 +6,10 @@ import (
 	"github.com/go-htemel/htemel/html"
 )
 
-// Dropdown returns a trigger button with a menu below it, open while signal is true (the signal
-// starts false unless the page defines it). The trigger toggles the menu; a click on an item, a
-// click outside and Escape close it. Items are usually MenuItem, MenuLink and MenuDivider:
+// Dropdown returns a trigger button and a menu shown with the Popover API: the menu is a
+// popover="auto" element and the trigger its popovertarget, so the browser toggles it, closes it
+// on a click outside and on Escape, and draws it in the top layer, even before Datastar loads.
+// Choosing an item closes it too. Items are usually MenuItem, MenuLink and MenuDivider:
 //
 //	ui.Dropdown("rowMenu", ui.Button(ui.Secondary, "Options", ui.WithTrailingIcon(ui.IconChevronDown())),
 //		ui.MenuItem("Edit", datastar.OnClick(datastar.Get("/rows/1/edit"))),
@@ -16,63 +17,96 @@ import (
 //		ui.MenuItem("Delete", datastar.OnClick(datastar.Delete("/rows/1"))),
 //	)
 //
+// signal mirrors the open state (it starts false unless the page defines it): the menu's toggle
+// event keeps it current, and setting it with ui.Open or ui.Close shows or hides the menu.
+// Nothing needs it to open the menu.
+//
+// The menu is placed below the trigger, right edges aligned, with CSS anchor positioning
+// (inline anchor-name on the trigger, position-anchor and position-area on the menu, so no
+// per-menu class reaches the Tailwind safelist), flipping above
+// the trigger when there is no room below. Browsers without anchor positioning get the same
+// placement from the trigger's bounding box, computed when the menu opens; there it does not
+// follow the trigger while the page scrolls or flip at the viewport edge.
+//
 // # Accessibility
 //
 // The trigger gets aria-haspopup="menu", aria-controls and a bound aria-expanded; the menu is
 // role="menu" labelled by the trigger and items are role="menuitem" with tabindex="-1" (roving
-// focus, so they are not in the Tab order). Keyboard, handled by Datastar expressions:
+// focus, so they are not in the Tab order).
 //
+//   - Native (popover="auto"): Escape closes the menu and returns focus to the element focused
+//     when it opened; a click outside closes it; opening another auto popover closes it.
 //   - ArrowDown / ArrowUp on the trigger open the menu and focus the first / last item.
 //   - ArrowDown / ArrowUp / Home / End move focus among the items (wrapping).
-//   - Escape closes and returns focus to the trigger; so does choosing an item.
+//   - Choosing an item closes the menu and focuses the trigger.
 //   - Tab closes the menu and lets focus move on.
 //
 // Not implemented: type-ahead (jumping to an item by its first letter), which needs a
 // character buffer with a timeout and so state beyond what an expression can sensibly hold;
 // submenus; and focusing the first item when the menu is opened with the mouse.
 func Dropdown(signal string, trigger *html.ButtonElement, items ...htemel.FlowContent) *html.DivElement {
+	triggerID := domID(signal) + "-trigger"
 	menuID := domID(signal) + "-menu"
-	trigger.Id(domID(signal)+"-trigger").Aria("haspopup", "menu").Aria("controls", menuID).
-		Attrs(datastar.OnClick(Toggle(signal))).
+	anchor := "--" + domID(signal) + "-anchor"
+	trigger.Id(triggerID).
+		Popovertarget(menuID).
+		Popovertargetaction(html.PopovertargetactionToggle).
+		Aria("haspopup", "menu").Aria("controls", menuID).
+		Style("anchor-name: " + anchor).
 		Attrs(expanded("$" + signal)...)
 	menu := html.Div(items...).
 		Id(menuID).
+		Popover(html.PopoverAuto).
 		Role("menu").
-		Aria("labelledby", domID(signal)+"-trigger").
-		Class(Classes("absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-md bg-white p-1 shadow-lg ring-1 ring-zinc-950/5",
+		Aria("labelledby", triggerID).
+		Style("position-anchor: "+anchor+"; position-area: bottom span-left; position-try-fallbacks: flip-block").
+		Class(Classes("mt-2 w-56 rounded-md bg-white p-1 shadow-lg ring-1 ring-zinc-950/5",
 			"dark:bg-zinc-800 dark:ring-white/10")).
-		Style(hiddenUntilDatastar).
-		Attrs(datastar.Show("$"+signal), datastar.OnClick(Close(signal)+"; el.previousElementSibling.focus()"))
+		Attrs(
+			datastar.On("beforetoggle", menuPlace(triggerID)),
+			datastar.On("toggle", "$"+signal+" = evt.newState === 'open'"),
+			datastar.Effect(menuSync(signal)),
+			datastar.OnClick("el.hidePopover(); el.previousElementSibling.focus()"),
+		)
 	return html.Div(trigger, menu).
 		Class(Classes("relative inline-block text-left")).
 		Attrs(
 			initially(signal, "false"),
-			datastar.OnClick(Close(signal), datastar.Outside()),
-			datastar.OnKeyDown(menuKeys(signal)),
-			datastar.On("keydown", menuEscape(signal), datastar.Window()),
+			datastar.OnKeyDown(menuKeys()),
 		)
 }
 
-// menuKeys moves focus among the menu items. The root's first child is the trigger and the
-// second the menu.
-func menuKeys(signal string) string {
-	return "const t = el.firstElementChild, a = document.activeElement, k = evt.key; " +
-		"if (k === 'Tab') { " + Close(signal) + "; return } " +
-		"if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(k)) return; " +
-		"if (!$" + signal + " && (a !== t || k === 'Home' || k === 'End')) return; " +
-		"const items = [...t.nextElementSibling.querySelectorAll(\"[role='menuitem']:not([disabled])\")], i = items.indexOf(a); " +
-		"if (!items.length) return; " +
-		"evt.preventDefault(); " +
-		Open(signal) + "; " +
-		"const n = k === 'Home' ? 0 : k === 'End' ? -1 : k === 'ArrowDown' ? i + 1 : i < 0 ? -1 : i - 1; " +
-		"setTimeout(() => items[(n + items.length) % items.length].focus())"
+// menuSync shows or hides the menu when the signal is set from outside (ui.Open, ui.Close or the
+// server). The toggle event sets the signal to the state the menu is already in, so it does not
+// loop.
+func menuSync(signal string) string {
+	return "if ($" + signal + " !== el.matches(\":popover-open\")) $" + signal + " ? el.showPopover() : el.hidePopover()"
 }
 
-// menuEscape closes an open menu on Escape, anywhere in the window, and returns focus to the
-// trigger when it was inside the menu.
-func menuEscape(signal string) string {
-	return "if (evt.key !== 'Escape' || !$" + signal + ") return; " + Close(signal) + "; " +
-		"if (el.contains(document.activeElement)) el.firstElementChild.focus()"
+// menuPlace positions the menu under the trigger in browsers without CSS anchor positioning. It
+// runs on beforetoggle, which fires synchronously before the menu is shown, so it never paints
+// at the popover's default place in the middle of the viewport.
+func menuPlace(triggerID string) string {
+	return "if (evt.newState !== 'open' || CSS.supports('position-anchor: --a')) return; " +
+		"const r = document.getElementById('" + triggerID + "').getBoundingClientRect(); " +
+		"el.style.inset = 'auto'; el.style.top = r.bottom + 'px'; " +
+		"el.style.right = (document.documentElement.clientWidth - r.right) + 'px'"
+}
+
+// menuKeys opens the menu from the trigger with the arrow keys and moves focus among the items.
+// The root's first child is the trigger and the second the menu.
+func menuKeys() string {
+	return "const t = el.firstElementChild, m = t.nextElementSibling, a = document.activeElement, k = evt.key, " +
+		"open = m.matches(\":popover-open\"); " +
+		"if (k === 'Tab') { if (open) m.hidePopover(); return } " +
+		"if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(k)) return; " +
+		"if (!open && (a !== t || k === 'Home' || k === 'End')) return; " +
+		"const items = [...m.querySelectorAll(\"[role='menuitem']:not([disabled])\")], i = items.indexOf(a); " +
+		"if (!items.length) return; " +
+		"evt.preventDefault(); " +
+		"if (!open) m.showPopover(); " +
+		"const n = k === 'Home' ? 0 : k === 'End' ? -1 : k === 'ArrowDown' ? i + 1 : i < 0 ? -1 : i - 1; " +
+		"items[(n + items.length) % items.length].focus()"
 }
 
 const menuItemClass = "flex w-full cursor-pointer items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm text-zinc-700 " +

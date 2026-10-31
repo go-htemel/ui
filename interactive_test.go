@@ -105,27 +105,68 @@ func wantAll(t *testing.T, got string, want ...string) {
 }
 
 func TestDialogAccessibility(t *testing.T) {
-	got := render(t, ui.Dialog("confirmDelete", "Delete?", html.P().Text("x")))
+	got := render(t, ui.Dialog("confirmDelete", "Delete?", html.P().Text("x"),
+		ui.DialogActions(ui.Button(ui.Secondary, "Cancel"), ui.Button(ui.Danger, "Delete"))))
 	wantAll(t, got,
-		`role="dialog"`, `aria-modal="true"`, `aria-labelledby="confirmDelete-title"`, `id="confirmDelete-title"`,
-		`data-on:keydown__window="if (!$confirmDelete) return;`,
-		`evt.key === 'Escape'`, `evt.key !== 'Tab'`, `evt.shiftKey`, // Escape and the focus trap
-		`data-effect="`, `el._ret = document.activeElement`, `el._ret.focus()`, // initial focus and focus return
-		`document.body.style.overflow = open ? 'hidden' : ''`, // scroll lock
+		`<dialog id="confirmDelete-dialog" aria-labelledby="confirmDelete-title" closedby="any"`, `id="confirmDelete-title"`,
+		`backdrop:bg-zinc-950/50`, `m-auto`,
+		`data-signals:confirm-delete__ifmissing="false"`,
+		`data-effect="$confirmDelete ? (el.open || el.showModal()) : (el.open && el.close())"`, // signal -> dialog
+		`data-on:close="$confirmDelete = false"`,                                               // Escape, closedby, method=dialog -> signal
+		`data-on:click__outside="if ('closedBy' in HTMLDialogElement.prototype) return; $confirmDelete = false"`,
+		`aria-label="Close" data-on:click="$confirmDelete = false"`,
+		`autofocus>Cancel</button>`, // initial focus on the first action
 	)
+	for _, gone := range []string{`role="dialog"`, `aria-modal`, `data-show`, `display: none`, `keydown`, `overflow`, `_ret`, ` open`} {
+		if strings.Contains(got, gone) {
+			t.Errorf("native dialog output still contains %q:\n%s", gone, got)
+		}
+	}
+	if n := strings.Count(got, "autofocus"); n != 1 {
+		t.Errorf("want exactly one autofocus, got %d:\n%s", n, got)
+	}
+
+	// An autofocus the caller set is kept, and the first action does not get another.
+	own := render(t, ui.DialogActions(ui.Button(ui.Secondary, "Cancel"), ui.Button(ui.Primary, "Save").Autofocus(true)))
+	if n := strings.Count(own, "autofocus"); n != 1 || !strings.Contains(own, "autofocus>Save") {
+		t.Errorf("caller's autofocus must win:\n%s", own)
+	}
+	// Only buttons and links receive it.
+	if plain := render(t, ui.DialogActions(html.Span().Text("x"))); strings.Contains(plain, "autofocus") {
+		t.Errorf("a non-control first child must not get autofocus:\n%s", plain)
+	}
 }
 
 func TestDropdownAccessibility(t *testing.T) {
 	got := render(t, ui.Dropdown("rowMenu", ui.Button(ui.Secondary, "Options"), ui.MenuItem("Edit"), ui.MenuLink("Open", "/x")))
 	wantAll(t, got,
-		`id="rowMenu-trigger"`, `aria-haspopup="menu"`, `aria-controls="rowMenu-menu"`, `aria-expanded="false"`,
+		`id="rowMenu-trigger" popovertarget="rowMenu-menu" popovertargetaction="toggle"`,
+		`aria-haspopup="menu"`, `aria-controls="rowMenu-menu"`, `aria-expanded="false"`,
+		`style="anchor-name: --rowMenu-anchor"`,
 		`data-attr:aria-expanded="($rowMenu) ? 'true' : 'false'"`,
-		`role="menu"`, `aria-labelledby="rowMenu-trigger"`,
+		`<div id="rowMenu-menu" popover="auto" role="menu" aria-labelledby="rowMenu-trigger" style="position-anchor: --rowMenu-anchor; position-area: bottom span-left; position-try-fallbacks: flip-block"`,
+		`data-on:toggle="$rowMenu = evt.newState === 'open'"`,                                                        // popover -> signal
+		`data-effect="if ($rowMenu !== el.matches(":popover-open")) $rowMenu ? el.showPopover() : el.hidePopover()"`, // signal -> popover
+		`data-on:beforetoggle="if (evt.newState !== 'open' || CSS.supports('position-anchor: --a')) return;`,
+		`document.getElementById('rowMenu-trigger').getBoundingClientRect()`,
 		`<button type="button" role="menuitem" tabindex="-1"`, `<a href="/x" role="menuitem" tabindex="-1"`,
-		`data-on:keydown="`, `'ArrowDown', 'ArrowUp', 'Home', 'End'`, `[role='menuitem']`,
-		`data-on:keydown__window="if (evt.key !== 'Escape' || !$rowMenu) return;`,
-		`data-on:click="$rowMenu = false; el.previousElementSibling.focus()"`, // close on item click, focus back
+		`data-on:keydown="`, `'ArrowDown', 'ArrowUp', 'Home', 'End'`, `[role='menuitem']`, `m.showPopover()`,
+		`if (k === 'Tab') { if (open) m.hidePopover(); return }`,
+		`data-on:click="el.hidePopover(); el.previousElementSibling.focus()"`, // close on item click, focus back
 	)
+	for _, gone := range []string{`display: none`, `data-show`, `__outside`, `__window`, `$rowMenu = !$rowMenu`} {
+		if strings.Contains(got, gone) {
+			t.Errorf("popover dropdown output still contains %q:\n%s", gone, got)
+		}
+	}
+}
+
+func TestTooltipAccessibility(t *testing.T) {
+	got := render(t, ui.Tooltip(ui.Button(ui.Secondary, "x"), "Help"))
+	wantAll(t, got, `aria-describedby="tooltip-`, `role="tooltip"`, `group-hover:opacity-100`, `group-focus-within:opacity-100`)
+	if strings.Contains(got, "popover") {
+		t.Errorf("Tooltip is CSS only:\n%s", got)
+	}
 }
 
 func TestTabsAccessibility(t *testing.T) {

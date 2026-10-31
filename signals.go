@@ -7,7 +7,9 @@ import (
 )
 
 // Expressions and attributes for the boolean signals that open and close Dialog, Dropdown,
-// Disclosure and AlertDismissible. signal is the camelCase signal name, without the $.
+// Disclosure and AlertDismissible. signal is the camelCase signal name, without the $. Dialog
+// and Dropdown are native overlays (<dialog> and the Popover API) whose signal mirrors their
+// state in both directions, so these expressions open and close them as well.
 
 // Open returns the expression that sets signal to true.
 func Open(signal string) string { return "$" + signal + " = true" }
@@ -20,23 +22,11 @@ func Toggle(signal string) string { return "$" + signal + " = !$" + signal }
 
 // Opens is the click handler for a trigger that opens signal from outside the component, such as
 // the button that opens a Dialog. The click does not propagate, so it does not also reach the
-// component's click-outside handler and close it again.
+// Dialog's click-outside fallback (used in browsers without closedby) and close it again.
 //
 //	ui.Button(ui.Primary, "Edit").Attrs(ui.Opens("editOpen"))
 func Opens(signal string) htemel.Attribute {
 	return datastar.OnClick(Open(signal), datastar.Stop())
-}
-
-// focusableSelector matches the elements Tab can reach (hidden ones are filtered out at run time
-// with getClientRects). It uses double quotes so it can sit inside a single-quoted expression
-// string, and has no "$" that Datastar would rewrite.
-const focusableSelector = `a[href],button:not([disabled]),input:not([disabled]):not([type='hidden']),` +
-	`select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex='-1'])`
-
-// jsFocusables is a JavaScript expression listing the visible focusable descendants of the
-// element expression root, in document order.
-func jsFocusables(root string) string {
-	return `[...` + root + `.querySelectorAll("` + focusableSelector + `")].filter(x => x.getClientRects().length)`
 }
 
 // initially declares signal with value expr unless the page already has it.

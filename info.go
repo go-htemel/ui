@@ -10,11 +10,20 @@ import (
 )
 
 // Tooltip returns trigger with a small label that appears above it on hover and keyboard focus.
-// It is CSS only (group-hover and group-focus-within), so it needs no signal; it is not
-// dismissed by Escape. When trigger is an element (a Button, a link), it gets aria-describedby
-// pointing at the tooltip. Make the trigger focusable, as buttons and links are.
+// It is CSS only (group-hover and group-focus-within), so it needs no signal. When trigger is an
+// element (a Button, a link), it gets aria-describedby pointing at the tooltip. Make the trigger
+// focusable, as buttons and links are.
 //
 //	ui.Tooltip(ui.IconButton(ui.Ghost, ui.IconTrash(), "Delete"), "Delete this row")
+//
+// Tooltip deliberately does not use popover="hint". A hint popover is only shown by script (the
+// declarative interestfor attribute is not available across browsers), so it would need
+// Datastar handlers for pointer and focus enter and leave, plus the anchor positioning and
+// fallback that Dropdown carries; popover="hint" itself is Chromium only (133+), and elsewhere
+// the value falls back to a manual popover. What it would add is the top layer (not clipped by
+// an overflow container) and Escape to dismiss. Both are limits of this tooltip: it is clipped
+// by an ancestor with overflow hidden or auto, and Escape does not hide it (move focus or the
+// pointer away instead).
 func Tooltip(trigger htemel.PhrasingContent, text string) *html.SpanElement {
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(text))
