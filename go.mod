@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/alecthomas/chroma/v2 v2.24.1
 	github.com/go-chi/chi/v5 v5.5.0
-	github.com/go-htemel/htemel v0.3.0
+	github.com/go-htemel/htemel v0.4.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/starfederation/datastar-go v1.2.2
 	github.com/yuin/goldmark v1.8.7

@@ -18,8 +18,8 @@ github.com/dlclark/regexp2 v1.12.0 h1:0j4c5qQmnC6XOWNjP3PIXURXN2gWx76rd3KvgdPkCz
 github.com/dlclark/regexp2 v1.12.0/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=
 github.com/go-chi/chi/v5 v5.5.0 h1:xdKQ1dJmVJsmgahrXSKhUx8NyVPzpwdlyrrQFpMPJgg=
 github.com/go-chi/chi/v5 v5.5.0/go.mod h1:d1IG7GtKPSjPyBP365PH8sAGVHk3qfB/IhjFNRH1wWM=
-github.com/go-htemel/htemel v0.3.0 h1:SaUhboh/C/jfWkBnpfnZ0UCnlz6GA5f9udGuFqvCq+M=
-github.com/go-htemel/htemel v0.3.0/go.mod h1:DupPgJQ5/6eOCLtZrAO31UsM09nfmCp/AYuVZJToJPw=
+github.com/go-htemel/htemel v0.4.0 h1:JV0w+vs2XtjmSxwiuPshugAXuG9dwdEVo2K0Qmu8mTg=
+github.com/go-htemel/htemel v0.4.0/go.mod h1:DupPgJQ5/6eOCLtZrAO31UsM09nfmCp/AYuVZJToJPw=
 github.com/google/brotli/go/cbrotli v0.0.0-20230829110029-ed738e842d2f h1:jopqB+UTSdJGEJT8tEqYyE29zN91fi2827oLET8tl7k=
 github.com/google/brotli/go/cbrotli v0.0.0-20230829110029-ed738e842d2f/go.mod h1:nOPhAkwVliJdNTkj3gXpljmWhjc4wCaVqbMJcPKWP4s=
 github.com/gorilla/css v1.0.1 h1:ntNaBIghp6JmvWnxbZKANoLyuXTPZ4cAMlo6RyhlbO8=
