@@ -48,16 +48,12 @@ func notesListView(q string) *html.UlElement {
 	notes := adminNotes.list(q)
 	for _, n := range notes {
 		id := strconv.Itoa(n.ID)
-		ul.Children(html.Li(html.Button(
+		ul.Children(html.Li(ui.SplitListItem(ui.SplitLayoutSignal, "$noteId === "+id,
+			"$noteId = "+id+"; $noteEdit = false; "+datastar.Get(noteURL(n.ID)),
 			html.Span().Class("block truncate text-sm font-medium text-neutral-900 dark:text-white").Text(n.Title),
 			html.Span().Class("mt-0.5 block text-xs text-neutral-600 dark:text-neutral-400").Children(noteDate(n)),
 			noteTags(n.Tags).AddClass("mt-1.5"),
-		).Type(html.ButtonTypeButton).
-			Class("block w-full cursor-pointer px-4 py-3 text-left transition-colors duration-150 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 aria-[current=true]:bg-neutral-100 dark:hover:bg-white/5 dark:focus-visible:outline-primary-500 dark:aria-[current=true]:bg-white/10").
-			Attrs(
-				ui.SplitSelect(ui.SplitLayoutSignal, "$noteId = "+id+"; $noteEdit = false; "+datastar.Get(noteURL(n.ID))),
-				datastar.Attr("aria-current", "$noteId === "+id+" ? 'true' : false"),
-			)))
+		)))
 	}
 	if len(notes) == 0 {
 		ul.Children(html.Li(ui.EmptyState(ui.IconSearch(), "No notes match", "Try another word.", nil)))
@@ -76,7 +72,7 @@ func noteDetailView(n adminNote) *html.DivElement {
 			datastar.OnClick("$noteEdit = false; $noteTitle = "+datastar.Quote(n.Title)+"; $noteBody = "+datastar.Quote(n.Body)+"; requestAnimationFrame(() => document.getElementById('"+noteEditBtnID+"')?.focus())"))
 	save := ui.Button(ui.Primary, "Save", ui.WithSize(ui.Sm), ui.WithLoading("noteSaving")).Style("display: none").
 		Attrs(datastar.Show("$noteEdit"),
-			datastar.OnClick(afterRequest(datastar.Post(noteURL(n.ID)), "document.querySelector('#"+noteDetailID+" [aria-invalid=true]')?.focus() ?? document.getElementById('"+ui.SplitLayoutSignal+"-detail')?.focus()")))
+			datastar.OnClick(ui.Then(datastar.Post(noteURL(n.ID)), "document.querySelector('#"+noteDetailID+" [aria-invalid=true]')?.focus() ?? document.getElementById('"+ui.SplitLayoutSignal+"-detail')?.focus()")))
 
 	view := html.Div(
 		html.Div(noteDate(n), noteTags(n.Tags)).Class("flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-neutral-600 dark:text-neutral-400"),

@@ -172,15 +172,10 @@ func notesPanes(signal string) (list *html.UlElement, detail *html.DivElement) {
 	detail = html.Div()
 	for i, n := range demoNotes {
 		idx := strconv.Itoa(i)
-		list.Children(html.Li(html.Button(
+		list.Children(html.Li(ui.SplitListItem(signal, "$"+noteSig+" === "+idx, "$"+noteSig+" = "+idx,
 			html.Span().Class("block truncate text-sm font-medium text-neutral-900 dark:text-white").Text(n.title),
 			html.Span().Class("block text-xs text-neutral-600 dark:text-neutral-400").Text(n.date),
-		).Type(html.ButtonTypeButton).
-			Class("block w-full cursor-pointer px-4 py-3 text-left transition-colors duration-150 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 aria-[current=true]:bg-neutral-100 dark:hover:bg-white/5 dark:focus-visible:outline-primary-500 dark:aria-[current=true]:bg-white/10").
-			Attrs(
-				ui.SplitSelect(signal, "$"+noteSig+" = "+idx),
-				datastar.Attr("aria-current", "$"+noteSig+" === "+idx+" ? 'true' : false"),
-			)))
+		)))
 		detail.Children(html.Div(
 			ui.SplitDetailHeaderSignal(signal, n.title, ui.IconButton(ui.Ghost, ui.IconTrash(), "Delete note", ui.WithSize(ui.Sm))),
 			html.P().Class("px-4 py-6 text-sm text-neutral-700 @xl:px-6 dark:text-neutral-300").Text(n.body),

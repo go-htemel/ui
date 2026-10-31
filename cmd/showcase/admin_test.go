@@ -492,8 +492,11 @@ func TestPostsListHandler(t *testing.T) {
 	h := routes()
 	events, elements, code := sseSend(t, h, http.MethodGet, "/admin/posts/list",
 		map[string]any{"q": "", "status": "draft", "tag": "", "sort": "title", "sortDir": "asc", "page": 1})
-	if code != 200 || len(elements) != 4 {
-		t.Fatalf("status %d, %d element patches, want the body, the select-all cell, the pager and the count", code, len(elements))
+	if code != 200 || len(elements) != 6 {
+		t.Fatalf("status %d, %d element patches, want the body, the select-all cell, the pager, the count and the two nav badges", code, len(elements))
+	}
+	if !strings.Contains(elements[4], `id="nav-posts-badge"`) || !strings.Contains(elements[5], `id="nav-posts-badge-drawer"`) {
+		t.Errorf("nav badge patches: %s %s", elements[4], elements[5])
 	}
 	checkPatches(t, "list", elements)
 	body, head, pager, count := elements[0], elements[1], elements[2], elements[3]
@@ -561,7 +564,7 @@ func TestPostsActions(t *testing.T) {
 
 	// Duplicate adds a draft copy and re-renders the list.
 	_, elements, code := sseSend(t, h, http.MethodPost, "/admin/posts/1/duplicate", with(nil))
-	if code != 200 || len(elements) != 5 { // toast, body, select-all, pager, count
+	if code != 200 || len(elements) != 7 { // toast, body, select-all, pager, count, two nav badges
 		t.Fatalf("duplicate: status %d, %d patches", code, len(elements))
 	}
 	checkPatches(t, "duplicate", elements)

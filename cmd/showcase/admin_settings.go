@@ -125,7 +125,7 @@ func adminSettingsForm(tab string, signals map[string]any, children ...htemel.Fl
 		html.Div(ui.Button(ui.Primary, "Save changes", ui.WithLoading("saving")).Type(html.ButtonTypeSubmit)).Class("mt-6 flex justify-end"),
 	).BoolAttr("novalidate", true).Attrs(
 		datastar.Signals(signals),
-		datastar.OnSubmit(afterRequest(datastar.Post("/admin/settings/"+tab), "document.querySelector('[aria-invalid=true]')?.focus()"), datastar.Prevent()))
+		datastar.OnSubmit(ui.Then(datastar.Post("/admin/settings/"+tab), "document.querySelector('[aria-invalid=true]')?.focus()"), datastar.Prevent()))
 }
 
 func settingsGeneralForm(v settingsValues) htemel.FlowContent {

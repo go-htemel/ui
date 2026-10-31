@@ -1,6 +1,37 @@
 # Changelog
 
+## v0.1.0 release notes (draft)
+
+First tagged release of `github.com/go-htemel/ui`: Tailwind-styled, accessible components for Go
+that render with htemel and behave through Datastar attributes, with no client framework.
+
+**Headline features**
+
+- A broad component set: buttons (and link buttons), forms with custom checkbox, radio and switch, native `Dialog`, `Drawer` and `Dropdown`, `Tabs`, tables with sorting and server-patchable bodies, pagination, toasts, drag and drop.
+- Container-query layouts: `AppShell` (collapsible icon rail, dark sidebar), `SplitLayout`, `SettingsLayout`, `StackedLayout`, `PageHeader`.
+- Content: markdown rendering and `MarkdownEditor`, `Prose`, server-side highlighted code blocks, tag and file inputs.
+- Theming by CSS variables (primary aliases indigo, scoped `[data-theme]`), light/dark/system toggle, optional self-hosted Geist.
+- Measured accessibility: a WCAG contrast matrix in the tests and an axe-core scan of every showcase page, light and dark (`task a11y`).
+- An Admin demo (`/admin`) composed from the library only.
+
+**Requirements:** Go 1.24, Tailwind CSS v4.1+ (include `assets/ui.css`, the generated theme and `tailwind.safelist.txt`), Datastar 1.0.4. Browser support: see the table under "Browser support" in the README.
+
+---
+
 ## Unreleased
+
+- **Breaking: `Table` options are frame classes.** `Striped`, `Dense` and `StickyHeader` now put `ui-table-striped`, `ui-table-dense` and `ui-table-sticky` on the table's frame (rules in `assets/ui.css`) instead of classes on the head and body, so a `TableBody(...)` patched in by the server keeps the stripes and padding; the doc caveat is gone. **Upgrading:** use the current `assets/ui.css`.
+- **`LinkButton`, `IconLinkButton`.** `LinkButton(v, label, href, opts...) *html.AElement` and `IconLinkButton(v, icon, label, href, opts...)` render an `<a>` with exactly the classes of `Button` / `IconButton` (shared builder; a test asserts it), no `role`. Options: `WithSize`, `WithIcon`, `WithTrailingIcon`, `WithRailIcon`. The Admin demo's local `linkButton` is gone.
+- **AppShell footer in the rail.** The footer now stays visible in the collapsed rail as a centred 4rem column (it was hidden). `ColorSchemeToggle` stacks its buttons there; `WithRailIcon()` (new `Option`, for `Button` and `LinkButton`) hides the label and trailing icon visually; `RailLabel(...)` hides other text. Contrast rows for the footer button in both schemes.
+- **`Badge` never wraps** (`whitespace-nowrap`). **`CardSlot.HeadingLevel(n)`** sets a `CardHeader`'s heading tag (default `h3`), named like `WithHeadingLevel` of `PageHeader`; the editor's sr-only `h2` is gone.
+- **`NavItem.ID(id)`, `NavBadgeID(id)`, `NavBadge(id, text)`.** The link gets the id and its badge `<id>-badge`; `NavBadge` renders the badge for a server patch (also patch the `-drawer` copy inside an `AppShell`). The Posts badge of the demo is live.
+- **`StackedTabs` narrow form is a `Select`,** like `SettingsLayout`, through the shared `navSelect`; the nav is a container (`@xl`). Wide form unchanged.
+- **`NavItem.Signal(signal, value)`.** A link that sets a signal instead of navigating (`aria-current` follows it; the active one declares the signal); the narrow `Select` of `StackedTabs` and `SettingsLayout` sets and follows the same signal.
+- **Row selection helpers.** `SelectRow`, `SelectAll` (checked / indeterminate / unchecked from the rows), `SelectedCount`, `SelectClear`: the object-of-booleans pattern the posts list hand-rolled. Contrast rows for the indeterminate box.
+- **`ui.Then(action, then)`.** Verdict: valid for Datastar 1.0.4. The backend actions are `async` (fetch plugin `apply: async`, returned by the engine's action wrapper), so `@post(...).then(() => { ... })` runs after the stream has closed and the patches are applied. It also runs after a failure (errors are events, not rejections). README Interactivity documents it; the demo's `afterRequest` is replaced.
+- **`BreadcrumbsCollapse(limit, crumbs...)`.** More than `limit` crumbs (minimum 3) keep the first and the last `limit-2`; the middle ones sit behind an `IconEllipsis` `<details>` button ("Show N more pages") that lists them as links. No script.
+- **`SelectableItem(selectedExpr, children...)`, `SplitListItem(signal, selectedExpr, action, children...)`.** One selected-row treatment for every selectable list: `aria-current="true"` from the expression, `bg-primary-50` / `dark:bg-primary-500/10` with a 2px `primary-600` / `primary-400` left bar, neutral hover, 150ms colour transition (the old flat `neutral-800` selection looked foreign in dark). `aria-selected` is not valid on a `button`, so `aria-current` carries the state. The notes lists of the demo and the Layouts page use it. Four contrast rows (text on the tint, bar against the tint, hover).
+- Showcase: the Admin demo adopts all of the above.
 
 - **Breaking: library attributes live in the `data-ui-` namespace.** `data-ancestor` is now `data-ui-ancestor`, `data-rail` `data-ui-rail`, `data-over` `data-ui-over`, `data-dragging` `data-ui-dragging` and the code package's `data-hl` `data-ui-hl`, so nothing the library sets can be mistaken for a Datastar plugin (Datastar owns the bare `data-*` names). The Tailwind variants follow (`data-ui-over:outline-2`, `@3xl:in-data-ui-rail:hidden`, `data-ui-ancestor:font-semibold`): **regenerate the safelist** (`cmd/safelist`), and rename the attributes in any CSS or script of your own that targets them (`.line[data-ui-hl]`, `[data-ui-over]`). `data-theme` is unchanged: it is the application's theme hook, not a component attribute.
 - **Showcase: Admin demo (`/admin`).** A full-page blog/CMS admin composed from the library and nothing else (`cmd/showcase/admin_*.go`): dashboard, posts list (one `GET /admin/posts/list` handler patches only the table body, the select-all cell, the pager and the count), post editor (`POST /admin/posts/{id}`, validation through `ErrorSignal`, preview `Drawer`, `POST /admin/preview`), settings (including the theme switch, kept in `localStorage`), notes (a `SplitLayout` with server search and inline editing) and a 404, over in-memory stores that `POST /admin/reset` restores. The showcase sidebar links to it as "Admin demo". Tests render every route (parse-stable, Datastar allow-list, a single inline script), table-test the list query and the save validation, check every SSE patch, and forbid hand-written `data-*`; `task a11y` scans every admin page in both schemes with their states (filter typed, row menu, bulk bar, delete dialogs, empty state, validation errors, preview drawer, editing a note, the narrow notes detail, the narrow settings picker, the phone drawer, the user menu) and behaviour checks (rail persists across routes, sorting, paging, focus kept in the search field, select-all, delete focus and toast, slug follows title, preview follows text, saving, notes edit, theme switch). `A11Y_PAGES=admin` selects them.

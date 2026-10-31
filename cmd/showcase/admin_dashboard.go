@@ -45,7 +45,7 @@ func dashboardPage(r *http.Request) htemel.Node {
 		))
 	}
 	activity := html.Section(
-		ui.SectionHeader("Recent activity", linkButton(false, "All posts", "/admin/posts", nil)),
+		ui.SectionHeader("Recent activity", ui.LinkButton(ui.Secondary, "All posts", "/admin/posts")),
 		html.Div(ui.Table(
 			ui.TableHead(ui.Th(htemel.Text("Post")), ui.Th(htemel.Text("Event")), ui.Th(htemel.Text("Author")), ui.Th(htemel.Text("When"))),
 			body, ui.TableCaption("Recent activity"),
@@ -64,7 +64,7 @@ func dashboardPage(r *http.Request) htemel.Node {
 			ui.CardHeader("Up next"),
 			ui.CardBody(htemel.Group(
 				html.P().Text(fmt.Sprintf("%d scheduled and %d draft posts are waiting.", c.Scheduled, c.Drafts)),
-				html.Div(linkButton(true, "New post", "/admin/posts/new", ui.IconPlus())).Class("mt-4"),
+				html.Div(ui.LinkButton(ui.Primary, "New post", "/admin/posts/new", ui.WithIcon(ui.IconPlus()))).Class("mt-4"),
 			)),
 		),
 	)

@@ -43,8 +43,8 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 
 | Group | Components | Status |
 | --- | --- | --- |
-| Buttons | `Button`, `IconButton`, `ButtonGroup`; variants, sizes, icon slots, `WithLoading` (data-indicator) | ready |
-| Display | `Badge`, `Avatar`, `AvatarInitials`, `Kbd`, `Divider`, `DividerLabel` | ready |
+| Buttons | `Button`, `IconButton`, `LinkButton`, `IconLinkButton` (an `<a>` drawn as a button), `ButtonGroup`; variants, sizes, icon slots, `WithLoading` (data-indicator), `WithRailIcon` | ready |
+| Display | `Badge` (never wraps), `CardHeader(...).HeadingLevel(n)`, `Avatar`, `AvatarInitials`, `Kbd`, `Divider`, `DividerLabel` | ready |
 | Icons | `Icon` (Font Awesome), `IconHome`, `IconDocument`, `IconFile`, `IconFolder`, `IconUsers`, `IconSettings`, `IconSidebar`, `IconArrowLeft`, `IconUpload`, `IconMenu`, `IconChevronLeft`/`Right`, `IconEllipsis`, `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconCopy`, `IconGripVertical`, `IconSpinner`; for editors `IconBold`, `IconItalic`, `IconStrikethrough`, `IconHeading`, `IconQuote`, `IconCode`, `IconLink`, `IconImage`, `IconListBullet`, `IconListNumbered`, `IconListTask`, `IconTable` | ready |
 | Layout | `Stack`, `Inline`, `Container`, `Card` | ready |
 | Feedback | `Alert`, `AlertDismissible`, `ToastRegion`, `Toast` | ready |
@@ -52,13 +52,13 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Overlays | `Dialog`/`DialogActions` (native `<dialog>`), `Drawer`/`DrawerActions` (slide-over `<dialog>`: left, right, bottom), `Dropdown` with `MenuItem`/`MenuLink`/`MenuDivider` (Popover API) | ready |
 | Navigation | `Tabs`/`Tab`, `Disclosure`, `Accordion`/`AccordionItem` | ready; no arrow keys yet |
 | Drag and drop | `Draggable`, `DropZone`, `DropInto`, `DragData` | ready; mouse only (HTML drag events) |
-| Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader`), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
-| Navigation | `Navbar`/`NavbarSignal` with `NavLink` (collapses by container width), `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`BreadcrumbsLabel`/`Crumb`, `Steps`/`StepsLabel` | ready; no arrow keys yet |
+| Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader` as frame classes in `ui.css`, so a patched `<tbody>` keeps them), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
+| Navigation | `Navbar`/`NavbarSignal` with `NavLink` (collapses by container width), `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`BreadcrumbsLabel`/`BreadcrumbsCollapse`/`Crumb`, `Steps`/`StepsLabel` | ready; no arrow keys yet |
 | Progress | `Progress`, `ProgressSignal`, `Skeleton`, `Spinner` | ready |
 | Code | `code.Block`, `code.Inline` (subpackage `ui/code`, server-side highlighting; see Code blocks) | ready |
 | Content | `MarkdownEditor`/`MarkdownPreview` (textarea, toolbar, server-rendered preview), `Prose`/`ProseSm`/`ProseLg`, `markdown.Render` (subpackage `ui/markdown`); see Markdown and Prose | ready; toolbar needs `ui.js` |
 | Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` (labelled by `Field` through its inner control) | ready |
-| Layouts | `AppShell` (`SidebarFixed`, `SidebarCollapsible`, `SidebarDark`, `TopbarOnly`), `SplitLayout` (`SplitSelect`, `SplitDetailHeader`), `SettingsLayout`, `StackedLayout`/`StackedTabs`, `PageHeader`, `SectionHeader`, `SkipLink`; `NavLink(...).Icon(...).Badge(...).Ancestor()`; all switch on their container's width (see Layouts) | ready; rail persistence uses localStorage |
+| Layouts | `AppShell` (`SidebarFixed`, `SidebarCollapsible`, `SidebarDark`, `TopbarOnly`), `SplitLayout` (`SplitSelect`, `SplitListItem`, `SplitDetailHeader`), `SettingsLayout`, `StackedLayout`/`StackedTabs`, `PageHeader`, `SectionHeader`, `SkipLink`; `NavLink(...).Icon(...).Badge(...).Ancestor()`; all switch on their container's width (see Layouts) | ready; rail persistence uses localStorage |
 | Content inputs | `TagInput`, `FileUpload`, `DateInput`/`DateTimeInput`/`TimeInput`, `SlugField`, `FilterBar`/`FilterSearch`/`FilterReset` (see Content inputs) | ready; tag and file editing need `ui.js` |
 | Planned | Command palette | — |
 
@@ -74,7 +74,7 @@ inside an `AppShell`'s content). They never set an outer max-width: use `Contain
 | --- | --- | --- | --- |
 | `AppShell` | top bar with a menu button; the sidebar opens in a left `Drawer` | `@3xl` (48rem) | a 16rem sidebar plus a 32rem content column, the narrowest that still fits a table or a form beside it |
 | `SplitLayout` | one pane, chosen by `$split` (`"list"` / `"detail"`) | `@2xl` (42rem) | a 20rem list and a detail at least as wide |
-| `SettingsLayout` | the nav is a labelled `Select` of the sections above the content (navigates on change) | `@xl` (36rem) | a 13rem vertical nav plus a usable form column |
+| `SettingsLayout`, `StackedTabs` | the nav is a labelled `Select` of the sections above the content (navigates on change, or sets the signal of `NavItem.Signal` items) | `@xl` (36rem) | a 13rem vertical nav plus a usable form column |
 | `PageHeader` | actions wrap under the title | `@xl` (36rem) | room for a title and two buttons on one line |
 | `StackedLayout` | side padding 1rem | `@xl` 1.5rem, `@5xl` 2rem | padding only; no switch |
 
@@ -117,7 +117,10 @@ schemes) and `TopbarOnly`. `WithShellID` names the ids and signals when a page h
 - Narrow containers get the sidebar in a native modal `Drawer`. The drawer holds a second
   rendering of the sidebar and footer; ids in it get a `-drawer` suffix (references follow), so
   there are no duplicate ids, and the signals are shared.
-- The rail hides labels, badges, section headings and the footer *visually*; links keep their
+- The rail hides labels, badges and section headings *visually* and keeps the footer: it becomes a
+  centred 4rem column. `ColorSchemeToggle` stacks its three buttons, a `Button` with
+  `WithRailIcon()` (a user-menu trigger with an avatar) shows only its icon, and `ui.RailLabel(...)`
+  hides any other text (`@3xl:in-data-ui-rail:sr-only`). Links keep their
   names, icon links (`NavLink(...).Icon(...)`) carry a `title` tooltip, and the rail button says
   "Collapse sidebar" / "Expand sidebar" with a bound `aria-expanded`.
 - Motion: the drawer slides like `Drawer`; the rail switches width **instantly**. Animating
@@ -140,6 +143,11 @@ button, shown only when narrow, returns to the list and focuses it).
 sections of a record, moved into the header band), **`PageHeader(title, opts...)`** (`WithBackLink`,
 `WithBreadcrumbs`, `WithDescription`, `WithMeta`, `WithActions`, `WithHeadingLevel`) and
 **`SectionHeader(title, actions...)`** complete the family.
+
+`NavItem.ID(id)` sets the link's `id` and gives its badge `NavBadgeID(id)` (`<id>-badge`), so the
+server can patch a live count with `ui.NavBadge(id, "13")` (patch the `-drawer` copy too inside an
+`AppShell`). `NavItem.Signal(signal, value)` makes a link set a signal instead of navigating (with
+`aria-current` following it), which `StackedTabs` and `SettingsLayout` mirror in their narrow `Select`.
 
 `NavItem` gained three chainable states, all optional and backwards compatible (a plain
 `NavLink` renders exactly as before): `.Icon(svg)`, `.Badge("12")` and `.Ancestor()` (the parent of
@@ -209,6 +217,35 @@ ui.Dialog("confirm", "Delete project?", html.P().Text("This cannot be undone."))
 ui.Button(ui.Secondary, "Filters").Attrs(ui.Opens("filters"))
 ui.Drawer("filters", ui.DrawerRight, "Filters", form, ui.DrawerActions(cancel, apply))
 ```
+
+**After a request.** Datastar attribute expressions are plain functions (no `await`), but its
+backend actions (`@get`, `@post`, ...) return a promise that resolves once the response stream has
+closed and its patches are applied (checked in the v1.0.4 source: `apply: async` in the fetch
+plugin). `ui.Then(action, then)` chains on it, to move focus to something the response rendered:
+
+```go
+datastar.OnSubmit(ui.Then(datastar.Post("/save"),
+	"document.querySelector('#form [aria-invalid=true]')?.focus()"), datastar.Prevent())
+// -> @post('/save').then(() => { document.querySelector(...)?.focus() })
+```
+
+`then` also runs when the request fails (Datastar reports errors as events, it does not reject),
+so test the DOM instead of assuming the response arrived.
+
+**Row selection.** `SelectRow(signal, key)` binds a row's `Checkbox` to `$signal.key` (an object of
+booleans), `SelectAll(signal, keys)` returns the attributes of the select-all box (checked when all
+`keys` are ticked, indeterminate for some, ticks or clears them on change), `SelectedCount(signal)` is
+the expression for a computed count and `SelectClear(signal)` unticks everything:
+
+```go
+ui.Checkbox("", ui.SelectRow("sel", "p12"), htemel.Attr("aria-label", "Select “Hello”"))
+ui.Checkbox("", append(ui.SelectAll("sel", pageKeys), htemel.Attr("aria-label", "Select all"))...)
+datastar.Computed("selCount", ui.SelectedCount("sel")) // then datastar.Show("$selCount > 0")
+```
+
+**Selectable lists.** `SelectableItem(selectedExpr, children...)` is the one selected-row treatment
+(`aria-current="true"` from the expression, a primary tint and a 2px primary bar on the left, neutral
+hover); `SplitListItem(signal, selectedExpr, action, children...)` adds `SplitSelect`.
 
 `Navbar` is a CSS container: it shows its links inline from the `@2xl` container size (42rem)
 and the menu button with a right `Drawer` below it, whatever the viewport. Tailwind's container

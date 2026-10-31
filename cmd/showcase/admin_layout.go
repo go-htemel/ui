@@ -25,6 +25,9 @@ const (
 	navSettings  = "settings"
 )
 
+// navPostsID is the id of the Posts link; its badge, navPostsID-badge, is patched by the posts list.
+const navPostsID = "nav-posts"
+
 const (
 	adminThemeKey = "admin-theme"
 	adminMainID   = "main"
@@ -83,7 +86,7 @@ func adminSidebar(current string, ancestor bool) htemel.FlowContent {
 		return n
 	}
 	posts := item(navPosts, "Posts", "/admin/posts", ui.IconDocument())
-	posts = posts.Badge(strconv.Itoa(adminData.counts().Total))
+	posts = posts.ID(navPostsID).Badge(strconv.Itoa(adminData.counts().Total))
 	return ui.Sidebar("adminNav",
 		ui.SidebarGroup("manage", "Manage",
 			item(navDashboard, "Dashboard", "/admin", ui.IconHome()),
@@ -104,6 +107,7 @@ func userMenu() htemel.FlowContent {
 		ui.WithIcon(html.Span().Aria("hidden", "true").
 			Class("inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-600 text-[0.625rem] font-medium text-white dark:bg-neutral-500").Text("AL")),
 		ui.WithTrailingIcon(ui.IconChevronDown()),
+		ui.WithRailIcon(),
 	).AddClass("w-full min-w-0 justify-start *:last:ml-auto")
 	return ui.Dropdown("userMenu", trigger,
 		ui.MenuLink("Account settings", "/admin/settings"),
@@ -127,7 +131,7 @@ func adminPage(title, current string, ancestor bool, notice string, content ...h
 	shell := ui.AppShell(
 		ui.WithBrand(adminBrand()),
 		ui.WithSidebar(adminSidebar(current, ancestor)),
-		ui.WithSidebarFooter(userMenu(), html.Div(ui.ColorSchemeToggle()).Class("mt-3 flex justify-center")),
+		ui.WithSidebarFooter(userMenu(), html.Div(ui.ColorSchemeToggle()).Class("mt-3 flex justify-center @3xl:in-data-ui-rail:mt-0")),
 		ui.WithTopbar(backToShowcase()),
 		ui.WithContent(content...),
 		ui.SidebarCollapsible(),
@@ -141,29 +145,12 @@ func adminBody(children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).Class("mx-auto flex max-w-6xl flex-col gap-y-6 p-4 @xl:p-6 @5xl:p-8")
 }
 
-// linkButton is a link drawn as a Button. ui has no such component (Button is a <button>, and a
-// link inside a button is invalid), so the demo carries the classes of the Primary and Secondary
-// buttons itself.
-func linkButton(primary bool, label, href string, icon htemel.PhrasingContent) *html.AElement {
-	const base = "inline-flex items-center justify-center gap-x-1.5 rounded-control px-3 py-2 text-sm font-semibold whitespace-nowrap " +
-		"cursor-pointer transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 "
-	cls := base + "bg-white text-neutral-900 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/10 dark:hover:bg-white/20"
-	if primary {
-		cls = base + "bg-primary-600 text-white shadow-xs hover:bg-primary-700 dark:hover:bg-primary-500"
-	}
-	a := html.A().Href(href).Class(ui.Classes(cls))
-	if icon != nil {
-		a.Children(icon)
-	}
-	return a.Text(label)
-}
-
 // adminNotFound is the 404 page: an EmptyState in the shell, so the visitor keeps the nav.
 func adminNotFound() htemel.Node {
 	return adminPage("Page not found", "", false, "",
 		adminBody(html.H1().Class("sr-only").Text("Page not found"), ui.EmptyState(ui.IconSearch(), "Page not found",
 			"This page does not exist in the demo, or it was moved.",
-			html.Div(linkButton(true, "Go to the dashboard", "/admin", ui.IconHome()))).AddClass("py-24")))
+			html.Div(ui.LinkButton(ui.Primary, "Go to the dashboard", "/admin", ui.WithIcon(ui.IconHome())))).AddClass("py-24")))
 }
 
 // adminStub is a section of the nav that the demo does not build out.
@@ -172,6 +159,6 @@ func adminStub(title, current, text string) htemel.Node {
 		adminBody(
 			ui.PageHeader(title, ui.WithDescription(text)),
 			ui.EmptyState(ui.IconFolder(), "Nothing here in the demo", "This section is only a nav entry; the posts, notes and settings pages are fully working.",
-				html.Div(linkButton(false, "Back to the dashboard", "/admin", nil))),
+				html.Div(ui.LinkButton(ui.Secondary, "Back to the dashboard", "/admin"))),
 		))
 }

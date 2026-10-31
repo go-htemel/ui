@@ -28,9 +28,11 @@ const (
 	postsSelectID = "posts-selectall"
 )
 
-// clearSelection unticks every row: the selection is the object signal sel, one boolean per
-// post id ("p12").
-const clearSelection = "Object.keys($sel).forEach(k => $sel[k] = false)"
+// selection is the object signal of ticked rows, one boolean per post key ("p12"); see
+// ui.SelectRow, ui.SelectAll, ui.SelectedCount and ui.SelectClear.
+const selection = "sel"
+
+var clearSelection = ui.SelectClear(selection)
 
 func postKey(id int) string { return "p" + strconv.Itoa(id) }
 
@@ -66,7 +68,7 @@ func postRow(p adminPost) *html.TrElement {
 		meta.Text(" · " + strings.Join(p.Tags, ", "))
 	}
 	return html.Tr(
-		ui.Td(ui.Checkbox("", datastar.Bind("sel."+key), htemel.Attr("aria-label", "Select “"+p.Title+"”"))).AddClass("w-10 pr-0"),
+		ui.Td(ui.Checkbox("", ui.SelectRow(selection, key), htemel.Attr("aria-label", "Select “"+p.Title+"”"))).AddClass("w-10 pr-0"),
 		ui.Td(html.Div(html.A().Href(postEditURL(p.ID)).Class(postLinkClass).Text(p.Title), meta).Class("min-w-48 max-w-md")),
 		ui.Td(statusBadge(p.Status)),
 		ui.Td(htemel.Text(p.Author)).AddClass("whitespace-nowrap"),
@@ -88,7 +90,7 @@ func postsBody(rows []adminPost, filtered bool) *html.TbodyElement {
 				Attrs(datastar.OnClick(clearFilters)))
 		if !filtered {
 			state = ui.EmptyState(ui.IconDocument(), "No posts yet", "Write your first post to get started.",
-				html.Div(linkButton(true, "New post", "/admin/posts/new", ui.IconPlus())))
+				html.Div(ui.LinkButton(ui.Primary, "New post", "/admin/posts/new", ui.WithIcon(ui.IconPlus()))))
 		}
 		body.Children(ui.EmptyRow(6, state))
 	}
@@ -99,19 +101,14 @@ func postsBody(rows []adminPost, filtered bool) *html.TbodyElement {
 var clearFilters = ui.FilterReset("q", "status", "tag") + "; $page = 1; " + clearSelection + "; " + datastar.Get(postsURL)
 
 // selectAllHead is the header cell of the select column. Its checkbox ticks every row of the
-// page shown (the ids are in the expression, so the cell is patched with the body) and follows
-// the rows: it is checked while all of them are.
+// page shown (the keys are in its expression, so the cell is patched with the body) and follows
+// the rows: checked while all are ticked, a dash while some are.
 func selectAllHead(rows []adminPost) *html.ThElement {
-	ids := make([]string, len(rows))
+	keys := make([]string, len(rows))
 	for i, p := range rows {
-		ids[i] = datastar.Quote(postKey(p.ID))
+		keys[i] = postKey(p.ID)
 	}
-	list := "[" + strings.Join(ids, ", ") + "]"
-	box := ui.Checkbox("",
-		htemel.Attr("aria-label", "Select all posts on this page"),
-		datastar.Effect("const ids = "+list+"; el.checked = ids.length > 0 && ids.every(k => $sel[k])"),
-		datastar.OnChange("const on = el.checked; "+list+".forEach(k => $sel[k] = on)"),
-	)
+	box := ui.Checkbox("", append(ui.SelectAll(selection, keys), htemel.Attr("aria-label", "Select all posts on this page"))...)
 	return ui.Th(box).Id(postsSelectID).AddClass("w-10 pr-0")
 }
 
@@ -144,6 +141,10 @@ func patchPosts(sse *dsse.ServerSentEventGenerator, q postQuery) {
 	patch(sse, selectAllHead(rows))
 	patch(sse, postsPager(current, pages))
 	patch(sse, postsCount(total, current, pages))
+	// The Posts badge in the nav: the sidebar and its narrow-container drawer copy.
+	n := strconv.Itoa(adminData.counts().Total)
+	patch(sse, ui.NavBadge(navPostsID, n))
+	patch(sse, ui.NavBadge(navPostsID, n).Id(ui.NavBadgeID(navPostsID)+"-drawer"))
 	if current != q.Page {
 		patchSignals(sse, map[string]any{"page": current})
 	}
@@ -304,7 +305,7 @@ func postsPage(r *http.Request) htemel.Node {
 		ui.DialogActions(
 			ui.Button(ui.Secondary, "Cancel").Attrs(datastar.OnClick(ui.Close("deleteOne"))),
 			ui.Button(ui.Danger, "Delete", ui.WithLoading("deleting")).
-				Attrs(datastar.OnClick(ui.Close("deleteOne")+"; "+afterRequest(datastar.Post("/admin/posts/delete"), focusCount))),
+				Attrs(datastar.OnClick(ui.Close("deleteOne")+"; "+ui.Then(datastar.Post("/admin/posts/delete"), focusCount))),
 		),
 	)
 	deleteMany := ui.Dialog("deleteMany", "Delete the selected posts?",
@@ -312,7 +313,7 @@ func postsPage(r *http.Request) htemel.Node {
 		ui.DialogActions(
 			ui.Button(ui.Secondary, "Cancel").Attrs(datastar.OnClick(ui.Close("deleteMany"))),
 			ui.Button(ui.Danger, "Delete all", ui.WithLoading("deletingMany")).
-				Attrs(datastar.OnClick(ui.Close("deleteMany")+"; "+afterRequest(datastar.Post("/admin/posts/bulk-delete"), focusCount))),
+				Attrs(datastar.OnClick(ui.Close("deleteMany")+"; "+ui.Then(datastar.Post("/admin/posts/bulk-delete"), focusCount))),
 		),
 	)
 
@@ -325,20 +326,16 @@ func postsPage(r *http.Request) htemel.Node {
 			ui.PageHeader("Posts",
 				ui.WithBreadcrumbs(ui.Breadcrumbs(ui.Crumb{Label: "Dashboard", Href: "/admin"}, ui.Crumb{Label: "Posts"})),
 				ui.WithDescription("Write, schedule and publish."),
-				ui.WithActions(linkButton(true, "New post", "/admin/posts/new", ui.IconPlus()))),
+				ui.WithActions(ui.LinkButton(ui.Primary, "New post", "/admin/posts/new", ui.WithIcon(ui.IconPlus())))),
 			html.Div(
 				filters,
 				bulk,
 				html.Div(table, html.Div(postsPager(current, pages), postsCount(total, current, pages)).Class("mt-4 flex flex-wrap items-center justify-between gap-3")),
 				deleteOne, deleteMany,
 			).Class("flex flex-col gap-y-4").
-				Attrs(datastar.Signals(signals), datastar.Computed("selCount", "Object.values($sel).filter(Boolean).length")),
+				Attrs(datastar.Signals(signals), datastar.Computed("selCount", ui.SelectedCount(selection))),
 		))
 }
 
 // focusCount moves focus to the count line after a delete: the row that held it is gone.
 const focusCount = "document.getElementById('" + postsCountID + "')?.focus()"
-
-// afterRequest runs then once the response of the action (an @get, @post...) has been applied.
-// Datastar expressions are not async functions (no await), but the actions return promises.
-func afterRequest(action, then string) string { return action + ".then(() => { " + then + " })" }
