@@ -157,10 +157,10 @@ func matrix() []spec {
 	add("Input", "invalid outline", "form.go:28", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
 	disabled("Input", "disabled text", "form.go:27", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
 
-	// Field (form.go:95-103) on the page background.
-	add("Field", "label", "form.go:95", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Field", "help text", "form.go:101", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Field", "error text", "form.go:103", text, on("text-danger-600", ""), on("dark:text-danger-400", ""))
+	// Field (form.go:89-97) on the page background.
+	add("Field", "label", "form.go:89", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Field", "help text", "form.go:95", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Field", "error text", "form.go:97", text, on("text-danger-600", ""), on("dark:text-danger-400", ""))
 
 	// Table (table.go:94-99, 55, 66): header on neutral-50 / neutral-900, body on the white card.
 	add("Table", "header text", "table.go:99", text, on("text-neutral-600", "bg-neutral-50"), on("dark:text-neutral-300", "dark:bg-neutral-900"))

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `Select` returns `*SelectElement`: a grid wrapper with the library chevron over an `appearance-none` native select (the browser arrow was heavy and unthemed, especially in dark mode). `Attrs`/`SetAttr` still target the `<select>`, and `Field` labels it through `Control()`.
+
 ### Motion
 
 One light, consistent motion scale, compositor-only (opacity, translate, scale, rotate, grid

@@ -40,12 +40,6 @@ func Textarea(name string, rows int) *html.TextareaElement {
 	return html.Textarea().Name(name).Rows(rows).Class(Classes(controlBase, "px-3 py-1.5"))
 }
 
-// Select returns a native <select> with the given name and options (see Choice).
-func Select(name string, options ...html.SelectChild) *html.SelectElement {
-	return html.Select(options...).Name(name).
-		Class(Classes(controlBase, "py-1.5 pr-8 pl-3 dark:*:bg-neutral-800"))
-}
-
 // Choice returns an <option> of a Select. Chain .Selected(true) to preselect it.
 func Choice(value, label string) *html.OptionElement {
 	return html.Option().Value(value).Text(label)

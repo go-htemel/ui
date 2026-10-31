@@ -83,6 +83,7 @@ border-warning-600
 border-y
 bottom-4
 bottom-full
+col-start-1
 contents
 cursor-grab
 cursor-pointer
@@ -262,6 +263,7 @@ items-start
 justify-between
 justify-center
 justify-end
+justify-self-end
 left-1/2
 lg:px-8
 m-0
@@ -289,6 +291,7 @@ ml-auto
 motion-reduce:animate-none
 motion-reduce:backdrop:transition-none
 motion-reduce:transition-none
+mr-2
 mr-auto
 mt-1
 mt-2
@@ -369,7 +372,9 @@ rounded-control
 rounded-full
 rounded-surface
 rounded-t-surface
+row-start-1
 scale-[.98]
+self-center
 self-start
 shadow-lg
 shadow-sm
@@ -397,6 +402,7 @@ sm:left-auto
 sm:p-6
 sm:px-6
 sm:py-4
+sm:size-4
 sm:text-sm/6
 sm:w-96
 space-y-0.5
