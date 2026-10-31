@@ -23,7 +23,7 @@ const fontTheme = `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans
 
 // pageCSS is the Tailwind source of every page, the browser-build counterpart of an app.css: the
 // default ui tokens, the Inter font, and the alternative token sets of the theming page.
-var pageCSS = ui.ThemeCSS() + "\n" + fontTheme + "\n\n" + themeDemoCSS
+var pageCSS = `@import "tailwindcss";` + "\n" + ui.ThemeCSS() + "\n" + fontTheme + "\n\n" + themeDemoCSS
 
 // page wraps content in the showcase document: CDN assets, the sidebar and the toast region.
 func page(title, current string, content ...htemel.FlowContent) htemel.Node {
