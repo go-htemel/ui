@@ -52,7 +52,11 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Overlays | `Dialog`/`DialogActions`, `Dropdown` with `MenuItem`/`MenuLink`/`MenuDivider` | ready; no focus trap or arrow keys yet |
 | Navigation | `Tabs`/`Tab`, `Disclosure`, `Accordion`/`AccordionItem` | ready; no arrow keys yet |
 | Drag and drop | `Draggable`, `DropZone`, `DropInto`, `DragData` | ready; mouse only (HTML drag events) |
-| Planned | Table, Pagination, Nav/Sidebar, Breadcrumbs, Progress, Skeleton, Tooltip, Command palette | — |
+| Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader`), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
+| Navigation | `Navbar`/`NavbarSignal` with `NavLink`, `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`Crumb`, `Steps` | ready; no arrow keys yet |
+| Progress | `Progress`, `ProgressSignal`, `Skeleton`, `Spinner` | ready |
+| Misc | `Tooltip` (CSS only, no Escape), `InputGroup` | ready |
+| Planned | Command palette | — |
 
 ## Interactivity
 
@@ -114,8 +118,8 @@ make run   # http://localhost:8080
 ```
 
 `cmd/showcase` renders one page per component group with each live component next to the Go
-source that produced it, plus datastar-go demos: server-pushed toasts, live form validation and a
-kanban board whose drops post to the server. Example functions live in
+source that produced it, plus datastar-go demos: server-pushed toasts, live form validation, a
+kanban board whose drops post to the server and a table that sorts and pages on the server. Example functions live in
 `cmd/showcase/examples_*.go`; those files are embedded and parsed at startup, so the displayed
 source is always the code that ran.
 
