@@ -701,7 +701,7 @@ const CHECKS = {
       name: "highlight, scroll and wrap",
       async run(page) {
         const r = await page.evaluate(() => {
-          const hl = [...document.querySelectorAll(".line[data-hl]")].map((l) => getComputedStyle(l));
+          const hl = [...document.querySelectorAll(".line[data-ui-hl]")].map((l) => getComputedStyle(l));
           const pres = [...document.querySelectorAll("figure.ui-code pre")].map((p) => ({ wrap: !!p.closest(".ui-code-wrap"), over: p.scrollWidth > p.clientWidth, tab: p.tabIndex }));
           return { hl: hl.map((c) => [c.backgroundColor, c.boxShadow]), pres, page: document.documentElement.scrollWidth - document.documentElement.clientWidth };
         });

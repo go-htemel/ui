@@ -162,7 +162,7 @@ func TestRoundTrip(t *testing.T) {
 		if got := codeText(t, out); got != want {
 			t.Errorf("%q: code text differs\n got: %q\nwant: %q", lang, got, want)
 		}
-		if got, want := strings.Count(out, `class="line"`)+strings.Count(out, `class="line" data-hl`), strings.Count(want, "\n")+1; got != want {
+		if got, want := strings.Count(out, `class="line"`)+strings.Count(out, `class="line" data-ui-hl`), strings.Count(want, "\n")+1; got != want {
 			t.Errorf("%q: %d line spans, want %d", lang, got, want)
 		}
 	}
@@ -278,7 +278,7 @@ func TestDeterministic(t *testing.T) {
 func TestOptions(t *testing.T) {
 	has := strings.Contains
 	plain := render(t, code.Block("go", goSrc))
-	if has(plain, "ui-code-lines") || has(plain, "ui-code-wrap") || has(plain, "data-hl") || has(plain, "ui-code-title") || has(plain, "--ui-code") {
+	if has(plain, "ui-code-lines") || has(plain, "ui-code-wrap") || has(plain, "data-ui-hl") || has(plain, "ui-code-title") || has(plain, "--ui-code") {
 		t.Errorf("defaults carry options:\n%s", plain)
 	}
 	if !has(plain, `aria-label="Copy code"`) || !has(plain, `aria-live="polite"`) || !has(plain, `aria-label="Code actions"`) {
@@ -300,15 +300,15 @@ func TestOptions(t *testing.T) {
 	}
 
 	hl := render(t, code.Block("go", goSrc, code.WithHighlight(2, 99), code.WithHighlightRange(5, 6), code.WithStart(1)))
-	if got := strings.Count(hl, "data-hl"); got != 3 {
+	if got := strings.Count(hl, "data-ui-hl"); got != 3 {
 		t.Errorf("%d highlighted lines, want 3 (2, 5, 6; 99 is outside)", got)
 	}
 	// Highlight numbers follow WithStart.
 	hl = render(t, code.Block("go", goSrc, code.WithStart(10), code.WithHighlight(10, 2)))
-	if got := strings.Count(hl, "data-hl"); got != 1 || !has(hl, `<span class="line" data-hl>`) {
+	if got := strings.Count(hl, "data-ui-hl"); got != 1 || !has(hl, `<span class="line" data-ui-hl>`) {
 		t.Errorf("highlight with start: %d, %s", got, hl)
 	}
-	if !has(render(t, code.Block("go", goSrc, code.WithHighlightRange(1, 1<<62))), "data-hl") {
+	if !has(render(t, code.Block("go", goSrc, code.WithHighlightRange(1, 1<<62))), "data-ui-hl") {
 		t.Error("huge range failed")
 	}
 

@@ -33,7 +33,7 @@
 //
 // Line numbers are CSS counters (generated content), so selecting and copying the code never
 // includes them and screen readers do not announce them. WithHighlight marks lines with a
-// data-hl attribute, styled with a tint and a bar. The copy button needs Datastar: it keeps the
+// data-ui-hl attribute, styled with a tint and a bar. The copy button needs Datastar: it keeps the
 // source in a <template> inside the figure, writes it to the clipboard on click (a secure
 // context is required: https or localhost) and shows a check mark for 1.5 seconds, announced
 // through a polite live region. The signal that drives it is local to the browser (its name

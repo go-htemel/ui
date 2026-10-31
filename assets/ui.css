@@ -468,7 +468,7 @@
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
-  .ui-code .line[data-hl] {
+  .ui-code .line[data-ui-hl] {
     background-color: var(--color-code-highlight);
     box-shadow: inset 3px 0 0 var(--color-code-highlight-bar);
   }
@@ -518,7 +518,7 @@
     .tok-error { color: var(--color-code-error); text-decoration: underline wavy; }
   }
   @media (forced-colors: active) {
-    .ui-code .line[data-hl] {
+    .ui-code .line[data-ui-hl] {
       border-inline-start: 3px solid Highlight;
     }
   }

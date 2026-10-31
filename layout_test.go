@@ -112,13 +112,13 @@ func TestAppShellRail(t *testing.T) {
 	got := render(t, e)
 	wantAll(t, got,
 		`data-signals:cms-rail__ifmissing="false"`,
-		`data-attr:data-rail="$cmsRail"`,
+		`data-attr:data-ui-rail="$cmsRail"`,
 		`localStorage.getItem('ui-shell-rail:cms')`,
-		`@3xl:in-data-rail:grid-cols-[4rem_minmax(0,1fr)]`,
+		`@3xl:in-data-ui-rail:grid-cols-[4rem_minmax(0,1fr)]`,
 		`aria-controls="cms-sidebar" aria-expanded="true"`,
 		`data-attr:aria-label="$cmsRail ? 'Expand sidebar' : 'Collapse sidebar'"`,
 		// Labels are visually hidden in the rail, not removed, and icon links carry a title.
-		`title="Posts"`, `@3xl:in-data-rail:sr-only`,
+		`title="Posts"`, `@3xl:in-data-ui-rail:sr-only`,
 	)
 	if strings.Count(got, `aria-expanded="true"`) != 1 {
 		t.Errorf("the rail button must carry exactly one aria-expanded")
@@ -146,7 +146,7 @@ func TestNavItemStates(t *testing.T) {
 		t.Errorf("a plain NavLink must render as before: %s", plain)
 	}
 	anc := render(t, ui.Sidebar("s", ui.SidebarGroup("g", "G", ui.NavLink("Posts", "/p", false).Ancestor())))
-	wantAll(t, anc, `data-ancestor`, `data-ancestor:font-semibold`)
+	wantAll(t, anc, `data-ui-ancestor`, `data-ui-ancestor:font-semibold`)
 	if strings.Contains(anc, `aria-current`) {
 		t.Error("an ancestor is not the current page")
 	}

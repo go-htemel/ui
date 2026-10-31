@@ -130,7 +130,7 @@ func contentInputRows() []spec {
 	add("FileUpload", "browse link, hover", "fileupload.go:62,fileupload.go:64", text, on("hover:text-primary-700", zoneL).over(cardL), on("dark:hover:text-primary-300", zoneD).over(cardD))
 	add("FileUpload", "browse focus ring", "fileupload.go:63,fileupload.go:64", nonText, on("has-focus-visible:outline-primary-600", zoneL).over(cardL), on("dark:has-focus-visible:outline-primary-500", zoneD).over(cardD))
 	add("FileUpload", "hint", "fileupload.go:66", text, on("text-neutral-600", zoneL).over(cardL), on("dark:text-neutral-400", zoneD).over(cardD))
-	add("FileUpload", "drop outline (data-over)", "fileupload.go:61", nonText, on("data-over:outline-primary-600", "").over(cardL), on("dark:data-over:outline-primary-500", "").over(cardD))
+	add("FileUpload", "drop outline (data-ui-over)", "fileupload.go:61", nonText, on("data-ui-over:outline-primary-600", "").over(cardL), on("dark:data-ui-over:outline-primary-500", "").over(cardD))
 	add("FileUpload", "file name", "fileupload.go:68", text, on("text-neutral-900", "").over(cardL), on("dark:text-white", "").over(cardD))
 	add("FileUpload", "file size", "fileupload.go:69", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 	return m

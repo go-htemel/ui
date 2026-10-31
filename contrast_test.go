@@ -292,8 +292,8 @@ func matrix() []spec {
 	add("Divider", "label", "layout.go:44", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// DropZone highlight (dnd.go:78) and MoveHere (dnd.go:116-117).
-	add("DropZone", "data-over outline", "dnd.go:78", nonText, on("data-over:outline-primary-600", ""), on("dark:data-over:outline-primary-500", ""))
-	add("DropZone", "data-over outline on a card", "dnd.go:78", nonText, on("data-over:outline-primary-600", "").over(cardL), on("dark:data-over:outline-primary-500", "").over(cardD))
+	add("DropZone", "data-ui-over outline", "dnd.go:78", nonText, on("data-ui-over:outline-primary-600", ""), on("dark:data-ui-over:outline-primary-500", ""))
+	add("DropZone", "data-ui-over outline on a card", "dnd.go:78", nonText, on("data-ui-over:outline-primary-600", "").over(cardL), on("dark:data-ui-over:outline-primary-500", "").over(cardD))
 	add("MoveHere", "dashed border", "dnd.go:116", nonText, on("border-primary-600", ""), on("border-primary-600", ""))
 	add("MoveHere", "text", "dnd.go:116", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("MoveHere", "text on hover", "dnd.go:117", text, on("hover:text-primary-700", "hover:bg-primary-500/10"), on("dark:hover:text-primary-400", "hover:bg-primary-500/10"))

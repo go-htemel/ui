@@ -214,7 +214,7 @@ func AppShell(opts ...AppShellOption) *AppShellElement {
 	root := html.Div(SkipLink("#" + mainID)).Class(Classes("@container relative h-full min-h-0"))
 	grid := html.Div().Class(Classes("grid h-full min-h-0 grid-cols-1 grid-rows-[minmax(0,1fr)]",
 		cond(persistent, "@3xl:grid-cols-[16rem_minmax(0,1fr)]"),
-		cond(persistent && c.collapsible, "@3xl:in-data-rail:grid-cols-[4rem_minmax(0,1fr)]")))
+		cond(persistent && c.collapsible, "@3xl:in-data-ui-rail:grid-cols-[4rem_minmax(0,1fr)]")))
 	root.Children(grid)
 
 	if persistent {
@@ -228,7 +228,7 @@ func AppShell(opts ...AppShellOption) *AppShellElement {
 		parts = append(parts, body)
 		if len(c.footer) > 0 {
 			parts = append(parts, html.Div(c.footer...).Class(Classes("shrink-0 border-t border-neutral-200 px-3 py-3 dark:border-white/10",
-				cond(c.collapsible, "@3xl:in-data-rail:hidden"))))
+				cond(c.collapsible, "@3xl:in-data-ui-rail:hidden"))))
 		}
 		if c.collapsible {
 			rail := sigp + "Rail"
@@ -237,7 +237,7 @@ func AppShell(opts ...AppShellOption) *AppShellElement {
 			root.Attrs(
 				initially(rail, "false"),
 				datastar.Init("try { const v = localStorage.getItem("+storage+"); if (v !== null) $"+rail+" = v === '1' } catch (e) {}"),
-				datastar.Attr("data-rail", "$"+rail),
+				datastar.Attr("data-ui-rail", "$"+rail),
 			)
 			toggle := IconButton(Ghost, IconSidebar(), "Collapse sidebar", WithSize(Sm)).
 				Aria("controls", sidebarID).

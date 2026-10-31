@@ -8,7 +8,7 @@
 //
 // Contract (light DOM, no shadow root, no dependencies):
 //   [data-ui-drag]      a draggable element; data-ui-payload is its payload
-//   [data-ui-dropzone]  a drop target; gets data-over while a drag is above it
+//   [data-ui-dropzone]  a drop target; gets data-ui-over while a drag is above it
 //   ui:dragstart        on the dragged element, bubbles, detail {payload}
 //   ui:drop             on the zone, bubbles, detail {payload}
 //   ui:dragend          on the dragged element, bubbles, detail {payload, dropped}
@@ -87,7 +87,7 @@
       document.body.appendChild(g);
       s.ghost = g;
       try { s.src.setPointerCapture(s.id); } catch { /* pointer already gone */ }
-      s.src.toggleAttribute('data-dragging', true);
+      s.src.toggleAttribute('data-ui-dragging', true);
       s.src.setAttribute('aria-grabbed', 'true');
       this._fire(s.src, 'ui:dragstart', { payload: s.payload });
     }
@@ -105,8 +105,8 @@
       s.ghost.style.transform = this._at(evt.clientX - s.dx, evt.clientY - s.dy);
       const zone = this._zoneAt(evt.clientX, evt.clientY);
       if (zone !== s.zone) {
-        s.zone?.removeAttribute('data-over');
-        zone?.setAttribute('data-over', '');
+        s.zone?.removeAttribute('data-ui-over');
+        zone?.setAttribute('data-ui-over', '');
         s.zone = zone;
       }
     }
@@ -141,8 +141,8 @@
       clearTimeout(s.timer);
       if (!s.active) return;
       s.ghost.remove();
-      s.zone?.removeAttribute('data-over');
-      s.src.toggleAttribute('data-dragging', false);
+      s.zone?.removeAttribute('data-ui-over');
+      s.src.toggleAttribute('data-ui-dragging', false);
       s.src.setAttribute('aria-grabbed', 'false');
       try { s.src.releasePointerCapture(s.id); } catch { /* already released */ }
       // The browser may still synthesize a click on release; it must not press "Pick up".
@@ -445,7 +445,7 @@
 //
 // Contract (light DOM, no shadow root, no dependencies):
 //   input[type=file]                   the input; its FileList is the selection
-//   [data-ui-dropzone]                 accepts dropped files; gets data-over during a drag of files
+//   [data-ui-dropzone]                 accepts dropped files; gets data-ui-over during a drag of files
 //   [data-ui-files]                    the list, rebuilt from template[data-ui-file-template] rows:
 //                                      [data-ui-file-name] [data-ui-file-size] [data-ui-file-preview]
 //                                      (an <img>, shown for images) [data-ui-file-icon] [data-ui-file-remove]
@@ -496,10 +496,10 @@
       evt.preventDefault();
       const z = this.zone;
       if (evt.type === 'dragleave') {
-        if (!z.contains(evt.relatedTarget)) z.removeAttribute('data-over');
+        if (!z.contains(evt.relatedTarget)) z.removeAttribute('data-ui-over');
         return;
       }
-      z.setAttribute('data-over', '');
+      z.setAttribute('data-ui-over', '');
       evt.dataTransfer.dropEffect = 'copy';
     }
 
@@ -507,7 +507,7 @@
       const dropped = [...(evt.dataTransfer?.files || [])];
       if (!dropped.length) return;
       evt.preventDefault();
-      this.zone.removeAttribute('data-over');
+      this.zone.removeAttribute('data-ui-over');
       const ok = dropped.filter((f) => this._accepts(f));
       if (!ok.length) return this._say('That file type is not accepted');
       this._set(this.input.multiple ? [...this.input.files, ...ok] : ok.slice(0, 1));

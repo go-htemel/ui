@@ -35,8 +35,8 @@ import (
 // data-ui-dropzone for it, and a touch drop reaches the zone as a ui:drop event that runs the
 // same action. Without the script the Pick up / Move here flow above is the touch fallback.
 //
-// During a mouse drag the draggable carries data-dragging (and aria-grabbed="true", the
-// deprecated but still read ARIA 1.0 state) and a DropZone under the pointer carries data-over,
+// During a mouse drag the draggable carries data-ui-dragging (and aria-grabbed="true", the
+// deprecated but still read ARIA 1.0 state) and a DropZone under the pointer carries data-ui-over,
 // which the built-in classes style. They are element attributes rather than Datastar signals
 // because a signal needs a name unique to each zone and draggable, which these constructors
 // cannot choose, and every signal would be sent to the server with each request.
@@ -53,21 +53,21 @@ func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement 
 	return html.Div(children...).
 		Draggable(html.DraggableTrue).
 		Aria("grabbed", "false").
-		Class(Classes("cursor-grab active:cursor-grabbing data-dragging:opacity-50")).
+		Class(Classes("cursor-grab active:cursor-grabbing data-ui-dragging:opacity-50")).
 		Attrs(
 			htemel.Attr("data-ui-drag", ""),
 			htemel.Attr("data-ui-payload", payload),
 			datastar.On("dragstart",
 				"evt.dataTransfer.setData('text/plain', "+datastar.Quote(payload)+"); evt.dataTransfer.effectAllowed = 'move'; "+
-					"el.toggleAttribute('data-dragging', true); el.setAttribute('aria-grabbed', 'true')"),
-			datastar.On("dragend", "el.toggleAttribute('data-dragging', false); el.setAttribute('aria-grabbed', 'false')"),
+					"el.toggleAttribute('data-ui-dragging', true); el.setAttribute('aria-grabbed', 'true')"),
+			datastar.On("dragend", "el.toggleAttribute('data-ui-dragging', false); el.setAttribute('aria-grabbed', 'false')"),
 		)
 }
 
 // DropZone returns a <div> that accepts drops and runs action, a Datastar expression, on each
 // drop. It cancels dragover (which is what makes an element a drop target) and the browser's
 // default drop handling (which would otherwise navigate to dropped text in some browsers). While
-// a drag is over the zone it has the data-over attribute, styled with an outline and tint; dragenter
+// a drag is over the zone it has the data-ui-over attribute, styled with an outline and tint; dragenter
 // and dragleave toggle it, ignoring the enter/leave pairs fired when the pointer crosses a child.
 //
 // The zone also listens for the ui:drop event that <ui-sortable> dispatches for touch drags (see
@@ -75,14 +75,14 @@ func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement 
 // drag data, so DropInto works for both without change.
 func DropZone(action string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).
-		Class(Classes("data-over:outline-2 data-over:outline-dashed data-over:outline-primary-600 data-over:bg-primary-500/10 dark:data-over:outline-primary-500")).
+		Class(Classes("data-ui-over:outline-2 data-ui-over:outline-dashed data-ui-over:outline-primary-600 data-ui-over:bg-primary-500/10 dark:data-ui-over:outline-primary-500")).
 		Attrs(
 			htemel.Attr("data-ui-dropzone", ""),
-			datastar.On("dragenter", "evt.preventDefault(); el.toggleAttribute('data-over', true)"),
+			datastar.On("dragenter", "evt.preventDefault(); el.toggleAttribute('data-ui-over', true)"),
 			datastar.On("dragover", "evt.preventDefault(); evt.dataTransfer.dropEffect = 'move'"),
-			datastar.On("dragleave", "if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-over', false)"),
-			datastar.On("drop", "el.toggleAttribute('data-over', false); "+action, datastar.Prevent()),
-			datastar.On("ui:drop", "el.toggleAttribute('data-over', false); "+strings.ReplaceAll(action, DragData, DropDetail)),
+			datastar.On("dragleave", "if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-ui-over', false)"),
+			datastar.On("drop", "el.toggleAttribute('data-ui-over', false); "+action, datastar.Prevent()),
+			datastar.On("ui:drop", "el.toggleAttribute('data-ui-over', false); "+strings.ReplaceAll(action, DragData, DropDetail)),
 		)
 }
 

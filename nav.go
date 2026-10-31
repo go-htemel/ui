@@ -68,16 +68,16 @@ const navLinkClass = "block rounded-control px-3 py-2 text-sm font-medium text-n
 	"dark:aria-[current=page]:bg-white/10 dark:aria-[current=page]:text-white"
 
 // navAncestorClass is the ancestor state (NavItem.Ancestor): the label at full contrast.
-const navAncestorClass = "data-ancestor:font-semibold data-ancestor:text-neutral-900 dark:data-ancestor:text-white"
+const navAncestorClass = "data-ui-ancestor:font-semibold data-ui-ancestor:text-neutral-900 dark:data-ui-ancestor:text-white"
 
 // navRichClass replaces the block layout of navLinkClass for links with an icon or a badge. In
-// the rail of a collapsed AppShell (an ancestor with data-rail, from an @3xl container) the
+// the rail of a collapsed AppShell (an ancestor with data-ui-rail, from an @3xl container) the
 // label and the badge become visually hidden; they stay the accessible name.
 const (
 	navRichClass  = "flex items-center gap-x-3"
 	navIconClass  = "size-5 shrink-0 text-neutral-500 in-aria-[current=page]:text-primary-700 dark:text-neutral-400 dark:in-aria-[current=page]:text-white"
-	navLabelClass = "min-w-0 flex-1 truncate @3xl:in-data-rail:sr-only"
-	navBadgeClass = "ml-auto shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700 dark:bg-white/10 dark:text-neutral-300 @3xl:in-data-rail:sr-only"
+	navLabelClass = "min-w-0 flex-1 truncate @3xl:in-data-ui-rail:sr-only"
+	navBadgeClass = "ml-auto shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700 dark:bg-white/10 dark:text-neutral-300 @3xl:in-data-ui-rail:sr-only"
 )
 
 func (n NavItem) link() *html.AElement { return n.linkClass(navLinkClass) }
@@ -111,7 +111,7 @@ func (n NavItem) linkClass(base string) *html.AElement {
 		a.Aria("current", "page")
 	}
 	if n.ancestor && !n.active {
-		a.Attrs(htemel.Attr("data-ancestor", ""))
+		a.Attrs(htemel.Attr("data-ui-ancestor", ""))
 	}
 	return a.Attrs(n.attrs...)
 }
@@ -208,13 +208,13 @@ func Sidebar(signal string, sections ...SidebarSection) *html.NavElement {
 		).Type(html.ButtonTypeButton).
 			Class(Classes("flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-1.5 text-left text-xs font-semibold transition-colors duration-150",
 				"tracking-wide text-neutral-500 uppercase hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500",
-				"dark:text-neutral-400 dark:hover:text-white @3xl:in-data-rail:hidden")).
+				"dark:text-neutral-400 dark:hover:text-white @3xl:in-data-ui-rail:hidden")).
 			Aria("controls", id).
 			Attrs(expanded(open)...).
 			Attrs(datastar.OnClick(Toggle(path)))
 		// In the icon rail of a collapsed AppShell the heading is hidden, so every section is shown
 		// (!block beats the inline display: none of data-show).
-		list := navList("mt-1 space-y-0.5 @3xl:in-data-rail:!block @3xl:in-data-rail:mt-0", s.items).Id(id).Style(hiddenUntilDatastar).Attrs(datastar.Show(open))
+		list := navList("mt-1 space-y-0.5 @3xl:in-data-ui-rail:!block @3xl:in-data-ui-rail:mt-0", s.items).Id(id).Style(hiddenUntilDatastar).Attrs(datastar.Show(open))
 		nav.Children(html.Div(button, list).Class("py-1").
 			Attrs(datastar.Signal(path, boolExpr(startOpen), datastar.IfMissing())))
 	}

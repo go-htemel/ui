@@ -251,17 +251,17 @@ func TestDisclosureAccessibility(t *testing.T) {
 func TestDragAndDropAccessibility(t *testing.T) {
 	drag := render(t, ui.Draggable("c1", html.P().Text("x")))
 	wantAll(t, drag, `data-ui-drag `, `data-ui-payload="c1"`, `draggable="true"`, `aria-grabbed="false"`,
-		`data-on:dragstart="`, `el.setAttribute('aria-grabbed', 'true')`, `el.toggleAttribute('data-dragging', true)`,
+		`data-on:dragstart="`, `el.setAttribute('aria-grabbed', 'true')`, `el.toggleAttribute('data-ui-dragging', true)`,
 		`data-on:dragend="`, `el.setAttribute('aria-grabbed', 'false')`)
 
 	zone := render(t, ui.DropZone(ui.DropInto("dragged", "@post('/m')")))
 	wantAll(t, zone,
-		`data-on:dragenter="evt.preventDefault(); el.toggleAttribute('data-over', true)"`,
+		`data-on:dragenter="evt.preventDefault(); el.toggleAttribute('data-ui-over', true)"`,
 		`data-on:dragover="evt.preventDefault();`,
-		`data-on:dragleave="if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-over', false)"`,
-		`data-on:drop__prevent="el.toggleAttribute('data-over', false); $dragged = evt.dataTransfer.getData('text/plain'); @post('/m')`,
-		`data-over:outline-2`, ` data-ui-dropzone `,
-		`data-on:ui:drop="el.toggleAttribute('data-over', false); $dragged = evt.detail.payload; @post('/m')`)
+		`data-on:dragleave="if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-ui-over', false)"`,
+		`data-on:drop__prevent="el.toggleAttribute('data-ui-over', false); $dragged = evt.dataTransfer.getData('text/plain'); @post('/m')`,
+		`data-ui-over:outline-2`, ` data-ui-dropzone `,
+		`data-on:ui:drop="el.toggleAttribute('data-ui-over', false); $dragged = evt.detail.payload; @post('/m')`)
 
 	move := render(t, ui.MoveHere("dragged", "Move here", "@post('/m')"))
 	wantAll(t, move, `data-signals:dragged-via__ifmissing="''"`, `data-show="$draggedVia === 'pickup'"`, `style="display: none"`, `data-on:click="@post('/m'); setTimeout(() => { $dragged = ''; $draggedVia = '' })"`, ">Move here<")

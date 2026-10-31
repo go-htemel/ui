@@ -356,7 +356,7 @@ func TestAdminPages(t *testing.T) {
 
 	t.Run("editor ancestor and breadcrumbs", func(t *testing.T) {
 		_, body := get(t, h, "/admin/posts/1/edit")
-		for _, want := range []string{`data-ancestor`, `aria-label="Breadcrumb"`, `All posts`, `Container queries in practice`, `id="post-saved"`, `id="post-status-badge"`} {
+		for _, want := range []string{`data-ui-ancestor`, `aria-label="Breadcrumb"`, `All posts`, `Container queries in practice`, `id="post-saved"`, `id="post-status-badge"`} {
 			if !strings.Contains(body, want) {
 				t.Errorf("editor lacks %q", want)
 			}

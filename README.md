@@ -190,7 +190,7 @@ labels them and adds help and error text.
 | Element | Attributes it reads | Events it dispatches |
 | --- | --- | --- |
 | `<ui-taginput>` | `data-ui-name`, `data-ui-max`; children `[data-ui-tag]` (with `[data-ui-tag-remove]` and a hidden input), `[data-ui-tag-input]`, `template[data-ui-tag-template]`, `[data-ui-tag-status]` | `ui:tags` (bubbles) `{tags}` after every change; methods `add(text)`, `remove(chip)`, getter `tags` |
-| `<ui-fileupload>` | `data-ui-upload`; children `input[type=file]`, `[data-ui-dropzone]` (gets `data-over`), `[data-ui-files]`, `template[data-ui-file-template]`, `[data-ui-file-status]` | `ui:upload` (bubbles) `{file, files}` per newly selected file (with `data-ui-upload`); a `change` on the input whenever the selection changes |
+| `<ui-fileupload>` | `data-ui-upload`; children `input[type=file]`, `[data-ui-dropzone]` (gets `data-ui-over`), `[data-ui-files]`, `template[data-ui-file-template]`, `[data-ui-file-status]` | `ui:upload` (bubbles) `{file, files}` per newly selected file (with `data-ui-upload`); a `change` on the input whenever the selection changes |
 
 ## Interactivity
 
@@ -574,7 +574,7 @@ lexer that fails, renders plain text, never an error. All text is escaped.
 | --- | --- |
 | `WithLineNumbers()` | gutter of CSS counters: never selected, copied or announced |
 | `WithStart(n)` | number of the first line; highlight numbers follow it |
-| `WithHighlight(lines...)`, `WithHighlightRange(from, to)` | `data-hl` on those lines: primary tint and a left bar |
+| `WithHighlight(lines...)`, `WithHighlightRange(from, to)` | `data-ui-hl` on those lines: primary tint and a left bar |
 | `WithTitle(s)` | file name in a toolbar above the code; also the figure's `aria-label` |
 | `WithWrap()` | soft wrap instead of horizontal scrolling (the default) |
 | `WithoutCopyButton()` | the copy button is on by default |
@@ -801,7 +801,7 @@ ui.Sortable(board) // board contains DropZone(DropInto("dragged", act), ...) and
 `Draggable` and `DropZone` carry `data-ui-drag`, `data-ui-payload` and `data-ui-dropzone` for the
 script. It dispatches bubbling `ui:dragstart` (on the dragged element), `ui:drop` (on the zone;
 `detail.payload`) and `ui:dragend` (`detail.payload`, `detail.dropped`) events, and sets
-`data-over` and `data-dragging` like the native path. Mouse pointers are ignored by the script
+`data-ui-over` and `data-ui-dragging` like the native path. Mouse pointers are ignored by the script
 and keep the browser's native drag and drop. Without `ui.js`, the `PickUp` and `MoveHere` buttons
 remain the touch and keyboard fallback.
 
@@ -925,7 +925,7 @@ expressions. Each component's Go documentation lists exactly what it covers.
 | `Tooltip` | `role="tooltip"`, trigger `aria-describedby` | shown on hover and focus (CSS) |
 | `Tabs` | `tablist`, `tab`, `tabpanel`, `aria-selected`, `aria-controls`, roving `tabindex` | ArrowLeft/ArrowRight, Home/End |
 | `Disclosure`, `Accordion` | `aria-expanded`, `aria-controls`, panel `role="region"` | Accordion: ArrowDown/ArrowUp, Home/End between headers |
-| `Draggable`, `DropZone` | `aria-grabbed`, `data-dragging`, `data-over` highlight | `PickUp` and `MoveHere` buttons replace dragging for keyboard and touch |
+| `Draggable`, `DropZone` | `aria-grabbed`, `data-ui-dragging`, `data-ui-over` highlight | `PickUp` and `MoveHere` buttons replace dragging for keyboard and touch |
 | `ToastRegion`, `Toast` | polite live region, `role="status"`, labelled Dismiss button | the auto-dismiss countdown pauses on hover and while focus is inside |
 
 ### Motion

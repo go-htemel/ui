@@ -53,7 +53,7 @@ func Block(lang, src string, opts ...Option) *BlockElement {
 		}
 		span := html.Span(segments(line)...).Class("line")
 		if c.highlighted(c.start + i) {
-			span.Data("hl", "")
+			span.Data("ui-hl", "")
 		}
 		codeEl.Children(span)
 	}

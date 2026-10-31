@@ -16,7 +16,7 @@ func layoutRows() []spec {
 	add("Nav link", "icon, current", "nav.go:78", nonText, on("in-aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100").over(cardL),
 		on("dark:in-aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10").over(cardD))
 	add("Nav link", "badge", "nav.go:80", text, on("text-neutral-700", "bg-neutral-100").over(cardL), on("dark:text-neutral-300", "dark:bg-white/10").over(cardD))
-	add("Nav link", "ancestor", "nav.go:71", text, on("data-ancestor:text-neutral-900", "").over(cardL), on("dark:data-ancestor:text-white", "").over(cardD))
+	add("Nav link", "ancestor", "nav.go:71", text, on("data-ui-ancestor:text-neutral-900", "").over(cardL), on("dark:data-ui-ancestor:text-white", "").over(cardD))
 
 	// AppShell with SidebarDark: the sidebar carries .dark, so its dark: classes apply in BOTH
 	// schemes on the neutral-900 surface (layout_shell.go:144-145). Light and dark rows are equal.
