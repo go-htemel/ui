@@ -121,8 +121,15 @@ func Spinner(size Size) *html.SpanElement {
 
 // Steps returns a horizontal step indicator for a multi-step flow: current is the 1-based
 // number of the active step, earlier steps show a check mark and later ones are muted. The
-// active step carries aria-current="step".
+// active step carries aria-current="step". The <nav> landmark is named "Progress"; a page with
+// two step indicators needs a distinct name for each: use StepsLabel.
 func Steps(current int, labels ...string) *html.NavElement {
+	return StepsLabel("Progress", current, labels...)
+}
+
+// StepsLabel is Steps with label as the name of the <nav> landmark instead of "Progress"
+// ("Checkout progress", "Signup progress"), so two step indicators on a page can be told apart.
+func StepsLabel(label string, current int, labels ...string) *html.NavElement {
 	list := html.Ol().Class(Classes("flex items-center"))
 	for i, label := range labels {
 		n := i + 1
@@ -163,5 +170,5 @@ func Steps(current int, labels ...string) *html.NavElement {
 		}
 		list.Children(li)
 	}
-	return html.Nav(list).Aria("label", "Progress")
+	return html.Nav(list).Aria("label", navLabel([]string{label}, "Progress"))
 }

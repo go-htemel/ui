@@ -59,10 +59,11 @@ func emptyStates() htemel.FlowContent {
 
 func paginationLinks() htemel.FlowContent {
 	href := func(page int) string { return "#page-" + string(rune('0'+page%10)) }
+	// Several on one page: each landmark gets its own name (the default is "Pagination").
 	return ui.Stack(ui.Md,
-		ui.Pagination(1, 4, href),
-		ui.Pagination(5, 24, href),
-		ui.Pagination(24, 24, href),
+		ui.Pagination(1, 4, href, "Pagination, first page"),
+		ui.Pagination(5, 24, href, "Pagination, middle page"),
+		ui.Pagination(24, 24, href, "Pagination, last page"),
 	)
 }
 
@@ -70,7 +71,7 @@ func paginationSignal() htemel.FlowContent {
 	// The buttons set $demoPage; there is no request, so the pages beyond the first window only
 	// show after the control is re-rendered. See the sortable table for the server round-trip.
 	return html.Div(
-		ui.PaginationSignal(1, 5, "demoPage", ""),
+		ui.PaginationSignal(1, 5, "demoPage", "", "Demo pages"),
 		html.P().Class("mt-3 text-sm text-neutral-600 dark:text-neutral-400").
 			Text("Page ").Children(html.Span().Attrs(datastar.Text("$demoPage"))),
 	)

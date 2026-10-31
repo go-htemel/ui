@@ -15,6 +15,13 @@ type FormControl interface {
 	htemel.Element
 }
 
+// CompositeControl is a FormControl that wraps the element to label, such as InputGroup. Field
+// renders the composite and sets the id, aria-describedby and aria-invalid on Control().
+type CompositeControl interface {
+	FormControl
+	Control() FormControl
+}
+
 const controlBase = "block w-full rounded-control bg-white text-base text-neutral-900 outline-1 -outline-offset-1 outline-neutral-500 " +
 	"placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-2 focus:outline-primary-700 sm:text-sm/6 " +
 	"disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500 " +
@@ -67,7 +74,8 @@ func ErrorText(text string) FieldOption { return func(c *fieldConfig) { c.err = 
 func ErrorSignal(signal string) FieldOption { return func(c *fieldConfig) { c.errorSignal = signal } }
 
 // Field lays out a label, a control and optional help and error text. It sets the control's id
-// (so the label's for attribute points at it) and its aria-describedby.
+// (so the label's for attribute points at it) and its aria-describedby. For a CompositeControl
+// (InputGroup) those go on the control inside it.
 //
 //	ui.Field("email", "Email", ui.Input(html.InputTypeEmail, "email").Attrs(datastar.Bind("email")),
 //		ui.HelpText("We never share it."), ui.ErrorSignal("errors.email"))
@@ -78,7 +86,11 @@ func Field(id, label string, control FormControl, opts ...FieldOption) *html.Div
 			opt(&c)
 		}
 	}
-	control.SetAttr("id", id)
+	target := FormControl(control)
+	if c, ok := control.(CompositeControl); ok && c.Control() != nil {
+		target = c.Control()
+	}
+	target.SetAttr("id", id)
 	f := html.Div(
 		html.Label().For(id).Class(Classes("block text-sm/6 font-medium text-neutral-900 dark:text-white")).Text(label),
 		html.Div(control).Class("mt-2"),
@@ -91,18 +103,18 @@ func Field(id, label string, control FormControl, opts ...FieldOption) *html.Div
 	errClass := Classes("mt-2 text-sm text-danger-600 dark:text-danger-400")
 	if c.err != "" {
 		described = append(described, id+"-error")
-		control.SetAttr("aria-invalid", "true")
+		target.SetAttr("aria-invalid", "true")
 		f.Children(html.P().Id(id + "-error").Class(errClass).Text(c.err))
 	}
 	if c.errorSignal != "" {
 		described = append(described, id+"-error-live")
-		htemel.Apply(control, datastar.Attr("aria-invalid", "$"+c.errorSignal+" ? 'true' : false"))
+		htemel.Apply(target, datastar.Attr("aria-invalid", "$"+c.errorSignal+" ? 'true' : false"))
 		f.Attrs(initially(c.errorSignal, "''"))
 		f.Children(html.P().Id(id+"-error-live").Class(errClass).Style(hiddenUntilDatastar).
 			Attrs(datastar.Show("!!$"+c.errorSignal), datastar.Text("$"+c.errorSignal)))
 	}
 	if len(described) > 0 {
-		control.SetAttr("aria-describedby", strings.Join(described, " "))
+		target.SetAttr("aria-describedby", strings.Join(described, " "))
 	}
 	return f
 }

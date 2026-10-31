@@ -158,7 +158,16 @@ type Crumb struct {
 // (aria-current="page").
 //
 //	ui.Breadcrumbs(ui.Crumb{"Home", "/"}, ui.Crumb{"Projects", "/projects"}, ui.Crumb{Label: "Apollo"})
+//
+// A page with two breadcrumb trails needs a distinct name for each landmark: use BreadcrumbsLabel.
 func Breadcrumbs(items ...Crumb) *html.NavElement {
+	return BreadcrumbsLabel("Breadcrumb", items...)
+}
+
+// BreadcrumbsLabel is Breadcrumbs with label as the name of the <nav> landmark instead of
+// "Breadcrumb". Landmarks of the same role need different names for screen-reader users to tell
+// them apart, so give each trail on a page its own ("Breadcrumb", "Folder path").
+func BreadcrumbsLabel(label string, items ...Crumb) *html.NavElement {
 	list := html.Ol().Class(Classes("flex flex-wrap items-center gap-x-1.5 text-sm"))
 	for i, c := range items {
 		last := i == len(items)-1
@@ -183,7 +192,7 @@ func Breadcrumbs(items ...Crumb) *html.NavElement {
 		}
 		list.Children(li)
 	}
-	return html.Nav(list).Aria("label", "Breadcrumb")
+	return html.Nav(list).Aria("label", navLabel([]string{label}, "Breadcrumb"))
 }
 
 // escapeCloses closes signal when Escape is pressed anywhere in the window.

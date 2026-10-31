@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Landmark names, Field labels InputGroup, disabled pagination ends
+
+- **Added:** an optional landmark name for the navigation components, so a page can hold two of
+  them: `Pagination(page, pages, hrefFn, label ...string)` and
+  `PaginationSignal(page, pages, signal, action, label ...string)` take a trailing label;
+  `BreadcrumbsLabel(label, items...)` and `StepsLabel(label, current, labels...)` are
+  `Breadcrumbs` and `Steps` with a name. The defaults stay "Pagination", "Breadcrumb" and
+  "Progress"; two of the same on one page need distinct labels.
+- **Changed (breaking):** `InputGroup` returns `*ui.InputGroupElement` (the `<div>`, embedded,
+  plus `Control()`), not `*html.DivElement`. Chained element methods still work. `Field` labels
+  the control inside it: the `id` its `<label for>` points at, `aria-describedby` and
+  `aria-invalid` go on the input instead of the wrapper. The new `ui.CompositeControl` interface
+  lets your own wrappers do the same. Remove any `aria-label` you added to the inner input as a
+  workaround.
+- **Changed:** a disabled previous/next item of `Pagination` is a `<span aria-disabled="true">`
+  with visually hidden text instead of an `<a>` without `href` carrying `aria-label` (which axe
+  reports as a prohibited attribute).
+
 ### WCAG AA contrast with the default tokens
 
 The default primary stays sky; the components now use the steps of each family that reach WCAG

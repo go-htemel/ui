@@ -85,7 +85,7 @@ func peopleBody(key, dir string, page int) *html.TbodyElement {
 
 func peoplePager(page int) *html.NavElement {
 	_, current, pages := peoplePage("", "", page)
-	return ui.PaginationSignal(current, pages, "page", datastar.Get(peopleURL)).Id(peoplePagerID)
+	return ui.PaginationSignal(current, pages, "page", datastar.Get(peopleURL), "People pages").Id(peoplePagerID)
 }
 
 // peopleHandler serves GET /demo/people: the signals arrive in the datastar query parameter.

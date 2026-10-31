@@ -51,12 +51,13 @@ func tooltips() htemel.FlowContent {
 }
 
 func inputGroups() htemel.FlowContent {
+	// Field labels the input inside the group: the id and aria-describedby go on the <input>.
 	return ui.Stack(ui.Md,
 		ui.Field("site", "Website",
-			ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site").Aria("label", "Website"), htemel.Text(".com"))),
+			ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site"), htemel.Text(".com"))),
 		ui.Field("price", "Price",
-			ui.InputGroup(htemel.Text("$"), ui.Input(html.InputTypeText, "price").Aria("label", "Price"), htemel.Text("USD"))),
+			ui.InputGroup(htemel.Text("$"), ui.Input(html.InputTypeText, "price"), htemel.Text("USD"))),
 		ui.Field("search", "Search",
-			ui.InputGroup(ui.IconSearch(), ui.Input(html.InputTypeSearch, "search").Aria("label", "Search"), nil)),
+			ui.InputGroup(ui.IconSearch(), ui.Input(html.InputTypeSearch, "search"), nil)),
 	)
 }

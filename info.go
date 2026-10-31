@@ -103,12 +103,26 @@ func DescriptionList(pairs ...DLItem) *html.DlElement {
 const affixClass = "inline-flex shrink-0 items-center bg-neutral-50 px-3 text-sm text-neutral-500 outline-1 -outline-offset-1 " +
 	"outline-neutral-500 dark:bg-white/5 dark:text-neutral-400 dark:outline-white/35"
 
+// InputGroupElement is the <div> InputGroup returns. Its element methods are the <div>'s; Control
+// returns the control inside it, which is what Field labels.
+type InputGroupElement struct {
+	*html.DivElement
+	control FormControl
+}
+
+// Control returns the control the group was built around. Field gives it the id its <label>
+// points at, aria-describedby and aria-invalid, so the label names the input itself rather than
+// the wrapper.
+func (g *InputGroupElement) Control() FormControl { return g.control }
+
 // InputGroup joins a control with an affix before it, after it or both, such as a currency sign
 // or a domain suffix. prefix and suffix may be nil. The control is an Input, Select or any
-// FormControl; put the group inside a Field to label it.
+// FormControl; put the group inside a Field to label it: Field labels the control, not the
+// wrapper (see InputGroupElement.Control).
 //
-//	ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site"), htemel.Text(".com"))
-func InputGroup(prefix htemel.PhrasingContent, control FormControl, suffix htemel.PhrasingContent) *html.DivElement {
+//	ui.Field("site", "Website",
+//		ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site"), htemel.Text(".com")))
+func InputGroup(prefix htemel.PhrasingContent, control FormControl, suffix htemel.PhrasingContent) *InputGroupElement {
 	g := html.Div().Class(Classes("flex -space-x-px shadow-xs *:relative *:min-w-0 *:rounded-none *:focus-within:z-10",
 		"*:first:rounded-l-control *:last:rounded-r-control"))
 	if prefix != nil {
@@ -118,5 +132,5 @@ func InputGroup(prefix htemel.PhrasingContent, control FormControl, suffix hteme
 	if suffix != nil {
 		g.Children(html.Span(suffix).Class(Classes(affixClass)))
 	}
-	return g
+	return &InputGroupElement{DivElement: g, control: control}
 }

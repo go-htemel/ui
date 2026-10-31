@@ -45,20 +45,28 @@ func clampPage(page, pages int) (int, int) {
 
 // Pagination returns page links for a server-rendered list: previous, numbered pages with
 // ellipses and next, in a <nav aria-label="Pagination">. page is the current page (1-based) of
-// pages; hrefFn returns the URL of a page (nil links to "?page=N"). The current page is marked aria-current="page", and
-// previous/next are disabled at either end.
+// pages; hrefFn returns the URL of a page (nil links to "?page=N"). The current page is marked
+// aria-current="page". At either end, previous or next is not a link but a <span
+// aria-disabled="true"> whose name is visually hidden text, so it is announced and skipped by Tab.
+//
+// label, optional, names the navigation landmark instead of "Pagination". Give each a distinct
+// label when a page has two ("Results pages", "Comments pages"): landmarks of the same role
+// need different names for screen-reader users to tell them apart.
 //
 //	ui.Pagination(3, 12, func(p int) string { return "/people?page=" + strconv.Itoa(p) })
-func Pagination(page, pages int, hrefFn func(page int) string) *html.NavElement {
+func Pagination(page, pages int, hrefFn func(page int) string, label ...string) *html.NavElement {
 	page, pages = clampPage(page, pages)
 	if hrefFn == nil {
 		hrefFn = func(n int) string { return "?page=" + strconv.Itoa(n) }
 	}
-	link := func(label string, content htemel.PhrasingContent, target int, disabled bool, rel string) htemel.FlowContent {
-		a := html.A(content).Class(Classes(pageItemClass)).Aria("label", label)
+	link := func(name string, icon htemel.PhrasingContent, target int, disabled bool, rel string) htemel.FlowContent {
 		if disabled {
-			return a.Aria("disabled", "true").AddClass("pointer-events-none opacity-50")
+			// An <a> without href has no role, and aria-label is not allowed on it; a span with
+			// hidden text is announced as plain text, which is what an inactive control is.
+			return html.Span(icon, html.Span().Class("sr-only").Text(name)).
+				Class(Classes(pageItemClass, "pointer-events-none opacity-50")).Aria("disabled", "true")
 		}
+		a := html.A(icon).Class(Classes(pageItemClass)).Aria("label", name)
 		a.Href(hrefFn(target))
 		if rel != "" {
 			a.Rel(rel)
@@ -72,7 +80,8 @@ func Pagination(page, pages int, hrefFn func(page int) string) *html.NavElement 
 		}
 		return a
 	}, link("Previous page", IconChevronLeft(), page-1, page <= 1, "prev"),
-		link("Next page", IconChevronRight(), page+1, page >= pages, "next"))
+		link("Next page", IconChevronRight(), page+1, page >= pages, "next")).
+		Aria("label", navLabel(label, "Pagination"))
 }
 
 // PaginationSignal returns the same control driven by a Datastar signal instead of links: signal
@@ -83,8 +92,9 @@ func Pagination(page, pages int, hrefFn func(page int) string) *html.NavElement 
 //	ui.PaginationSignal(1, 8, "page", datastar.Get("/people"))
 //
 // The numbered pages are rendered for page, so have the server re-render the control (give it an
-// id: PaginationSignal(...).Id("pager")) when the page changes, as it does with the list.
-func PaginationSignal(page, pages int, signal, action string) *html.NavElement {
+// id: PaginationSignal(...).Id("pager")) when the page changes, as it does with the list. label
+// names the landmark, as for Pagination.
+func PaginationSignal(page, pages int, signal, action string, label ...string) *html.NavElement {
 	page, pages = clampPage(page, pages)
 	sig := "$" + signal
 	run := func(set string) htemel.Attribute {
@@ -108,6 +118,7 @@ func PaginationSignal(page, pages int, signal, action string) *html.NavElement {
 		return b
 	}, step("Previous page", IconChevronLeft(), -1, page <= 1, sig+" <= 1"),
 		step("Next page", IconChevronRight(), 1, page >= pages, sig+" >= "+strconv.Itoa(pages))).
+		Aria("label", navLabel(label, "Pagination")).
 		Attrs(initially(signal, strconv.Itoa(page)))
 }
 
@@ -129,5 +140,16 @@ func paginationNav(page, pages int, item func(int) htemel.FlowContent, prev, nex
 		list.Children(html.Li(item(n)))
 	}
 	list.Children(html.Li(next))
-	return html.Nav(list.Class(Classes("flex flex-wrap items-center gap-1"))).Aria("label", "Pagination")
+	return html.Nav(list.Class(Classes("flex flex-wrap items-center gap-1")))
+}
+
+// navLabel returns the first non-empty label, or def: the optional landmark name of Pagination,
+// Breadcrumbs and Steps.
+func navLabel(label []string, def string) string {
+	for _, l := range label {
+		if l != "" {
+			return l
+		}
+	}
+	return def
 }

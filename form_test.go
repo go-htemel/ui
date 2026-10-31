@@ -21,6 +21,7 @@ var (
 	_ htemel.FlowContent     = ui.RadioGroup("x")
 	_ htemel.FlowContent     = ui.Field("id", "x", ui.Input(html.InputTypeText, "x"))
 	_ html.SelectChild       = ui.Choice("v", "x")
+	_ ui.CompositeControl    = ui.InputGroup(nil, ui.Input(html.InputTypeText, "x"), nil)
 )
 
 func init() {
@@ -32,6 +33,8 @@ func init() {
 		golden{"field-error", ui.Field("name", "Name", ui.Input(html.InputTypeText, "name"), ui.ErrorText("Name is required"))},
 		golden{"field-error-signal", ui.Field("user", "Username", ui.Input(html.InputTypeText, "user").Attrs(datastar.Bind("user")),
 			ui.HelpText("Letters and digits."), ui.ErrorSignal("errors.user"), ui.ErrorText(""))},
+		golden{"field-input-group", ui.Field("site", "Website",
+			ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site"), nil), ui.HelpText("Your homepage."))},
 		golden{"checkbox", ui.Checkbox("Remember me", datastar.Bind("remember"))},
 		golden{"radio-group", ui.RadioGroup("Plan",
 			ui.Radio("plan", "free", "Free", datastar.Bind("plan")),
@@ -56,5 +59,29 @@ func TestFieldDescribedBy(t *testing.T) {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %s in %s", want, out)
 		}
+	}
+}
+
+// TestFieldLabelsInputGroupControl checks that Field labels the input inside an InputGroup, not
+// the group's wrapper <div> (a <label for> pointing at a div names nothing).
+func TestFieldLabelsInputGroupControl(t *testing.T) {
+	out := renderStr(t, ui.Field("site", "Website",
+		ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site"), nil),
+		ui.HelpText("h"), ui.ErrorText("bad"), ui.ErrorSignal("err")))
+	_, input, ok := strings.Cut(out, "<input")
+	input, _, _ = strings.Cut(input, ">")
+	if !ok {
+		t.Fatalf("no input in %s", out)
+	}
+	for _, want := range []string{`id="site"`, `aria-describedby="site-help site-error site-error-live"`, `aria-invalid="true"`, `data-attr:aria-invalid=`} {
+		if !strings.Contains(input, want) {
+			t.Errorf("input lacks %s: %s", want, input)
+		}
+	}
+	if n := strings.Count(out, `id="site"`); n != 1 {
+		t.Errorf("want one id=site, got %d: %s", n, out)
+	}
+	if strings.Contains(out, `<div id="site"`) || strings.Contains(out, `<div aria-describedby`) {
+		t.Errorf("the wrapper got the control's attributes: %s", out)
 	}
 }

@@ -147,20 +147,20 @@ func matrix() []spec {
 	add("Toast", "message", "toast.go:65", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-800"))
 	add("Toast", "close icon", "toast.go:69", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-800"))
 
-	// Input (form.go:18-23). Dark inputs are bg-white/5 over the page.
-	add("Input", "text", "form.go:18", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/5"))
-	add("Input", "placeholder", "form.go:19", text, on("placeholder:text-neutral-500", "bg-white"), on("dark:placeholder:text-neutral-400", "dark:bg-white/5"))
-	add("Input", "border (SC 1.4.11)", "form.go:18", nonText, on("outline-neutral-500", ""), on("dark:outline-white/35", ""))
-	add("Input", "border against the field (SC 1.4.11)", "form.go:18", nonText, on("outline-neutral-500", "bg-white"), on("dark:outline-white/35", "dark:bg-white/5"))
+	// Input (form.go:25-30). Dark inputs are bg-white/5 over the page.
+	add("Input", "text", "form.go:25", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/5"))
+	add("Input", "placeholder", "form.go:26", text, on("placeholder:text-neutral-500", "bg-white"), on("dark:placeholder:text-neutral-400", "dark:bg-white/5"))
+	add("Input", "border (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", ""), on("dark:outline-white/35", ""))
+	add("Input", "border against the field (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", "bg-white"), on("dark:outline-white/35", "dark:bg-white/5"))
 	add("InputGroup", "affix border", "info.go:104", nonText, on("outline-neutral-500", "bg-neutral-50"), on("dark:outline-white/35", "dark:bg-white/5"))
-	add("Input", "focus outline", "form.go:19", nonText, on("focus:outline-primary-700", ""), on("dark:focus:outline-primary-500", ""))
-	add("Input", "invalid outline", "form.go:21", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
-	disabled("Input", "disabled text", "form.go:20", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
+	add("Input", "focus outline", "form.go:26", nonText, on("focus:outline-primary-700", ""), on("dark:focus:outline-primary-500", ""))
+	add("Input", "invalid outline", "form.go:28", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
+	disabled("Input", "disabled text", "form.go:27", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
 
-	// Field (form.go:83-91) on the page background.
-	add("Field", "label", "form.go:83", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Field", "help text", "form.go:89", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Field", "error text", "form.go:91", text, on("text-danger-600", ""), on("dark:text-danger-400", ""))
+	// Field (form.go:95-103) on the page background.
+	add("Field", "label", "form.go:95", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Field", "help text", "form.go:101", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Field", "error text", "form.go:103", text, on("text-danger-600", ""), on("dark:text-danger-400", ""))
 
 	// Table (table.go:94-99, 55, 66): header on neutral-50 / neutral-900, body on the white card.
 	add("Table", "header text", "table.go:99", text, on("text-neutral-600", "bg-neutral-50"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
@@ -179,7 +179,7 @@ func matrix() []spec {
 	add("Stat", "delta negative", "info.go:58", text, on("text-danger-600", "").over(cardL), on("dark:text-danger-400", "").over(cardD))
 	add("DescriptionList", "term", "info.go:95", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
-	// Progress (progress.go:32-36, 51): fill against its track; Steps (progress.go:135-152) labels.
+	// Progress (progress.go:32-36, 51): fill against its track; Steps (progress.go:142-159) labels.
 	for _, p := range []struct{ name, line, l, d string }{
 		{"Neutral", "32", "bg-primary-600", "dark:bg-primary-500"},
 		{"Info", "33", "bg-info-600", "dark:bg-info-500"},
@@ -189,22 +189,22 @@ func matrix() []spec {
 	} {
 		add("Progress/"+p.name, "fill on track", "progress.go:"+p.line, nonText, on(p.l, "bg-neutral-200"), on(p.d, "dark:bg-white/10"))
 	}
-	add("Steps", "completed number", "progress.go:135", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
-	add("Steps", "current number", "progress.go:139", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
-	add("Steps", "upcoming number", "progress.go:143", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Steps", "upcoming label", "progress.go:146", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Steps", "current label", "progress.go:148", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Steps", "completed number", "progress.go:142", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
+	add("Steps", "current number", "progress.go:146", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
+	add("Steps", "upcoming number", "progress.go:150", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Steps", "upcoming label", "progress.go:153", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Steps", "current label", "progress.go:155", text, on("text-neutral-900", ""), on("dark:text-white", ""))
 
 	// Tooltip (info.go:37-39): opaque bubble.
 	add("Tooltip", "text", "info.go:38", text, on("text-white", "bg-neutral-900"), on("text-white", "dark:bg-neutral-700"))
 
-	// Nav (nav.go:22-24, 131), Breadcrumb (nav.go:170-178), Tabs, Pagination.
+	// Nav (nav.go:22-24, 131), Breadcrumb (nav.go:179-187), Tabs, Pagination.
 	add("Nav link", "inactive", "nav.go:22", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 	add("Nav link", "active", "nav.go:23", text, on("text-neutral-900", "bg-neutral-100").over(cardL), on("dark:text-white", "dark:bg-white/10").over(cardD))
 	add("Nav link", "focus-visible outline", "nav.go:24", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	add("Sidebar group", "heading", "nav.go:131", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Breadcrumb", "current", "nav.go:170", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Breadcrumb", "link", "nav.go:177", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Breadcrumb", "current", "nav.go:179", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Breadcrumb", "link", "nav.go:186", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Tabs", "active", "tabs.go:23", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))

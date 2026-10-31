@@ -108,8 +108,39 @@ func TestPaginationAria(t *testing.T) {
 	if strings.Contains(first, `rel="prev"`) || !strings.Contains(first, `aria-disabled="true"`) {
 		t.Errorf("previous should be disabled on page 1: %s", first)
 	}
+	// The disabled end is a span named by hidden text: aria-label is not allowed on a generic
+	// element, and an <a> without href is one.
+	if !strings.Contains(first, `<span class="sr-only">Previous page</span>`) || !strings.HasPrefix(first[strings.Index(first, "<li>")+len("<li>"):], "<span") {
+		t.Errorf("disabled previous should be a span with sr-only text: %s", first)
+	}
+	if strings.Contains(first, `aria-label="Previous page"`) {
+		t.Errorf("disabled previous must not carry aria-label: %s", first)
+	}
 	// Out-of-range input is clamped rather than rendering nothing.
 	if got := renderStr(t, ui.Pagination(99, 0, pageHref)); !strings.Contains(got, `aria-current="page"`) {
 		t.Errorf("clamped pagination lost its current page: %s", got)
+	}
+}
+
+// TestNavLandmarkLabels checks the optional landmark names of Pagination, Breadcrumbs and Steps.
+func TestNavLandmarkLabels(t *testing.T) {
+	for _, tc := range []struct {
+		node htemel.Node
+		want string
+	}{
+		{ui.Pagination(1, 3, pageHref), `aria-label="Pagination"`},
+		{ui.Pagination(1, 3, pageHref, "Results pages"), `aria-label="Results pages"`},
+		{ui.Pagination(1, 3, pageHref, ""), `aria-label="Pagination"`},
+		{ui.PaginationSignal(1, 3, "p", ""), `aria-label="Pagination"`},
+		{ui.PaginationSignal(1, 3, "p", "", "Comment pages"), `aria-label="Comment pages"`},
+		{ui.Breadcrumbs(ui.Crumb{Label: "Home"}), `<nav aria-label="Breadcrumb"`},
+		{ui.BreadcrumbsLabel("Folder path", ui.Crumb{Label: "Home"}), `<nav aria-label="Folder path"`},
+		{ui.BreadcrumbsLabel("", ui.Crumb{Label: "Home"}), `<nav aria-label="Breadcrumb"`},
+		{ui.Steps(1, "A", "B"), `<nav aria-label="Progress"`},
+		{ui.StepsLabel("Checkout progress", 1, "A", "B"), `<nav aria-label="Checkout progress"`},
+	} {
+		if got := renderStr(t, tc.node); !strings.Contains(got, tc.want) || strings.Count(got, "<nav aria-label") > 1 {
+			t.Errorf("want %s in %s", tc.want, got)
+		}
 	}
 }

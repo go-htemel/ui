@@ -53,9 +53,9 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Navigation | `Tabs`/`Tab`, `Disclosure`, `Accordion`/`AccordionItem` | ready; no arrow keys yet |
 | Drag and drop | `Draggable`, `DropZone`, `DropInto`, `DragData` | ready; mouse only (HTML drag events) |
 | Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader`), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
-| Navigation | `Navbar`/`NavbarSignal` with `NavLink`, `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`Crumb`, `Steps` | ready; no arrow keys yet |
+| Navigation | `Navbar`/`NavbarSignal` with `NavLink`, `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`BreadcrumbsLabel`/`Crumb`, `Steps`/`StepsLabel` | ready; no arrow keys yet |
 | Progress | `Progress`, `ProgressSignal`, `Skeleton`, `Spinner` | ready |
-| Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` | ready |
+| Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` (labelled by `Field` through its inner control) | ready |
 | Planned | Command palette | — |
 
 ## Interactivity
@@ -365,5 +365,8 @@ Newer features are used where available, with a fallback elsewhere:
   right-to-left text; and HTML drag events never fire from touch or keyboard, hence the pick-up
   fallback (and `ui.Sortable` for touch). Because of the pick-up fallback `ui.DropInto` clears
   its signal after the action runs.
+- `Pagination`, `Breadcrumbs` and `Steps` are named `<nav>` landmarks ("Pagination",
+  "Breadcrumb", "Progress"). Two of the same on one page need distinct names: pass a label
+  (`Pagination(..., "Results pages")`, `BreadcrumbsLabel`, `StepsLabel`).
 
 See [CHANGELOG.md](CHANGELOG.md) for the API changes that came with the native overlays.

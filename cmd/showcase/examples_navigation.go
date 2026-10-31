@@ -37,20 +37,22 @@ func sidebarNav() htemel.FlowContent {
 }
 
 func breadcrumbs() htemel.FlowContent {
+	// Two trails on one page need distinct landmark names: BreadcrumbsLabel names the second.
 	return ui.Stack(ui.Md,
 		ui.Breadcrumbs(
 			ui.Crumb{Label: "Home", Href: "#"},
 			ui.Crumb{Label: "Projects", Href: "#projects"},
 			ui.Crumb{Label: "Apollo"},
 		),
-		ui.Breadcrumbs(ui.Crumb{Label: "Home", Href: "#"}, ui.Crumb{Label: "Settings"}),
+		ui.BreadcrumbsLabel("Settings breadcrumb", ui.Crumb{Label: "Home", Href: "#"}, ui.Crumb{Label: "Settings"}),
 	)
 }
 
 func steps() htemel.FlowContent {
+	// StepsLabel names each landmark; Steps alone would give three navs named "Progress".
 	return ui.Stack(ui.Lg,
-		ui.Steps(1, "Account", "Billing", "Confirm"),
-		ui.Steps(2, "Account", "Billing", "Confirm"),
-		ui.Steps(4, "Account", "Billing", "Confirm"),
+		ui.StepsLabel("Signup progress, step 1", 1, "Account", "Billing", "Confirm"),
+		ui.StepsLabel("Signup progress, step 2", 2, "Account", "Billing", "Confirm"),
+		ui.StepsLabel("Signup progress, done", 4, "Account", "Billing", "Confirm"),
 	)
 }
