@@ -50,25 +50,53 @@ import (
 func Dialog(signal, title string, children ...htemel.FlowContent) *html.DialogElement {
 	titleID := domID(signal) + "-title"
 	panel := html.Div(
-		html.Div(
-			html.H2().Id(titleID).Class(Classes("text-base font-semibold text-neutral-900 dark:text-white")).Text(title),
-			closeButton("Close", Close(signal)).AddClass(Classes("text-neutral-500 dark:text-neutral-400")),
-		).Class(Classes("flex items-start justify-between gap-x-4")),
+		dialogHeader(signal, titleID, title, "flex items-start justify-between gap-x-4"),
 		html.Div(children...).Id(domID(signal)+"-body").Class(Classes("mt-3 text-sm text-neutral-600 dark:text-neutral-300")),
-	).Class("p-6").
-		// The panel fills the dialog, so a click outside it is a click on the backdrop.
-		Attrs(datastar.OnClick(dialogBackdropClick(signal), datastar.Outside()))
+	).Class("p-6")
+	return modal(signal, titleID, panel,
+		Classes("m-auto w-[calc(100%-2rem)] max-w-lg rounded-surface bg-white p-0 shadow-xl ring-1 ring-neutral-950/5",
+			"dark:bg-neutral-900 dark:ring-white/10", dialogMotion))
+}
+
+// Motion of the modal overlays. The dialog and its ::backdrop transition between their closed
+// values (the base classes) and their open values (open:), both ways: @starting-style
+// (starting:open:) gives the first frame after showModal() the closed values, and
+// transition-discrete with display and overlay in the property list keeps the dialog rendered
+// and in the top layer until the closing transition ends. Only opacity, scale and translate
+// move, so the compositor runs it; motion-reduce:transition-none switches it off.
+const (
+	overlayTransition = "transition-[opacity,scale,translate,display,overlay] transition-discrete duration-200 ease-out motion-reduce:transition-none"
+	backdropMotion    = "backdrop:bg-neutral-950/50 backdrop:opacity-0 backdrop:transition-[opacity,display,overlay] backdrop:transition-discrete " +
+		"backdrop:duration-200 backdrop:ease-out open:backdrop:opacity-100 starting:open:backdrop:opacity-0 " +
+		"motion-reduce:backdrop:transition-none dark:backdrop:bg-neutral-950/70"
+	dialogMotion = overlayTransition + " opacity-0 scale-[.98] open:opacity-100 open:scale-100 " +
+		"starting:open:opacity-0 starting:open:scale-[.98] " + backdropMotion
+)
+
+// modal returns the <dialog> shared by Dialog and Drawer: opened with showModal() while signal
+// is true, labelled by titleID, closed by Escape, closedby="any" (with a click-outside fallback
+// on panel, which must fill the dialog) and close events, each of which sets the signal false.
+func modal(signal, titleID string, panel *html.DivElement, class string) *html.DialogElement {
+	// The panel fills the dialog, so a click outside it is a click on the backdrop.
+	panel.Attrs(datastar.OnClick(dialogBackdropClick(signal), datastar.Outside()))
 	return html.Dialog(panel).
 		Id(domID(signal)+"-dialog").
 		Aria("labelledby", titleID).
 		Closedby(html.ClosedbyAny).
-		Class(Classes("m-auto w-[calc(100%-2rem)] max-w-lg rounded-surface bg-white p-0 shadow-xl ring-1 ring-neutral-950/5",
-			"backdrop:bg-neutral-950/50 dark:bg-neutral-900 dark:ring-white/10 dark:backdrop:bg-neutral-950/70")).
+		Class(class).
 		Attrs(
 			initially(signal, "false"),
 			datastar.Effect(dialogEffect(signal)),
 			datastar.On("close", Close(signal)),
 		)
+}
+
+// dialogHeader is the title (an <h2> with id titleID) and the X button of Dialog and Drawer.
+func dialogHeader(signal, titleID, title, class string) *html.DivElement {
+	return html.Div(
+		html.H2().Id(titleID).Class(Classes("text-base font-semibold text-neutral-900 dark:text-white")).Text(title),
+		closeButton("Close", Close(signal)).AddClass(Classes("text-neutral-500 dark:text-neutral-400")),
+	).Class(Classes(class))
 }
 
 // dialogEffect opens the dialog as a modal while the signal is true and closes it when the

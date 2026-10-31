@@ -49,7 +49,7 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Layout | `Stack`, `Inline`, `Container`, `Card` | ready |
 | Feedback | `Alert`, `AlertDismissible`, `ToastRegion`, `Toast` | ready |
 | Forms | `Field` (`HelpText`, `ErrorText`, `ErrorSignal`), `Input`, `Textarea`, `Select`/`Choice`, `Checkbox`, `Radio`/`RadioGroup`, `Switch` | ready |
-| Overlays | `Dialog`/`DialogActions` (native `<dialog>`), `Dropdown` with `MenuItem`/`MenuLink`/`MenuDivider` (Popover API) | ready |
+| Overlays | `Dialog`/`DialogActions` (native `<dialog>`), `Drawer`/`DrawerActions` (slide-over `<dialog>`: left, right, bottom), `Dropdown` with `MenuItem`/`MenuLink`/`MenuDivider` (Popover API) | ready |
 | Navigation | `Tabs`/`Tab`, `Disclosure`, `Accordion`/`AccordionItem` | ready; no arrow keys yet |
 | Drag and drop | `Draggable`, `DropZone`, `DropInto`, `DragData` | ready; mouse only (HTML drag events) |
 | Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader`), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
@@ -60,17 +60,20 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 
 ## Interactivity
 
-State lives in Datastar signals that you name. `Dialog`, `Dropdown`, `Disclosure`, `Tabs`,
-`Accordion` and `AlertDismissible` take the signal as their first argument and declare it with
+State lives in Datastar signals that you name. `Dialog`, `Drawer`, `Dropdown`, `Disclosure`,
+`Tabs`, `Accordion` and `AlertDismissible` take the signal as their first argument and declare it with
 `__ifmissing`, so a server can preset it. `ui.Open`, `ui.Close` and `ui.Toggle` return the
 expressions, and `ui.Opens(signal)` is the click handler for a trigger outside the component.
-`Dialog` and `Dropdown` are native overlays (a modal `<dialog>` and a `popover`): the browser
+`Dialog`, `Drawer` and `Dropdown` are native overlays (a modal `<dialog>` and a `popover`): the browser
 opens, closes and focuses them, and their signal mirrors the state in both directions, so it
 stays correct after Escape or a click outside and setting it opens or closes them:
 
 ```go
 ui.Button(ui.Danger, "Delete").Attrs(ui.Opens("confirm"))
 ui.Dialog("confirm", "Delete project?", html.P().Text("This cannot be undone."))
+
+ui.Button(ui.Secondary, "Filters").Attrs(ui.Opens("filters"))
+ui.Drawer("filters", ui.DrawerRight, "Filters", form, ui.DrawerActions(cancel, apply))
 ```
 
 Toasts are pushed by the server into `ui.ToastRegion()` with datastar-go:
@@ -303,8 +306,8 @@ Datastar with:
 `task a11y` builds the showcase, serves it on a free port and scans every page with
 [axe-core](https://github.com/dequelabs/axe-core) in Chromium (Playwright), in light and dark
 (`prefers-color-scheme`), at WCAG 2.1 A/AA. It also opens the interactive states first: the
-dialog, the dropdown, a switched tab, an expanded disclosure and accordion, and the mobile
-navbar. The report groups violations by rule with impact, count, selectors and pages, and the
+dialog, the drawer and the bottom sheet, the dropdown, a switched tab, an expanded disclosure
+and accordion, and the mobile navbar's drawer. The report groups violations by rule with impact, count, selectors and pages, and the
 task exits non-zero on any WCAG violation. Rules tagged only `best-practice` are listed
 separately and do not fail the run. The scan fails loudly, rather than passing, when Tailwind
 did not apply (the showcase loads Tailwind and Datastar from CDNs).
@@ -333,6 +336,7 @@ expressions. Each component's Go documentation lists exactly what it covers.
 | Component | Semantics | Keyboard and focus |
 | --- | --- | --- |
 | `Dialog` | native `<dialog>` opened with `showModal()`, `aria-labelledby` the title | native: page inert behind it, Tab and Shift+Tab stay inside, Escape closes, focus returns to the trigger; initial focus on `autofocus` (`DialogActions` sets it on its first button) |
+| `Drawer` | the same native modal `<dialog>` as `Dialog`, pinned to an edge | as `Dialog`; initial focus on the X button or an `autofocus` field; `Navbar`'s mobile menu is one |
 | `Dropdown` | trigger `popovertarget`, `aria-haspopup`, `aria-controls`, bound `aria-expanded`; `popover="auto"` `role="menu"` and `menuitem` | native: Escape closes and returns focus, click outside closes; ArrowDown/ArrowUp open from the trigger and move between items; Home/End; Tab closes |
 | `Tooltip` | `role="tooltip"`, trigger `aria-describedby` | shown on hover and focus (CSS) |
 | `Tabs` | `tablist`, `tab`, `tabpanel`, `aria-selected`, `aria-controls`, roving `tabindex` | ArrowLeft/ArrowRight, Home/End |

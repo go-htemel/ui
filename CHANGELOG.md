@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Drawer
+
+- **Added:** `Drawer(signal, side, title, children...)` and `DrawerActions(...)`, slide-over
+  panels on the same native modal `<dialog>` as `Dialog` (signal synced both ways, Escape,
+  backdrop click, focus return). `DrawerRight` and `DrawerLeft` are full height, `DrawerBottom`
+  is a sheet up to 85% of the viewport; the body scrolls and `DrawerActions` stays pinned below
+  it. `Dialog` and `Drawer` share their `<dialog>`, header and close handling.
+- **Changed:** `Navbar`/`NavbarSignal`'s mobile menu is a right `Drawer` (same signatures and
+  signal). The menu button is labelled "Open menu" (was "Toggle menu"), opens the drawer with
+  `ui.Opens`, carries `aria-haspopup="dialog"` and controls `<signal>-dialog`; the inline menu
+  `<div id="<signal>-menu">`, its click-outside and window Escape handlers are gone (the native
+  dialog handles both).
+
 ### Landmark names, Field labels InputGroup, disabled pagination ends
 
 - **Added:** an optional landmark name for the navigation components, so a page can hold two of

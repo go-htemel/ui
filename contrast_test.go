@@ -198,13 +198,13 @@ func matrix() []spec {
 	// Tooltip (info.go:37-39): opaque bubble.
 	add("Tooltip", "text", "info.go:38", text, on("text-white", "bg-neutral-900"), on("text-white", "dark:bg-neutral-700"))
 
-	// Nav (nav.go:22-24, 131), Breadcrumb (nav.go:179-187), Tabs, Pagination.
+	// Nav (nav.go:22-24, 123), Breadcrumb (nav.go:171-179), Tabs, Pagination.
 	add("Nav link", "inactive", "nav.go:22", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 	add("Nav link", "active", "nav.go:23", text, on("text-neutral-900", "bg-neutral-100").over(cardL), on("dark:text-white", "dark:bg-white/10").over(cardD))
 	add("Nav link", "focus-visible outline", "nav.go:24", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
-	add("Sidebar group", "heading", "nav.go:131", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Breadcrumb", "current", "nav.go:179", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Breadcrumb", "link", "nav.go:186", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Sidebar group", "heading", "nav.go:123", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Breadcrumb", "current", "nav.go:171", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Breadcrumb", "link", "nav.go:178", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Tabs", "active", "tabs.go:23", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
@@ -221,9 +221,10 @@ func matrix() []spec {
 	add("MoveHere", "dashed border", "dnd.go:106", nonText, on("border-primary-600", ""), on("border-primary-600", ""))
 	add("MoveHere", "text", "dnd.go:106", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 
-	// Dialog (dialog.go:55-58) on its white / neutral-900 panel.
-	add("Dialog", "close icon", "dialog.go:55", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
-	add("Dialog", "body text", "dialog.go:57", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+	// Dialog (dialog.go:54, dialogHeader at dialog.go:98) and Drawer on their white / neutral-900 panels.
+	add("Dialog", "close icon", "dialog.go:98", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
+	add("Dialog", "body text", "dialog.go:54", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+	add("Drawer", "body text", "drawer.go:73", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 
 	// Other focus rings that sit on the page background.
 	add("Disclosure", "focus-visible outline", "disclosure.go:65", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))

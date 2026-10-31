@@ -21,6 +21,40 @@ func dialog() htemel.FlowContent {
 	)
 }
 
+func drawerTray() htemel.FlowContent {
+	// A right-hand tray holding a form. The actions stay in view while the fields scroll.
+	return html.Div(
+		ui.Button(ui.Secondary, "Edit profile", ui.WithIcon(ui.IconPencil())).Attrs(ui.Opens("profileDrawer")),
+		ui.Drawer("profileDrawer", ui.DrawerRight, "Edit profile",
+			ui.Stack(ui.Md,
+				ui.Field("drawerName", "Name", ui.Input(html.InputTypeText, "name").Value("Ada Lovelace")),
+				ui.Field("drawerEmail", "Email", ui.Input(html.InputTypeEmail, "email").Placeholder("you@example.com"),
+					ui.HelpText("Used for sign-in and notifications.")),
+				ui.Field("drawerBio", "Bio", ui.Textarea("bio", 4)),
+				ui.Switch("Public profile", datastar.Bind("drawerPublic")),
+			),
+			ui.DrawerActions(
+				ui.Button(ui.Secondary, "Cancel").Attrs(datastar.OnClick(ui.Close("profileDrawer"))),
+				ui.Button(ui.Primary, "Save").Attrs(datastar.OnClick(ui.Close("profileDrawer")+"; "+datastar.Post("/demo/toast?title=Profile+saved"))),
+			),
+		),
+	)
+}
+
+func drawerSheet() htemel.FlowContent {
+	// A bottom sheet: full width, up to 85% of the viewport height.
+	return html.Div(
+		ui.Button(ui.Secondary, "Share").Attrs(ui.Opens("shareSheet")),
+		ui.Drawer("shareSheet", ui.DrawerBottom, "Share this project",
+			html.P().Text("Anyone with the link can view the project."),
+			ui.Inline(ui.Sm,
+				ui.Button(ui.Primary, "Copy link").Attrs(datastar.OnClick(ui.Close("shareSheet"))),
+				ui.Button(ui.Ghost, "Email").Attrs(datastar.OnClick(ui.Close("shareSheet"))),
+			).AddClass("mt-4"),
+		),
+	)
+}
+
 func dropdown() htemel.FlowContent {
 	// The menu is a native popover: it opens without the signal, which only mirrors its state.
 	return ui.Inline(ui.Md,

@@ -44,8 +44,9 @@ func navList(class string, items []NavItem) *html.UlElement {
 const NavbarMenuSignal = "navOpen"
 
 // Navbar returns a top bar with brand on the left and the links beside it. Below the md
-// breakpoint the links collapse behind a menu button that toggles the signal NavbarMenuSignal;
-// a click outside the bar and Escape close it again.
+// breakpoint the links move into a Drawer that slides in from the right, opened by a menu button
+// and held in the signal NavbarMenuSignal; the drawer's X button, Escape and a click on the
+// backdrop close it, and focus returns to the menu button.
 //
 //	ui.Navbar(html.A().Href("/").Text("Acme"),
 //		ui.NavLink("Dashboard", "/", true), ui.NavLink("Team", "/team", false))
@@ -57,18 +58,15 @@ func Navbar(brand htemel.FlowContent, items ...NavItem) *html.NavElement {
 
 // NavbarSignal is Navbar with the mobile menu state in the signal named signal.
 func NavbarSignal(signal string, brand htemel.FlowContent, items ...NavItem) *html.NavElement {
-	menuID := domID(signal) + "-menu"
-	open := "$" + signal
-	toggle := html.Button(
-		IconMenu().Attrs(datastar.Show("!"+open)),
-		IconX().Style(hiddenUntilDatastar).Attrs(datastar.Show(open)),
-	).Type(html.ButtonTypeButton).
-		Class(Classes("-mr-2 inline-flex cursor-pointer items-center justify-center rounded-control p-2 text-neutral-600 hover:bg-neutral-100",
+	menu := Drawer(signal, DrawerRight, "Menu", navList("space-y-1", items))
+	toggle := html.Button(IconMenu()).Type(html.ButtonTypeButton).
+		Class(Classes("-mr-2 inline-flex cursor-pointer items-center justify-center rounded-control p-2 text-neutral-600 transition-colors duration-150 hover:bg-neutral-100",
 			"focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500 md:hidden dark:text-neutral-300 dark:hover:bg-white/10")).
-		Aria("label", "Toggle menu").
-		Aria("controls", menuID).
-		Attrs(expanded(open)...).
-		Attrs(datastar.OnClick(Toggle(signal)))
+		Aria("label", "Open menu").
+		Aria("haspopup", "dialog").
+		Aria("controls", domID(signal)+"-dialog").
+		Attrs(expanded("$" + signal)...).
+		Attrs(Opens(signal))
 	bar := html.Div(
 		html.Div(
 			brand,
@@ -76,15 +74,9 @@ func NavbarSignal(signal string, brand htemel.FlowContent, items ...NavItem) *ht
 		).Class(Classes("flex items-center gap-x-8")),
 		toggle,
 	).Class(Classes("mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"))
-	menu := html.Div(navList("space-y-1 px-4 pb-3 sm:px-6", items)).
-		Id(menuID).
-		Class("md:hidden").
-		Style(hiddenUntilDatastar).
-		Attrs(datastar.Show(open))
 	return html.Nav(bar, menu).
 		Aria("label", "Main").
-		Class(Classes("border-b border-neutral-200 bg-white dark:border-white/10 dark:bg-neutral-900")).
-		Attrs(initially(signal, "false"), datastar.OnClick(Close(signal), datastar.Outside()), escapeCloses(signal))
+		Class(Classes("border-b border-neutral-200 bg-white dark:border-white/10 dark:bg-neutral-900"))
 }
 
 // SidebarSection is a titled, collapsible group of links in a Sidebar, built by SidebarGroup.
@@ -193,9 +185,4 @@ func BreadcrumbsLabel(label string, items ...Crumb) *html.NavElement {
 		list.Children(li)
 	}
 	return html.Nav(list).Aria("label", navLabel([]string{label}, "Breadcrumb"))
-}
-
-// escapeCloses closes signal when Escape is pressed anywhere in the window.
-func escapeCloses(signal string) htemel.Attribute {
-	return datastar.On("keydown", "evt.key === 'Escape' && ("+Close(signal)+")", datastar.Window())
 }

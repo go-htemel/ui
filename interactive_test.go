@@ -16,6 +16,8 @@ import (
 var (
 	_ htemel.FlowContent = ui.Dialog("d", "x")
 	_ htemel.FlowContent = ui.DialogActions()
+	_ htemel.FlowContent = ui.Drawer("d", ui.DrawerLeft, "x")
+	_ htemel.FlowContent = ui.DrawerActions()
 	_ htemel.FlowContent = ui.Dropdown("m", ui.Button(ui.Secondary, "x"))
 	_ htemel.FlowContent = ui.MenuItem("x")
 	_ htemel.FlowContent = ui.MenuLink("x", "/")
@@ -42,6 +44,18 @@ func init() {
 				),
 			),
 		)},
+		golden{"drawer-right", htemel.Group(
+			ui.Button(ui.Secondary, "Edit profile").Attrs(ui.Opens("profileDrawer")),
+			ui.Drawer("profileDrawer", ui.DrawerRight, "Edit profile",
+				ui.Field("name", "Name", ui.Input(html.InputTypeText, "name")),
+				ui.DrawerActions(
+					ui.Button(ui.Secondary, "Cancel").Attrs(datastar.OnClick(ui.Close("profileDrawer"))),
+					ui.Button(ui.Primary, "Save").Attrs(datastar.OnClick(datastar.Post("/profile"))),
+				),
+			),
+		)},
+		golden{"drawer-left", ui.Drawer("nav", ui.DrawerLeft, "Navigation", html.P().Text("Links"))},
+		golden{"drawer-bottom", ui.Drawer("share", ui.DrawerBottom, "Share", html.P().Text("Copy the link."))},
 		golden{"dropdown", ui.Dropdown("rowMenu",
 			ui.Button(ui.Secondary, "Options", ui.WithTrailingIcon(ui.IconChevronDown())),
 			ui.MenuItem("Edit", datastar.OnClick(datastar.Get("/rows/1/edit"))),
@@ -117,7 +131,7 @@ func TestDialogAccessibility(t *testing.T) {
 		`aria-label="Close" data-on:click="$confirmDelete = false"`,
 		`autofocus>Cancel</button>`, // initial focus on the first action
 	)
-	for _, gone := range []string{`role="dialog"`, `aria-modal`, `data-show`, `display: none`, `keydown`, `overflow`, `_ret`, ` open`} {
+	for _, gone := range []string{`role="dialog"`, `aria-modal`, `data-show`, `display: none`, `keydown`, `overflow`, `_ret`, ` open>`, ` open `, ` open=`} {
 		if strings.Contains(got, gone) {
 			t.Errorf("native dialog output still contains %q:\n%s", gone, got)
 		}
@@ -134,6 +148,34 @@ func TestDialogAccessibility(t *testing.T) {
 	// Only buttons and links receive it.
 	if plain := render(t, ui.DialogActions(html.Span().Text("x"))); strings.Contains(plain, "autofocus") {
 		t.Errorf("a non-control first child must not get autofocus:\n%s", plain)
+	}
+}
+
+func TestDrawer(t *testing.T) {
+	got := render(t, ui.Drawer("filters", ui.DrawerBottom, "Filters",
+		html.P().Text("body"),
+		ui.DrawerActions(ui.Button(ui.Primary, "Apply")),
+		html.P().Text("more"),
+	))
+	wantAll(t, got,
+		`<dialog id="filters-dialog" aria-labelledby="filters-title" closedby="any"`, `<h2 id="filters-title"`,
+		`data-effect="$filters ? (el.open || el.showModal()) : (el.open && el.close())"`,
+		`data-on:close="$filters = false"`,
+		`aria-label="Close" data-on:click="$filters = false"`,
+		`m-0 mt-auto`, `translate-y-full open:translate-y-0 starting:open:translate-y-full`,
+		`overflow-y-auto`, `motion-reduce:transition-none`,
+		// The actions are pinned after the scrolling body, whatever their position among children.
+		`<p>body</p><p>more</p></div><div class="flex shrink-0 justify-end`,
+	)
+	if strings.Contains(got, "autofocus") {
+		t.Errorf("DrawerActions must not set autofocus:\n%s", got)
+	}
+	for side, want := range map[ui.DrawerSide]string{
+		ui.DrawerRight: "m-0 ml-auto h-dvh", ui.DrawerLeft: "m-0 mr-auto h-dvh", ui.DrawerSide(99): "m-0 ml-auto h-dvh",
+	} {
+		if s := render(t, ui.Drawer("d", side, "x")); !strings.Contains(s, want) {
+			t.Errorf("side %d: want %q in %s", side, want, s)
+		}
 	}
 }
 

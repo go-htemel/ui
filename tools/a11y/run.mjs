@@ -1,5 +1,6 @@
 // Accessibility scan of the showcase: every page, light and dark, plus interactive states
-// (open dialog, open dropdown, switched tab, expanded accordion, open mobile nav).
+// (open dialog, drawer and bottom sheet, open dropdown, switched tab, expanded accordion, open
+// mobile nav drawer).
 //
 //   BASE_URL=http://127.0.0.1:8080 node run.mjs [--json out.json]
 //
@@ -36,7 +37,23 @@ const STATES = {
         await page.getByRole("button", { name: "Delete project" }).click();
         await page.locator("dialog[open]").waitFor({ timeout: 5000 });
       },
-      async close(page) { await page.keyboard.press("Escape"); },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#confirmDelete-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+    {
+      name: "drawer open",
+      async open(page) {
+        await page.getByRole("button", { name: "Edit profile" }).click();
+        await page.locator("#profileDrawer-dialog[open]").waitFor({ timeout: 5000 });
+      },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#profileDrawer-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+    {
+      name: "bottom sheet open",
+      async open(page) {
+        await page.getByRole("button", { name: "Share" }).click();
+        await page.locator("#shareSheet-dialog[open]").waitFor({ timeout: 5000 });
+      },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#shareSheet-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
     },
     {
       name: "dropdown open",
@@ -68,12 +85,14 @@ const STATES = {
   ],
   "/components/navigation": [
     {
-      name: "mobile nav open",
+      name: "mobile nav drawer open",
       viewport: { width: 390, height: 800 },
       async open(page) {
-        await page.getByRole("button", { name: "Toggle menu" }).first().click();
-        await page.locator('button[aria-label="Toggle menu"][aria-expanded=true]').first().waitFor({ timeout: 5000 });
+        await page.getByRole("button", { name: "Open menu" }).first().click();
+        await page.locator('button[aria-label="Open menu"][aria-expanded=true]').first().waitFor({ timeout: 5000 });
+        await page.locator("#demoNav-dialog[open]").waitFor({ timeout: 5000 });
       },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#demoNav-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
     },
   ],
 };

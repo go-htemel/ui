@@ -57,9 +57,11 @@ var groups = []Group{
 	},
 	{
 		Slug: "overlays", Title: "Overlays",
-		Intro: "Dialog is a native modal <dialog> and Dropdown a native popover: the browser handles the top layer, Escape, light dismiss and focus.",
+		Intro: "Dialog and Drawer are native modal <dialog>s and Dropdown a native popover: the browser handles the top layer, Escape, light dismiss and focus.",
 		Examples: []Example{
 			ex("Dialog", dialog),
+			ex("Drawer (right tray with a form)", drawerTray),
+			ex("Drawer (bottom sheet)", drawerSheet),
 			ex("Dropdown menu", dropdown),
 		},
 	},
