@@ -74,7 +74,7 @@ func PageHeader(title string, opts ...PageHeaderOption) *html.HeaderElement {
 	}
 	h := html.Header().Class(Classes("@container"))
 	if c.backHref != "" {
-		h.Children(html.A(IconArrowLeft().Class("size-4 shrink-0")).Href(c.backHref).Class(Classes(pageBackClass, "mb-3")).Text(c.backTxt))
+		h.Children(html.A(IconArrowLeft().SetClass("size-4 shrink-0")).Href(c.backHref).Class(Classes(pageBackClass, "mb-3")).Text(c.backTxt))
 	}
 	if c.crumbs != nil {
 		h.Children(html.Div(c.crumbs).Class("mb-3"))

@@ -163,7 +163,7 @@ func exampleView(e Example) *html.SectionElement {
 			// focus:outline-none drops the focus rectangle a mouse click leaves; keyboard focus
 			// still gets the focus-visible outline.
 			html.Summary(
-				ui.IconChevronRight().Class("size-3.5 shrink-0 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none"),
+				ui.IconChevronRight().SetClass("size-3.5 shrink-0 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none"),
 				html.Span().Text("Show source"),
 			).Class("inline-flex cursor-pointer list-none items-center gap-1 rounded-control text-xs font-medium text-neutral-500 transition-colors duration-150 select-none hover:text-neutral-900 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-primary-600 [&::-webkit-details-marker]:hidden dark:text-neutral-400 dark:hover:text-white dark:focus-visible:outline-primary-500"),
 			sourceBlocks(e),
@@ -175,9 +175,9 @@ func exampleView(e Example) *html.SectionElement {
 // blocks scroll inside a capped height; the copy button is the default of the code package.
 func sourceBlocks(e Example) *htemel.GroupElement {
 	const capHeight = "mt-2 [--ui-code-max-height:32rem]"
-	nodes := []htemel.Node{code.Block("go", e.Source, code.WithLineNumbers()).AddClass(capHeight)}
+	nodes := []htemel.Node{code.Block("go", e.Source, code.WithLineNumbers()).Class(capHeight)}
 	for _, s := range e.Snippets {
-		nodes = append(nodes, code.Block(s.Lang, s.Src, code.WithTitle(s.Title), code.WithLineNumbers()).AddClass(capHeight))
+		nodes = append(nodes, code.Block(s.Lang, s.Src, code.WithTitle(s.Title), code.WithLineNumbers()).Class(capHeight))
 	}
 	return htemel.Group(nodes...)
 }

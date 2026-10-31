@@ -50,7 +50,7 @@ func drawerSheet() htemel.FlowContent {
 			ui.Inline(ui.Sm,
 				ui.Button(ui.Primary, "Copy link").Attrs(datastar.OnClick(ui.Close("shareSheet"))),
 				ui.Button(ui.Ghost, "Email").Attrs(datastar.OnClick(ui.Close("shareSheet"))),
-			).AddClass("mt-4"),
+			).Class("mt-4"),
 		),
 	)
 }

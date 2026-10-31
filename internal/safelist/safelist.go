@@ -22,7 +22,7 @@ var classPattern = regexp.MustCompile(`^(?:@?[a-z0-9*&>\[\]=_-]+:)*!?-?@?[a-z][a
 
 // classCalls are the methods and functions whose string arguments are class lists. A call
 // through the datastar package is handled separately: only its name argument is a class.
-var classCalls = map[string]bool{"Class": true, "AddClass": true, "Classes": true, "ToggleClass": true}
+var classCalls = map[string]bool{"Class": true, "SetClass": true, "AddClass": true, "Classes": true, "ToggleClass": true}
 
 // classFuncs are the functions whose return values are class lists (BodyClasses).
 var classFuncs = map[string]bool{"BodyClasses": true}
@@ -37,7 +37,7 @@ var subpackages = []string{"code", "markdown"}
 
 // Classes returns the sorted, de-duplicated classes the non-test Go files of fsys's root
 // directory and of the subpackages (code/, markdown/) can emit. A class is a class-shaped token of a string that
-// reaches a class-bearing call: an argument of .Class, .AddClass, .ToggleClass, Classes, or the
+// reaches a class-bearing call: an argument of .Class, .SetClass, .AddClass, .ToggleClass, Classes, or the
 // name of datastar.Class (and the keys of datastar.Classes). Identifiers in those arguments are
 // followed to the constants, variables, map and slice literals, assignments and call-site
 // arguments that supply them, so strings that never reach such a call (JavaScript expressions,

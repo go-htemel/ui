@@ -17,12 +17,12 @@ import (
 // copiedMs is how long the copy button shows its check mark.
 const copiedMs = 1500
 
-// BlockElement is the <figure> that Block returns. Its element methods (Attrs, SetAttr, AddClass,
-// Id, ...) are the figure's, and it is flow content like any other component. Use AddClass rather
-// than Class to add classes: Class replaces the ui-code classes.
+// BlockElement is the <figure> that Block returns. Its element methods (Attrs, SetAttr, Class,
+// Id, ...) are the figure's, and it is flow content like any other component. Class adds to the
+// ui-code classes; SetClass would replace them.
 //
 // To cap the height and scroll vertically, add the Tailwind arbitrary property
-// "[--ui-code-max-height:24rem]" with AddClass.
+// "[--ui-code-max-height:24rem]" with Class.
 type BlockElement struct {
 	*html.FigureElement
 }
@@ -113,8 +113,8 @@ func toolbar(c config, lang, src string) *html.DivElement {
 	// Two stacked icons that cross-fade in 150ms (no motion with prefers-reduced-motion).
 	const iconClass = "col-start-1 row-start-1 size-4 shrink-0 transition-opacity duration-150 motion-reduce:transition-none"
 	icons := html.Span(
-		ui.IconCopy().Class(iconClass).Attrs(datastar.Class("opacity-0", "$"+sig)),
-		ui.IconCheck().Class(ui.Classes(iconClass, "opacity-0")).Attrs(datastar.Class("opacity-0", "!$"+sig)),
+		ui.IconCopy().SetClass(iconClass).Attrs(datastar.Class("opacity-0", "$"+sig)),
+		ui.IconCheck().SetClass(ui.Classes(iconClass, "opacity-0")).Attrs(datastar.Class("opacity-0", "!$"+sig)),
 	).Class("grid")
 	button := ui.IconButton(ui.Ghost, icons, "Copy code", ui.WithSize(ui.Xs)).Attrs(datastar.OnClick(copyExpr(sig)))
 	status := html.Span().Class("sr-only").Aria("live", "polite").Attrs(datastar.Text("$" + sig + " ? 'Copied' : ''"))

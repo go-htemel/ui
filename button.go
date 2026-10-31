@@ -140,19 +140,19 @@ func buttonTrailing(o options) htemel.PhrasingContent {
 }
 
 // textButtonClass is the class list of Button and LinkButton: the base, the variant and the
-// size (a Link variant keeps the text size but no padding), then extra classes.
+// size (a Link variant keeps the text size but no padding).
 func textButtonClass(v Variant, o options) string {
 	size := pick(buttonSizes, o.size, Md)
 	if v == Link {
 		size = pick(linkSizes, o.size, Md)
 	}
-	return Classes(buttonBase, pick(buttonVariants, v, Primary), size, o.class,
+	return Classes(buttonBase, pick(buttonVariants, v, Primary), size,
 		cond(o.rail, "@3xl:in-data-ui-rail:justify-center @3xl:in-data-ui-rail:px-2"))
 }
 
 // iconButtonClass is the class list of IconButton and IconLinkButton.
 func iconButtonClass(v Variant, o options) string {
-	return Classes(buttonBase, pick(buttonVariants, v, Primary), pick(iconButtonSizes, o.size, Md), o.class)
+	return Classes(buttonBase, pick(buttonVariants, v, Primary), pick(iconButtonSizes, o.size, Md))
 }
 
 // ButtonGroup joins buttons into one segmented control (role="group"). Pass Secondary or

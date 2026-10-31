@@ -77,7 +77,7 @@ const (
 func tagChipNode(name, tag string) *html.LiElement {
 	return html.Li(
 		html.Span().Class("truncate").Attrs(htemel.Attr("data-ui-tag-text", "")).Text(tag),
-		html.Button(IconX().Class("size-3 shrink-0")).Type(html.ButtonTypeButton).Class(Classes(tagRemove)).
+		html.Button(IconX().SetClass("size-3 shrink-0")).Type(html.ButtonTypeButton).Class(Classes(tagRemove)).
 			Aria("label", "Remove "+tag).Attrs(htemel.Attr("data-ui-tag-remove", "")),
 		html.Input().Type(html.InputTypeHidden).Name(name).Value(tag),
 	).Class(Classes(tagChip)).Attrs(htemel.Attr("data-ui-tag", tag))

@@ -67,7 +67,7 @@ func Toast(id string, t Tone, title, message string, timeout time.Duration) *htm
 	}
 	el := html.Div(
 		content,
-		ghostClose("Dismiss", sig+" = false").AddClass("self-start"),
+		ghostClose("Dismiss", sig+" = false").Class("self-start"),
 	).Id("toast-"+key).
 		Role("status").
 		Class(Classes("pointer-events-auto flex w-full gap-x-3 rounded-surface border-l-4 bg-white p-4 shadow-lg ring-1 ring-neutral-950/5",

@@ -119,7 +119,7 @@ func FilterSearch(signal, action string) *html.InputElement {
 		Placeholder("Search…").
 		Aria("label", "Search").
 		Autocomplete("off").
-		AddClass(Classes("flex-1 basis-60")).
+		Class(Classes("flex-1 basis-60")).
 		Attrs(
 			initially(signal, "''"),
 			datastar.Bind(signal),

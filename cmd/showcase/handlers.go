@@ -19,14 +19,14 @@ func routes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 
-	r.Get("/", func(w http.ResponseWriter, _ *http.Request) { renderPage(w, indexPage()) })
+	r.Method(http.MethodGet, "/", htemel.Handler(func(*http.Request) htemel.Node { return indexPage() }))
 	r.Get("/components/{slug}", func(w http.ResponseWriter, r *http.Request) {
 		g, ok := findGroup(chi.URLParam(r, "slug"))
 		if !ok {
 			http.NotFound(w, r)
 			return
 		}
-		renderPage(w, groupPage(g))
+		renderPage(w, r, groupPage(g))
 	})
 	// Bare pages of the Layouts page's phone-width iframes; registered after the group route so
 	// the more specific pattern wins in chi.
@@ -60,12 +60,24 @@ func layoutFrame(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	renderPage(w, fn())
+	renderPage(w, r, fn())
 }
 
-func renderPage(w http.ResponseWriter, n htemel.Node) {
+// renderPage serves n with htemel.Write: the page is rendered into a buffer first, so a failed
+// render sends a plain 500 instead of half a page.
+func renderPage(w http.ResponseWriter, r *http.Request, n htemel.Node) {
+	if err := htemel.Write(w, r, n); err != nil {
+		slog.Error("render", "err", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+}
+
+// renderPageStatus is renderPage with a status code. Write sets the Content-Type only when none
+// is set, and a header set after WriteHeader is lost, so the type is set first.
+func renderPageStatus(w http.ResponseWriter, r *http.Request, status int, n htemel.Node) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := htemel.Render(w, n); err != nil {
+	w.WriteHeader(status)
+	if err := htemel.Write(w, r, n); err != nil {
 		slog.Error("render", "err", err)
 	}
 }

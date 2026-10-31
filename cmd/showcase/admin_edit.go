@@ -336,13 +336,12 @@ func postEditPage(w http.ResponseWriter, r *http.Request) {
 	}
 	p, found := adminData.get(id)
 	if !found {
-		w.WriteHeader(http.StatusNotFound)
-		renderPage(w, adminNotFound())
+		renderPageStatus(w, r, http.StatusNotFound, adminNotFound())
 		return
 	}
-	renderPage(w, editorPage(r, p))
+	renderPage(w, r, editorPage(r, p))
 }
 
 func postNewPage(w http.ResponseWriter, r *http.Request) {
-	renderPage(w, editorPage(r, adminPost{Status: statusDraft, Author: adminAuthors[0], Comments: true, Tags: []string{}}))
+	renderPage(w, r, editorPage(r, adminPost{Status: statusDraft, Author: adminAuthors[0], Comments: true, Tags: []string{}}))
 }

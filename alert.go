@@ -17,7 +17,7 @@ func Alert(t Tone, title string, children ...htemel.FlowContent) *html.DivElemen
 // starts true unless the page already defines it, and the close button sets it to false.
 func AlertDismissible(signal string, t Tone, title string, children ...htemel.FlowContent) *html.DivElement {
 	return alertBox(t, title, children).
-		Children(closeButton("Dismiss", Close(signal)).AddClass("ml-auto self-start")).
+		Children(closeButton("Dismiss", Close(signal)).Class("ml-auto self-start")).
 		Attrs(initially(signal, "true"), datastar.Show("$"+signal))
 }
 

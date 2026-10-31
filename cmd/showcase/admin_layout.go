@@ -108,18 +108,18 @@ func userMenu() htemel.FlowContent {
 			Class("inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-600 text-[0.625rem] font-medium text-white dark:bg-neutral-500").Text("AL")),
 		ui.WithTrailingIcon(ui.IconChevronDown()),
 		ui.WithRailIcon(),
-	).AddClass("w-full min-w-0 justify-start *:last:ml-auto")
+	).Class("w-full min-w-0 justify-start *:last:ml-auto")
 	return ui.Dropdown("userMenu", trigger,
 		ui.MenuLink("Account settings", "/admin/settings"),
 		ui.MenuLink("Writing preferences", "/admin/settings/writing"),
 		ui.MenuDivider(),
 		ui.MenuLink("Back to showcase", "/"),
-	).AddClass("block w-full")
+	).Class("block w-full")
 }
 
 // backToShowcase is the top bar's link out of the demo.
 func backToShowcase() htemel.FlowContent {
-	return html.A(ui.IconArrowLeft().Class("size-4 shrink-0"), htemel.Text("back to showcase")).Href("/").
+	return html.A(ui.IconArrowLeft().SetClass("size-4 shrink-0"), htemel.Text("back to showcase")).Href("/").
 		Class("inline-flex items-center gap-x-1.5 rounded-control text-sm font-medium text-neutral-600 transition-colors duration-150 hover:text-neutral-900 " +
 			"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-neutral-400 dark:hover:text-white dark:focus-visible:outline-primary-500")
 }
@@ -150,7 +150,7 @@ func adminNotFound() htemel.Node {
 	return adminPage("Page not found", "", false, "",
 		adminBody(html.H1().Class("sr-only").Text("Page not found"), ui.EmptyState(ui.IconSearch(), "Page not found",
 			"This page does not exist in the demo, or it was moved.",
-			html.Div(ui.LinkButton(ui.Primary, "Go to the dashboard", "/admin", ui.WithIcon(ui.IconHome())))).AddClass("py-24")))
+			html.Div(ui.LinkButton(ui.Primary, "Go to the dashboard", "/admin", ui.WithIcon(ui.IconHome())))).Class("py-24")))
 }
 
 // adminStub is a section of the nav that the demo does not build out.

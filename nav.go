@@ -264,7 +264,7 @@ func Sidebar(signal string, sections ...SidebarSection) *html.NavElement {
 		id := domID(signal) + "-" + key
 		button := html.Button(
 			html.Span().Text(s.title),
-			IconChevronDown().Class("size-4 shrink-0 text-neutral-400 transition-transform duration-200 ease-out motion-reduce:transition-none").
+			IconChevronDown().SetClass("size-4 shrink-0 text-neutral-400 transition-transform duration-200 ease-out motion-reduce:transition-none").
 				Attrs(datastar.Class("-rotate-90", "!"+open)),
 		).Type(html.ButtonTypeButton).
 			Class(Classes("flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-1.5 text-left text-xs font-semibold transition-colors duration-150",
@@ -364,7 +364,7 @@ func breadcrumbs(name string, limit int, items []Crumb) *html.NavElement {
 		}
 		li := html.Li(entry).Class("flex items-center gap-x-1.5")
 		if !last {
-			li.Children(IconChevronRight().Class("size-4 shrink-0 text-neutral-400"))
+			li.Children(IconChevronRight().SetClass("size-4 shrink-0 text-neutral-400"))
 		}
 		list.Children(li)
 	}
@@ -384,7 +384,7 @@ func crumbMore(hidden []Crumb) htemel.FlowContent {
 	}
 	label := "Show " + strconv.Itoa(len(hidden)) + " more " + map[bool]string{true: "page", false: "pages"}[len(hidden) == 1]
 	return html.Details(
-		html.Summary(IconEllipsis().Class("size-5")).Aria("label", label).Title(label).Class(Classes(crumbMoreClass)),
+		html.Summary(IconEllipsis().SetClass("size-5")).Aria("label", label).Title(label).Class(Classes(crumbMoreClass)),
 		panel,
 	).Class("relative")
 }

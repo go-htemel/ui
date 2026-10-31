@@ -351,11 +351,11 @@ func TestCopyButton(t *testing.T) {
 	}
 }
 
-// TestAttrsDelegate: Attrs, SetAttr and AddClass reach the figure.
+// TestAttrsDelegate: Attrs, SetAttr and Class reach the figure.
 func TestAttrsDelegate(t *testing.T) {
 	b := code.Block("go", "x")
 	b.SetAttr("data-x", "1")
-	b.Attrs(datastar.Show("$a")).AddClass("mt-4")
+	b.Attrs(datastar.Show("$a")).Class("mt-4")
 	out := render(t, b)
 	for _, want := range []string{`data-x="1"`, `data-show="$a"`, `class="ui-code mt-4"`} {
 		if !strings.Contains(out, want) {

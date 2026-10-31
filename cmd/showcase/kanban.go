@@ -101,11 +101,11 @@ func kanbanCardView(c kanbanCard) *html.DivElement {
 	// The grip doubles as the keyboard/touch "pick up" control, so the card stays a single short
 	// row: an icon button, then the title, which may wrap.
 	return ui.Draggable(c.ID,
-		ui.IconButton(ui.Ghost, ui.IconGripVertical().Class("size-4"), "Pick up "+c.Title, ui.WithSize(ui.Xs)).
-			AddClass("-ml-1 shrink-0 text-neutral-400").
+		ui.IconButton(ui.Ghost, ui.IconGripVertical().SetClass("size-4"), "Pick up "+c.Title, ui.WithSize(ui.Xs)).
+			Class("-ml-1 shrink-0 text-neutral-400").
 			Attrs(ui.PickUp("dragged", c.ID)),
 		html.Span().Class("min-w-0 flex-1 break-words").Text(c.Title),
 	).Id("card-" + c.ID).
-		AddClass(ui.Classes("flex items-center gap-2 rounded-surface bg-white p-2 pr-3 text-sm text-neutral-800 shadow-xs ring-1 ring-neutral-950/5",
+		Class(ui.Classes("flex items-center gap-2 rounded-surface bg-white p-2 pr-3 text-sm text-neutral-800 shadow-xs ring-1 ring-neutral-950/5",
 			"dark:bg-neutral-800 dark:text-neutral-100 dark:ring-white/10"))
 }

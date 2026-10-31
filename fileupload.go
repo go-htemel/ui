@@ -112,7 +112,7 @@ func FileUpload(name string, opts ...FileUploadOption) *FileUploadElement {
 		drag = " or drag them here"
 	}
 	zone := html.Div(
-		IconUpload().Class(Classes("size-8 text-neutral-400 dark:text-neutral-500")),
+		IconUpload().SetClass(Classes("size-8 text-neutral-400 dark:text-neutral-500")),
 		html.P(
 			html.Label(html.Span().Text(c.browse), in).Class(Classes(fileBrowse)),
 			htemel.Text(drag),
@@ -130,7 +130,7 @@ func FileUpload(name string, opts ...FileUploadOption) *FileUploadElement {
 			html.P().Class(Classes(fileName)).Attrs(htemel.Attr("data-ui-file-name", "")),
 			html.P().Class(Classes(fileSize)).Attrs(htemel.Attr("data-ui-file-size", "")),
 		).Class("min-w-0 flex-1"),
-		IconButton(Ghost, IconX().Class("size-4 shrink-0"), "Remove", WithSize(Xs)).Attrs(htemel.Attr("data-ui-file-remove", "")),
+		IconButton(Ghost, IconX().SetClass("size-4 shrink-0"), "Remove", WithSize(Xs)).Attrs(htemel.Attr("data-ui-file-remove", "")),
 	).Class(Classes(fileRow))
 	attrs := map[string]any{"class": "block"}
 	if c.action != "" {

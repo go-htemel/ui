@@ -44,7 +44,7 @@ func Select(name string, options ...html.SelectChild) *SelectElement {
 		Class(Classes(controlBase, "ui-select col-start-1 row-start-1 appearance-none py-1.5 pr-8 pl-3 dark:*:bg-neutral-800"))
 	wrapper := html.Div(
 		control,
-		IconChevronDown().Class(Classes("pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end",
+		IconChevronDown().SetClass(Classes("pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end",
 			"text-neutral-500 sm:size-4 dark:text-neutral-400")),
 	).Class("grid grid-cols-1")
 	return &SelectElement{DivElement: wrapper, control: control}

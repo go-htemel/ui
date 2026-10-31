@@ -601,7 +601,7 @@ html.P(htemel.Text("Call "), code.Inline("go", `ui.Button(ui.Primary, "Save")`))
 ```
 
 `Block(lang, src, opts...)` returns a `*code.BlockElement`, a `<figure class="ui-code">` (flow
-content; `Attrs`, `SetAttr` and `AddClass` reach the figure) with an optional toolbar, a focusable
+content; `Attrs`, `SetAttr` and `Class` reach the figure) with an optional toolbar, a focusable
 `<pre><code>` with one `<span class="line">` per line, and a `<template>` holding the raw source.
 `Inline(lang, src)` returns a highlighted `<code>`. `lang` is a chroma lexer name or alias (`go`,
 `css`, `html`, `js`, `json`, `bash`, `sql`, `yaml`, `markdown`, ...); an unknown or empty one, or a
@@ -617,7 +617,7 @@ lexer that fails, renders plain text, never an error. All text is escaped.
 | `WithoutCopyButton()` | the copy button is on by default |
 | `WithID(s)` | name of the copy button's signal, see below |
 
-Cap the height with `AddClass("[--ui-code-max-height:24rem]")`; the code scrolls, the toolbar stays.
+Cap the height with `Class("[--ui-code-max-height:24rem]")`; the code scrolls, the toolbar stays.
 
 **Copy button.** An `IconButton` (`IconCopy`, which fades to `IconCheck` for 1.5s in 150ms,
 without motion under `prefers-reduced-motion`) writes the template's text to the clipboard, so
@@ -744,8 +744,7 @@ region (`role="region"`, `aria-live="polite"`), which a patch never replaces.
 | `WithHint(text, href)` | footer hint (default "Markdown supported" linking to the CommonMark help); empty text removes it |
 
 It is a `CompositeControl`: `Field` labels the textarea and its `aria-describedby` keeps the
-editor's hint and counter after Field's help and error; `Attrs` reaches the textarea; `Id`,
-`Class` and `AddClass` are the frame's.
+editor's hint and counter after Field's help and error; `Attrs` reaches the textarea; `Id` and `Class` are the frame's.
 
 **The toolbar needs `ui.js`.** Its buttons carry only `data-ui-md-action="bold"` (and so on); the
 `<ui-mdeditor>` element in `ui.js` does the editing, so no attribute holds script and the markup
@@ -787,7 +786,7 @@ typography plugin is needed):
 ```go
 ui.Prose(html.H2().Text("Release notes"), html.P().Text("..."))   // or markdown.Render(src)
 ui.ProseSm(...)                                                    // 14px body: comments, side panels
-ui.ProseLg(...).AddClass("max-w-prose")                            // 18px body: reading views
+ui.ProseLg(...).Class("max-w-prose")                            // 18px body: reading views
 ```
 
 Headings (balanced wrapping, `scroll-margin-top` for anchors), paragraphs at `text-base/7`,

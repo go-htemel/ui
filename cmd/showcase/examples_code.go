@@ -103,7 +103,7 @@ jobs:
 }
 
 func codeMaxHeight() htemel.FlowContent {
-	// A capped height scrolls the code, not the toolbar: add the CSS variable with AddClass.
+	// A capped height scrolls the code, not the toolbar: add the CSS variable with Class.
 	return code.Block("html", `<!doctype html>
 <html lang="en">
   <head>
@@ -117,5 +117,5 @@ func codeMaxHeight() htemel.FlowContent {
       <button data-on:click="$count++">Clicked <span data-text="$count"></span> times</button>
     </main>
   </body>
-</html>`, code.WithLineNumbers(), code.WithTitle("index.html")).AddClass("[--ui-code-max-height:12rem]")
+</html>`, code.WithLineNumbers(), code.WithTitle("index.html")).Class("[--ui-code-max-height:12rem]")
 }

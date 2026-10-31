@@ -118,7 +118,7 @@ var spinnerSizes = map[Size]string{Xs: "size-3", Sm: "size-4", Md: "size-5", Lg:
 // for screen readers. It is phrasing content, so it fits inside text and buttons.
 func Spinner(size Size) *html.SpanElement {
 	return html.Span(
-		IconSpinner().Class(Classes("shrink-0 animate-spin", pick(spinnerSizes, size, Md))),
+		IconSpinner().SetClass(Classes("shrink-0 animate-spin", pick(spinnerSizes, size, Md))),
 		html.Span().Class("sr-only").Text("Loading…"),
 	).Role("status").Class("inline-flex items-center")
 }
@@ -142,7 +142,7 @@ func StepsLabel(label string, current int, labels ...string) *html.NavElement {
 		switch {
 		case n < current:
 			state = " (completed)"
-			dot = html.Span(IconCheck().Class("size-4")).
+			dot = html.Span(IconCheck().SetClass("size-4")).
 				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white"))
 		case n == current:
 			state = " (current)"

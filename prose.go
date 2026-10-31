@@ -16,7 +16,7 @@ import (
 // look. Light and dark colors are --ui-prose-* variables on .ui-prose, so a scope can retheme
 // them; the defaults meet WCAG AA on a white or neutral-900 card and on the page background.
 //
-// Prose sets no width: add max-w-prose (65ch) with AddClass for a readable measure. ProseSm and
+// Prose sets no width: add max-w-prose (65ch) with Class for a readable measure. ProseSm and
 // ProseLg are the same at text-sm and text-lg; every margin is in em, so they scale as a whole.
 //
 //	ui.Prose(html.H2().Text("Release notes"), html.P().Text("..."))

@@ -52,7 +52,7 @@ func notesListView(q string) *html.UlElement {
 			"$noteId = "+id+"; $noteEdit = false; "+datastar.Get(noteURL(n.ID)),
 			html.Span().Class("block truncate text-sm font-medium text-neutral-900 dark:text-white").Text(n.Title),
 			html.Span().Class("mt-0.5 block text-xs text-neutral-600 dark:text-neutral-400").Children(noteDate(n)),
-			noteTags(n.Tags).AddClass("mt-1.5"),
+			noteTags(n.Tags).Class("mt-1.5"),
 		)))
 	}
 	if len(notes) == 0 {

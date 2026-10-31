@@ -5,17 +5,17 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-htemel/htemel"
 )
 
 // adminRoutes registers the admin demo under /admin.
 func adminRoutes(r chi.Router) {
 	r.Route("/admin", func(r chi.Router) {
-		r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusNotFound)
-			renderPage(w, adminNotFound())
+		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+			renderPageStatus(w, r, http.StatusNotFound, adminNotFound())
 		})
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) { renderPage(w, dashboardPage(r)) })
-		r.Get("/posts", func(w http.ResponseWriter, r *http.Request) { renderPage(w, postsPage(r)) })
+		r.Method(http.MethodGet, "/", htemel.Handler(dashboardPage))
+		r.Method(http.MethodGet, "/posts", htemel.Handler(postsPage))
 		r.Get("/posts/list", postsList)
 		r.Get("/posts/new", postNewPage)
 		r.Get("/posts/{id}/edit", postEditPage)
@@ -29,28 +29,27 @@ func adminRoutes(r chi.Router) {
 				postsDuplicate(w, r, id)
 			}
 		})
-		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) { renderPage(w, settingsPage(r, settingsGeneral)) })
+		r.Get("/settings", func(w http.ResponseWriter, r *http.Request) { renderPage(w, r, settingsPage(r, settingsGeneral)) })
 		r.Get("/settings/{tab}", func(w http.ResponseWriter, r *http.Request) {
 			switch tab := chi.URLParam(r, "tab"); tab {
 			case settingsWriting, settingsAppearance:
-				renderPage(w, settingsPage(r, tab))
+				renderPage(w, r, settingsPage(r, tab))
 			default:
-				w.WriteHeader(http.StatusNotFound)
-				renderPage(w, adminNotFound())
+				renderPageStatus(w, r, http.StatusNotFound, adminNotFound())
 			}
 		})
 		r.Post("/settings/{tab}", settingsSave)
 		r.Post("/reset", adminReset)
-		r.Get("/notes", func(w http.ResponseWriter, r *http.Request) { renderPage(w, notesPage(r)) })
+		r.Get("/notes", func(w http.ResponseWriter, r *http.Request) { renderPage(w, r, notesPage(r)) })
 		r.Get("/notes/list", notesFilter)
 		r.Get("/notes/{id}", notesShow)
 		r.Post("/notes/{id}", notesSave)
-		r.Get("/media", func(w http.ResponseWriter, _ *http.Request) {
-			renderPage(w, adminStub("Media", navMedia, "Images and files for your posts."))
-		})
-		r.Get("/comments", func(w http.ResponseWriter, _ *http.Request) {
-			renderPage(w, adminStub("Comments", navComments, "Reader comments waiting for a decision."))
-		})
+		r.Method(http.MethodGet, "/media", htemel.Handler(func(*http.Request) htemel.Node {
+			return adminStub("Media", navMedia, "Images and files for your posts.")
+		}))
+		r.Method(http.MethodGet, "/comments", htemel.Handler(func(*http.Request) htemel.Node {
+			return adminStub("Comments", navComments, "Reader comments waiting for a decision.")
+		}))
 	})
 }
 

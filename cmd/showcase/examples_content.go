@@ -59,7 +59,7 @@ func proseArticle() htemel.FlowContent {
 	return markdown.Render(sampleArticle,
 		markdown.WithHeadingOffset(1),
 		markdown.WithIDPrefix("article-"),
-	).AddClass("max-w-prose")
+	).Class("max-w-prose")
 }
 
 func proseSizes() htemel.FlowContent {
@@ -87,7 +87,7 @@ func proseHandwritten() htemel.FlowContent {
 			html.Img().Src("/placeholder.svg").Alt("A landscape placeholder").Width(640).Height(320),
 			html.Figcaption().Text("Figures get a muted caption."),
 		),
-	).AddClass("max-w-prose")
+	).Class("max-w-prose")
 }
 
 const sampleEntry = `## Saturday, 31 October

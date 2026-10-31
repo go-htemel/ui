@@ -18,5 +18,5 @@ that wrap a real control (`Select`, `InputGroup`, `TagInput`, `FileUpload`,
 ## Consequences
 - Pages read as a description of the page; the Admin demo is mostly composition.
 - Sharp edge: every composite re-plumbs four forwarding methods (htemel ADR 0013).
-- Sharp edge: `Class()` on a component replaced its base classes (htemel ADR 0009);
-  until that lands, use `AddClass`/`WithRailIcon`-style options.
+- Sharp edge (resolved by htemel v0.4.0, ADR 0009): `Class()` on a component used to replace its
+  base classes; it now adds, and `SetClass` replaces (see ui ADR 0015).

@@ -12,8 +12,9 @@ func Icon(class string) *html.IElement {
 }
 
 // Inline SVG icons, drawn on a 24x24 grid with a 2px currentColor stroke. Each returns the <svg>
-// element, sized size-5 and hidden from assistive technology; override the size with Class (for
-// example .Class("size-4")) and put a label on the surrounding control.
+// element, sized size-5 and hidden from assistive technology. Replace the size with SetClass (for
+// example .SetClass("size-4 shrink-0")); Class would add to size-5 instead. Put a label on the
+// surrounding control.
 
 // stroked builds an outline icon from one path.
 func stroked(d string) *svg.SvgElement {

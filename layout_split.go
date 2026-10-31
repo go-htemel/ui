@@ -124,7 +124,8 @@ func SplitDetailHeader(title string, actions ...htemel.FlowContent) *html.DivEle
 // SplitDetailHeaderSignal is SplitDetailHeader for a SplitLayout with its own SplitSignal.
 func SplitDetailHeaderSignal(signal, title string, actions ...htemel.FlowContent) *html.DivElement {
 	id := domID(signal)
-	back := Button(Ghost, "Back", WithIcon(IconArrowLeft().Class("size-4 shrink-0")), WithSize(Sm), withClass("-ml-2 @2xl:hidden")).
+	back := Button(Ghost, "Back", WithIcon(IconArrowLeft().SetClass("size-4 shrink-0")), WithSize(Sm)).
+		Class("-ml-2 @2xl:hidden").
 		Attrs(datastar.OnClick("$" + signal + " = 'list'; requestAnimationFrame(() => document.getElementById('" + id + "-list')?.focus({preventScroll: true}))"))
 	row := html.Div(
 		back,

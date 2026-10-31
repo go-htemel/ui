@@ -171,7 +171,7 @@ func WithHint(text, href string) MarkdownEditorOption {
 // MarkdownEditorElement is the editor MarkdownEditor returns: a <div class="ui-mdeditor">
 // framing a toolbar, the textarea, an optional preview and a footer. Like SelectElement, Attrs,
 // SetAttr and SetAttrUnsafe target the textarea (so .Attrs(datastar.On(...)) lands on the
-// control), while Id, Class and AddClass are the frame's. Field labels the textarea through
+// control), while Id and Class are the frame's. Field labels the textarea through
 // Control.
 type MarkdownEditorElement struct {
 	*html.DivElement
@@ -350,7 +350,7 @@ func MarkdownEditor(name string, opts ...MarkdownEditorOption) *MarkdownEditorEl
 		body = html.Div(ta)
 	case c.split:
 		preview := previewRegion(id, c.previewLabel).Attrs(datastar.Init(c.preview))
-		preview.AddClass(Classes("border-t border-neutral-200 @xl:border-t-0 @xl:border-l dark:border-white/10"))
+		preview.Class(Classes("border-t border-neutral-200 @xl:border-t-0 @xl:border-l dark:border-white/10"))
 		body = html.Div(html.Div(ta).Class("min-w-0"), preview).Class(Classes("grid grid-cols-1 @xl:grid-cols-2"))
 	default:
 		mode := "_" + signalID(id) + "Mode"
@@ -386,7 +386,7 @@ func MarkdownEditor(name string, opts ...MarkdownEditorOption) *MarkdownEditorEl
 				panel.Children(ta)
 			} else {
 				panel.Tabindex(0).Style(hiddenUntilDatastar).
-					AddClass(Classes("focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500")).
+					Class(Classes("focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500")).
 					Children(previewRegion(id, c.previewLabel))
 			}
 			panels = append(panels, panel)
@@ -397,7 +397,7 @@ func MarkdownEditor(name string, opts ...MarkdownEditorOption) *MarkdownEditorEl
 		body = html.Div(panels...)
 	}
 	if toolbar != nil {
-		toolbar.AddClass("ml-auto")
+		toolbar.Class("ml-auto")
 		header.Children(toolbar)
 	}
 	if toolbar != nil || c.preview != "" && !c.split {
@@ -459,7 +459,8 @@ func markdownToolbar(tools []MarkdownTool) *html.DivElement {
 		if info.keys != "" {
 			title += " (" + info.keys + ")"
 		}
-		b := IconButton(Ghost, info.icon().Class("size-4 shrink-0"), info.label, WithSize(Sm), withClass(mdTool)).
+		b := IconButton(Ghost, info.icon().SetClass("size-4 shrink-0"), info.label, WithSize(Sm)).
+			Class(mdTool).
 			Title(title).Tabindex(map[bool]int{true: 0, false: -1}[first]).Data("ui-md-action", string(t))
 		if info.aria != "" {
 			b.Aria("keyshortcuts", info.aria)
@@ -495,7 +496,7 @@ func counter(id, sig, value string, maxLen int) *html.PElement {
 		case chars*10 >= maxLen*9:
 			state = Classes(mdCountNear)
 		}
-		p.AddClass(state)
+		p.Class(state)
 		p.Attrs(datastar.Classes("{" + datastar.Quote(Classes(mdCountNormal)) + ": !(" + near + ") && !(" + over + "), " +
 			datastar.Quote(Classes(mdCountNear)) + ": " + near + ", " + datastar.Quote(Classes(mdCountOver)) + ": " + over + "}"))
 	} else {

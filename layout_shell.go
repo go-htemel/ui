@@ -302,7 +302,7 @@ func AppShell(opts ...AppShellOption) *AppShellElement {
 		}
 		d := DrawerSized(menu, DrawerLeft, Xs, "Menu", drawer)
 		if c.dark {
-			d.AddClass(dark)
+			d.Class(dark)
 		}
 		root.Children(d)
 	}

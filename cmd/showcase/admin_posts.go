@@ -68,12 +68,12 @@ func postRow(p adminPost) *html.TrElement {
 		meta.Text(" · " + strings.Join(p.Tags, ", "))
 	}
 	return html.Tr(
-		ui.Td(ui.Checkbox("", ui.SelectRow(selection, key), htemel.Attr("aria-label", "Select “"+p.Title+"”"))).AddClass("w-10 pr-0"),
+		ui.Td(ui.Checkbox("", ui.SelectRow(selection, key), htemel.Attr("aria-label", "Select “"+p.Title+"”"))).Class("w-10 pr-0"),
 		ui.Td(html.Div(html.A().Href(postEditURL(p.ID)).Class(postLinkClass).Text(p.Title), meta).Class("min-w-48 max-w-md")),
 		ui.Td(statusBadge(p.Status)),
-		ui.Td(htemel.Text(p.Author)).AddClass("whitespace-nowrap"),
-		ui.Td(adminTime(p.UpdatedAt)).AddClass("whitespace-nowrap"),
-		ui.Td(html.Div(menu).Class("flex justify-end")).AddClass("w-12 pl-0"),
+		ui.Td(htemel.Text(p.Author)).Class("whitespace-nowrap"),
+		ui.Td(adminTime(p.UpdatedAt)).Class("whitespace-nowrap"),
+		ui.Td(html.Div(menu).Class("flex justify-end")).Class("w-12 pl-0"),
 	)
 }
 
@@ -109,7 +109,7 @@ func selectAllHead(rows []adminPost) *html.ThElement {
 		keys[i] = postKey(p.ID)
 	}
 	box := ui.Checkbox("", append(ui.SelectAll(selection, keys), htemel.Attr("aria-label", "Select all posts on this page"))...)
-	return ui.Th(box).Id(postsSelectID).AddClass("w-10 pr-0")
+	return ui.Th(box).Id(postsSelectID).Class("w-10 pr-0")
 }
 
 func postsPager(current, pages int) *html.NavElement {
@@ -269,9 +269,9 @@ func postsPage(r *http.Request) htemel.Node {
 		ui.FilterSearch("q", refilter),
 		ui.Select("status",
 			ui.Choice("", "All statuses"), ui.Choice(statusPublished, "Published"), ui.Choice(statusDraft, "Draft"), ui.Choice(statusScheduled, "Scheduled"),
-		).Attrs(datastar.Bind("status"), datastar.OnChange(refilter), htemel.Attr("aria-label", "Status")).AddClass("w-40"),
+		).Attrs(datastar.Bind("status"), datastar.OnChange(refilter), htemel.Attr("aria-label", "Status")).Class("w-40"),
 		ui.Select("tag", tagOptions...).
-			Attrs(datastar.Bind("tag"), datastar.OnChange(refilter), htemel.Attr("aria-label", "Tag")).AddClass("w-40"),
+			Attrs(datastar.Bind("tag"), datastar.OnChange(refilter), htemel.Attr("aria-label", "Tag")).Class("w-40"),
 		ui.Button(ui.Ghost, "Reset").Attrs(datastar.OnClick(clearFilters)),
 	)
 

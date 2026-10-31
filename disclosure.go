@@ -60,7 +60,7 @@ func disclosureParts(id, title, open, toggle string, children []htemel.FlowConte
 	buttonID := id + "-button"
 	button := html.Button(
 		html.Span().Text(title),
-		IconChevronDown().Class("size-5 shrink-0 text-neutral-400 transition-transform duration-200 ease-out motion-reduce:transition-none").
+		IconChevronDown().SetClass("size-5 shrink-0 text-neutral-400 transition-transform duration-200 ease-out motion-reduce:transition-none").
 			Attrs(datastar.Class("rotate-180", open)),
 	).Type(html.ButtonTypeButton).
 		Id(buttonID).

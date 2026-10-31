@@ -111,9 +111,9 @@ func ColorSchemeToggle(opts ...ColorSchemeOption) *html.SpanElement {
 	segment := func(mode, label string, icon htemel.PhrasingContent) *html.ButtonElement {
 		var b *html.ButtonElement
 		if o.labels {
-			b = Button(Secondary, label, WithIcon(icon), WithSize(Sm), withClass(colorSchemeSegment))
+			b = Button(Secondary, label, WithIcon(icon), WithSize(Sm)).Class(colorSchemeSegment)
 		} else {
-			b = IconButton(Secondary, icon, label, WithSize(Sm), withClass(colorSchemeSegment))
+			b = IconButton(Secondary, icon, label, WithSize(Sm)).Class(colorSchemeSegment)
 		}
 		pressed := "false"
 		if mode == "system" {
@@ -131,7 +131,7 @@ func ColorSchemeToggle(opts ...ColorSchemeOption) *html.SpanElement {
 		segment("system", "System", IconMonitor()),
 		segment("light", "Light", IconSun()),
 		segment("dark", "Dark", IconMoon()),
-	).Aria("label", "Color scheme").AddClass(Classes(colorSchemeRail)).Attrs(
+	).Aria("label", "Color scheme").Class(Classes(colorSchemeRail)).Attrs(
 		initially("colorScheme", "'system'"),
 		datastar.Init("$colorScheme = ['light', 'dark'].includes(localStorage.getItem('"+ColorSchemeKey+"')) ? localStorage.getItem('"+ColorSchemeKey+"') : 'system'"),
 	)

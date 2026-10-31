@@ -26,7 +26,7 @@ import (
 //
 //	markdown.Render(post.Body, markdown.WithHeadingOffset(1))
 //
-// It returns the Prose <div>, so element methods still chain (AddClass("max-w-prose"), Id).
+// It returns the Prose <div>, so element methods still chain (Class("max-w-prose"), Id).
 // Rendering never fails: src is UTF-8 text, and invalid bytes are replaced.
 func Render(src string, opts ...Option) *html.DivElement {
 	c := collect(opts)
