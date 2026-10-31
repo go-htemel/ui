@@ -77,14 +77,16 @@ type tone struct {
 	name, line, lfg, lbg, dfg, dbg, lborder, dborder string
 }
 
-// tones is toneSoft (badge.go:7-11) and toneAccent (toast.go:41-47): accent borders are one step
-// darker in light (white toast) than in dark (neutral-800 toast).
+// tones is toneSoft (badge.go:7-12) and toneAccent (toast.go:41-48), in map order: accent
+// borders are one step darker in light (white toast) than in dark (neutral-800 toast). Brand is
+// the primary color's tints; Info aliases sky.
 var tones = []tone{
 	{"Neutral", "7", "text-neutral-700", "bg-neutral-100", "dark:text-neutral-300", "dark:bg-neutral-400/10", "border-neutral-500", "border-neutral-500"},
-	{"Info", "8", "text-info-700", "bg-info-50", "dark:text-info-300", "dark:bg-info-400/10", "border-info-600", "dark:border-info-500"},
-	{"Success", "9", "text-success-700", "bg-success-50", "dark:text-success-300", "dark:bg-success-500/10", "border-success-600", "dark:border-success-500"},
-	{"Warning", "10", "text-warning-800", "bg-warning-50", "dark:text-warning-300", "dark:bg-warning-400/10", "border-warning-600", "dark:border-warning-500"},
-	{"Danger", "11", "text-danger-700", "bg-danger-50", "dark:text-danger-300", "dark:bg-danger-400/10", "border-danger-600", "dark:border-danger-500"},
+	{"Brand", "8", "text-primary-700", "bg-primary-50", "dark:text-primary-300", "dark:bg-primary-400/10", "border-primary-600", "dark:border-primary-500"},
+	{"Info", "9", "text-info-700", "bg-info-50", "dark:text-info-300", "dark:bg-info-400/10", "border-info-600", "dark:border-info-500"},
+	{"Success", "10", "text-success-700", "bg-success-50", "dark:text-success-300", "dark:bg-success-500/10", "border-success-600", "dark:border-success-500"},
+	{"Warning", "11", "text-warning-800", "bg-warning-50", "dark:text-warning-300", "dark:bg-warning-400/10", "border-warning-600", "dark:border-warning-500"},
+	{"Danger", "12", "text-danger-700", "bg-danger-50", "dark:text-danger-300", "dark:bg-danger-400/10", "border-danger-600", "dark:border-danger-500"},
 }
 
 func matrix() []spec {
@@ -151,25 +153,59 @@ func matrix() []spec {
 			on(t.lborder, "bg-white"), on(t.dborder, "dark:bg-neutral-800"))
 	}
 
-	// Toast (toast.go:62-73). The close button is closeButton (signals.go:45), at full opacity.
-	add("Toast", "title", "toast.go:62", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-800"))
-	add("Toast", "message", "toast.go:65", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-800"))
-	add("Toast", "close icon", "toast.go:69", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-800"))
+	// Toast (toast.go:63-74). The close button is closeButton (signals.go:45), at full opacity.
+	add("Toast", "title", "toast.go:63", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-800"))
+	add("Toast", "message", "toast.go:66", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-800"))
+	add("Toast", "close icon", "toast.go:70", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-800"))
 
-	// Input (form.go:25-30). Dark inputs are bg-white/5 over the page.
-	add("Input", "text", "form.go:25", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/5"))
-	add("Input", "placeholder", "form.go:26", text, on("placeholder:text-neutral-500", "bg-white"), on("dark:placeholder:text-neutral-400", "dark:bg-white/5"))
-	add("Input", "border (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", ""), on("dark:outline-white/35", ""))
-	add("Input", "border against the field (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", "bg-white"), on("dark:outline-white/35", "dark:bg-white/5"))
+	// Input (form.go:29-34). Dark inputs are bg-white/5 over the page.
+	add("Input", "text", "form.go:33", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/5"))
+	add("Input", "placeholder", "form.go:33", text, on("placeholder:text-neutral-500", "bg-white"), on("dark:placeholder:text-neutral-400", "dark:bg-white/5"))
+	add("Input", "border (SC 1.4.11)", "form.go:29", nonText, on("outline-neutral-500", ""), on("dark:outline-white/35", ""))
+	add("Input", "border against the field (SC 1.4.11)", "form.go:33", nonText, on("outline-neutral-500", "bg-white"), on("dark:outline-white/35", "dark:bg-white/5"))
 	add("InputGroup", "affix border", "info.go:105", nonText, on("outline-neutral-500", "bg-neutral-50"), on("dark:outline-white/35", "dark:bg-white/5"))
-	add("Input", "focus outline", "form.go:26", nonText, on("focus:outline-primary-600", ""), on("dark:focus:outline-primary-500", ""))
-	add("Input", "invalid outline", "form.go:28", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
-	disabled("Input", "disabled text", "form.go:27", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
+	add("Input", "focus outline", "form.go:30", nonText, on("focus:outline-primary-600", ""), on("dark:focus:outline-primary-500", ""))
+	add("Input", "invalid outline", "form.go:32", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
+	disabled("Input", "disabled text", "form.go:31", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
 
-	// Field (form.go:89-97) on the page background.
-	add("Field", "label", "form.go:89", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Field", "help text", "form.go:95", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Field", "error text", "form.go:97", text, on("text-danger-600", ""), on("dark:text-danger-400", ""))
+	// Autofill (assets/ui.css): the opaque cover and text fill that replace Chrome's autofill
+	// colors. Dark uses neutral-800 because the cover must be opaque (the field is white/5).
+	add("Input", "autofilled text", "assets/ui.css:176", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-800"))
+
+	// File input button (form.go fileButton): Secondary-like, on the field.
+	add("Input/file button", "text", "form.go:39", text, on("file:text-neutral-900", "file:bg-white").over(cardL), on("dark:file:text-white", "dark:file:bg-white/10").over("dark:bg-neutral-800"))
+	add("Input/file button", "hover", "form.go:38", text, on("file:text-neutral-900", "hover:file:bg-neutral-50").over(cardL), on("dark:file:text-white", "dark:hover:file:bg-white/20").over("dark:bg-neutral-800"))
+
+	// Checkbox and Radio (form.go choiceBox, choiceMark), on the example card.
+	add("Checkbox/Radio", "label", "form.go:146", text, on("text-neutral-900", "").over(cardL), on("dark:text-white", "").over(cardD))
+	add("Checkbox/Radio", "unchecked border vs card (SC 1.4.11)", "form.go:152", nonText, on("border-neutral-500", "").over(cardL), on("dark:border-white/35", "").over(cardD))
+	add("Checkbox/Radio", "unchecked border vs box fill (SC 1.4.11)", "form.go:157", nonText, on("border-neutral-500", "bg-white").over(cardL), on("dark:border-white/35", "dark:bg-white/5").over(cardD))
+	add("Checkbox/Radio", "hover border", "form.go:157", nonText, on("not-checked:enabled:hover:border-neutral-700", "bg-white").over(cardL), on("dark:not-checked:enabled:hover:border-white/60", "dark:bg-white/5").over(cardD))
+	add("Checkbox/Radio", "checked fill vs card", "form.go:154", nonText, on("checked:bg-primary-600", "").over(cardL), on("dark:checked:bg-primary-500", "").over(cardD))
+	add("Checkbox", "check mark on fill", "form.go:154", nonText, on("text-white", "checked:bg-primary-600"), on("text-white", "dark:checked:bg-primary-500"))
+	add("Radio", "dot on fill", "form.go:154", nonText, on("bg-white", "checked:bg-primary-600"), on("bg-white", "dark:checked:bg-primary-500"))
+	add("Checkbox/Radio", "focus-visible outline", "form.go:155", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	disabled("Checkbox/Radio", "disabled label", "form.go:147", on("has-disabled:text-neutral-500", "").over(cardL), on("dark:has-disabled:text-neutral-400", "").over(cardD))
+
+	// Switch (form.go Switch): off track ring and knob ring, on track, knob on the on track.
+	add("Switch", "off track ring vs card", "form.go:235", nonText, on("ring-neutral-500", "").over(cardL), on("dark:ring-white/35", "").over(cardD))
+	add("Switch", "knob vs off track", "form.go:238", nonText, on("ring-neutral-500", "bg-neutral-200").over(cardL), on("bg-white", "dark:bg-white/10").over(cardD))
+	add("Switch", "on track vs card", "form.go:239", nonText, on("has-checked:bg-primary-600", "").over(cardL), on("dark:has-checked:bg-primary-500", "").over(cardD))
+	add("Switch", "knob vs on track", "form.go:239", nonText, on("bg-white", "has-checked:bg-primary-600"), on("bg-white", "dark:has-checked:bg-primary-500"))
+	add("Switch", "knob vs on track, hover", "form.go:240", nonText, on("bg-white", "has-checked:has-enabled:hover:bg-primary-700"), on("bg-white", "dark:has-checked:has-enabled:hover:bg-primary-400"))
+	add("Switch", "focus-visible outline", "form.go:241", nonText, on("has-focus-visible:outline-primary-600", "").over(cardL), on("dark:has-focus-visible:outline-primary-500", "").over(cardD))
+
+	// Select picker (assets/ui.css, appearance: base-select): options on the picker, the hover
+	// and keyboard highlight, and the check mark of the selected option.
+	add("Select picker", "option", "assets/ui.css:280", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-800"))
+	add("Select picker", "option hover / focus", "assets/ui.css:296", text, on("text-white", "bg-primary-600"), on("text-white", "bg-primary-600"))
+	add("Select picker", "check mark", "assets/ui.css:291", nonText, on("text-primary-600", "bg-white"), on("dark:text-primary-400", "dark:bg-neutral-800"))
+	disabled("Select picker", "disabled option", "assets/ui.css:302", on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-800"))
+
+	// Field (form.go:119-127) on the page background.
+	add("Field", "label", "form.go:119", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Field", "help text", "form.go:125", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Field", "error text", "form.go:127", text, on("text-danger-600", ""), on("dark:text-danger-400", ""))
 
 	// Table (table.go:94-99, 55, 66): header on neutral-50 / neutral-900, body on the white card.
 	add("Table", "header text", "table.go:99", text, on("text-neutral-600", "bg-neutral-50"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
@@ -188,32 +224,34 @@ func matrix() []spec {
 	add("Stat", "delta negative", "info.go:59", text, on("text-danger-600", "").over(cardL), on("dark:text-danger-400", "").over(cardD))
 	add("DescriptionList", "term", "info.go:96", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
-	// Progress (progress.go:32-36, 51): fill against its track; Steps (progress.go:145-162) labels.
+	// Progress (progress.go:32-37): fill against its track; Steps (progress.go:146-163) labels.
 	for _, p := range []struct{ name, line, l, d string }{
 		{"Neutral", "32", "bg-primary-600", "dark:bg-primary-500"},
-		{"Info", "33", "bg-info-600", "dark:bg-info-500"},
-		{"Success", "34", "bg-success-700", "dark:bg-success-500"},
-		{"Warning", "35", "bg-warning-700", "dark:bg-warning-500"},
-		{"Danger", "36", "bg-danger-600", "dark:bg-danger-500"},
+		{"Brand", "33", "bg-primary-600", "dark:bg-primary-500"},
+		{"Info", "34", "bg-info-600", "dark:bg-info-500"},
+		{"Success", "35", "bg-success-700", "dark:bg-success-500"},
+		{"Warning", "36", "bg-warning-700", "dark:bg-warning-500"},
+		{"Danger", "37", "bg-danger-600", "dark:bg-danger-500"},
 	} {
 		add("Progress/"+p.name, "fill on track", "progress.go:"+p.line, nonText, on(p.l, "bg-neutral-200"), on(p.d, "dark:bg-white/10"))
 	}
-	add("Steps", "completed number", "progress.go:145", text, on("text-white", "bg-primary-600"), on("text-white", "bg-primary-600"))
-	add("Steps", "current number", "progress.go:149", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
-	add("Steps", "upcoming number", "progress.go:153", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Steps", "upcoming label", "progress.go:156", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Steps", "current label", "progress.go:158", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Steps", "completed number", "progress.go:146", text, on("text-white", "bg-primary-600"), on("text-white", "bg-primary-600"))
+	add("Steps", "current number", "progress.go:150", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
+	add("Steps", "upcoming number", "progress.go:157", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Steps", "upcoming label", "progress.go:157", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Steps", "current label", "progress.go:159", text, on("text-neutral-900", ""), on("dark:text-white", ""))
 
-	// Tooltip (info.go:37-40): opaque bubble.
-	add("Tooltip", "text", "info.go:38", text, on("text-white", "bg-neutral-900"), on("text-white", "dark:bg-neutral-700"))
+	// Tooltip (info.go:36-40): opaque bubble.
+	add("Tooltip", "text", "info.go:37", text, on("text-white", "bg-neutral-900"), on("text-white", "dark:bg-neutral-700"))
 
-	// Nav (nav.go:22-24, 123), Breadcrumb (nav.go:171-179), Tabs, Pagination.
-	add("Nav link", "inactive", "nav.go:22", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
-	add("Nav link", "active", "nav.go:23", text, on("text-neutral-900", "bg-neutral-100").over(cardL), on("dark:text-white", "dark:bg-white/10").over(cardD))
-	add("Nav link", "focus-visible outline", "nav.go:24", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
-	add("Sidebar group", "heading", "nav.go:123", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Breadcrumb", "current", "nav.go:171", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Breadcrumb", "link", "nav.go:178", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	// Nav (nav.go:34-39, 140), Breadcrumb (nav.go:188-195), Tabs, Pagination.
+	add("Nav link", "inactive", "nav.go:35", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
+	add("Nav link", "active (aria-current)", "nav.go:37", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100").over(cardL), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10").over(cardD))
+	add("Nav link", "active on the page background", "nav.go:37", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10"))
+	add("Nav link", "focus-visible outline", "nav.go:36", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	add("Sidebar group", "heading", "nav.go:140", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Breadcrumb", "current", "nav.go:188", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Breadcrumb", "link", "nav.go:195", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Tabs", "active", "tabs.go:23", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
@@ -226,11 +264,11 @@ func matrix() []spec {
 	add("Avatar", "initials", "avatar.go:31", text, on("text-white", "bg-neutral-600"), on("text-white", "dark:bg-neutral-500"))
 	add("Divider", "label", "layout.go:44", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
-	// DropZone highlight (dnd.go:78) and MoveHere (dnd.go:106-107).
+	// DropZone highlight (dnd.go:78) and MoveHere (dnd.go:116-117).
 	add("DropZone", "data-over outline", "dnd.go:78", nonText, on("data-over:outline-primary-600", ""), on("data-over:outline-primary-600", ""))
-	add("MoveHere", "dashed border", "dnd.go:106", nonText, on("border-primary-600", ""), on("border-primary-600", ""))
-	add("MoveHere", "text", "dnd.go:106", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
-	add("MoveHere", "text on hover", "dnd.go:107", text, on("hover:text-primary-700", "hover:bg-primary-500/10"), on("dark:hover:text-primary-400", "hover:bg-primary-500/10"))
+	add("MoveHere", "dashed border", "dnd.go:116", nonText, on("border-primary-600", ""), on("border-primary-600", ""))
+	add("MoveHere", "text", "dnd.go:116", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
+	add("MoveHere", "text on hover", "dnd.go:117", text, on("hover:text-primary-700", "hover:bg-primary-500/10"), on("dark:hover:text-primary-400", "hover:bg-primary-500/10"))
 
 	// Dialog (dialog.go:54, dialogHeader at dialog.go:98) and Drawer on their white / neutral-900 panels.
 	add("Dialog", "close icon", "dialog.go:98", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
@@ -450,7 +488,19 @@ func hasClass(line, c string) bool {
 	return false
 }
 
-var srcRef = regexp.MustCompile(`^([a-z_]+\.go):(\d+)`)
+var srcRef = regexp.MustCompile(`^([a-z_/]+\.(?:go|css)):(\d+)`)
+
+// cssHasColor reports whether a CSS source line references the color of utility c, for rows read
+// from assets/ui.css: bg-neutral-800 matches var(--color-neutral-800).
+func cssHasColor(line, c string) bool {
+	m := classParts.FindStringSubmatch(c)
+	if m == nil {
+		base := c[strings.LastIndex(c, ":")+1:]
+		_, name, ok := strings.Cut(base, "-")
+		return ok && strings.Contains(line, "--color-"+strings.SplitN(name, "/", 2)[0]+")")
+	}
+	return strings.Contains(line, "--color-"+m[3]+"-"+m[4]+")")
+}
 
 // TestContrastMatrixInSync checks that each row's source line still contains one of its classes,
 // and that every class of the matrix is still rendered by the goldens (or BodyClasses), so the
@@ -493,7 +543,7 @@ func TestContrastMatrixInSync(t *testing.T) {
 					continue
 				}
 				all = append(all, c)
-				inLine := hasClass(line, c)
+				inLine := hasClass(line, c) || strings.HasSuffix(m[1], ".css") && cssHasColor(line, c)
 				// Tone-keyed maps render one tone per golden; those classes are covered by the
 				// source line check alone.
 				if !rendered[c] && !inLine {
@@ -513,7 +563,7 @@ func TestContrastTokensResolve(t *testing.T) {
 	th := wcag.NewTheme(ui.ThemeCSS())
 	for tok, want := range map[string]string{
 		"neutral-500": "zinc-500", "success-600": "green-600",
-		"warning-500": "amber-500", "primary-400": "indigo-400", "primary-500": "indigo-500", "primary-600": "indigo-600", "primary-700": "indigo-700", "danger-500": "red-500", "info-600": "blue-600",
+		"warning-500": "amber-500", "primary-400": "indigo-400", "primary-500": "indigo-500", "primary-600": "indigo-600", "primary-700": "indigo-700", "danger-500": "red-500", "info-600": "sky-600", "info-700": "sky-700",
 	} {
 		if got := th.Alias(tok); got != want {
 			t.Errorf("%s resolves to %s, want %s", tok, got, want)

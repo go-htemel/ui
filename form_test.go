@@ -40,6 +40,11 @@ func init() {
 			ui.Radio("plan", "free", "Free", datastar.Bind("plan")),
 			ui.Radio("plan", "pro", "Pro", datastar.Bind("plan")))},
 		golden{"switch", ui.Switch("Email notifications", datastar.Bind("notify"))},
+		golden{"checkbox-disabled-checked", ui.Checkbox("Locked", htemel.Attr("disabled", ""), htemel.Attr("checked", ""))},
+		golden{"input-file", ui.Input(html.InputTypeFile, "avatar").Accept("image/*")},
+		golden{"input-color", ui.Input(html.InputTypeColor, "accent").Value("#4f46e5")},
+		golden{"input-range", ui.Input(html.InputTypeRange, "volume")},
+		golden{"input-number", ui.Input(html.InputTypeNumber, "qty")},
 	)
 }
 

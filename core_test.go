@@ -48,7 +48,7 @@ func init() {
 		golden{"button-group", ui.ButtonGroup(
 			ui.Button(ui.Secondary, "Day"), ui.Button(ui.Secondary, "Week"), ui.Button(ui.Secondary, "Month"))},
 		golden{"badge-tones", htemel.Group(
-			ui.Badge(ui.Neutral, "Draft"), ui.Badge(ui.Info, "New"), ui.Badge(ui.Success, "Paid"),
+			ui.Badge(ui.Neutral, "Draft"), ui.Badge(ui.Brand, "Team"), ui.Badge(ui.Info, "New"), ui.Badge(ui.Success, "Paid"),
 			ui.Badge(ui.Warning, "Due"), ui.Badge(ui.Danger, "Failed"))},
 		golden{"kbd", ui.Kbd("⌘K")},
 		golden{"icon-fontawesome", ui.Icon("fa-solid fa-check")},

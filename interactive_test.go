@@ -261,8 +261,8 @@ func TestDragAndDropAccessibility(t *testing.T) {
 		`data-on:ui:drop="el.toggleAttribute('data-over', false); $dragged = evt.detail.payload; @post('/m')`)
 
 	move := render(t, ui.MoveHere("dragged", "Move here", "@post('/m')"))
-	wantAll(t, move, `data-show="$dragged !== ''"`, `style="display: none"`, `data-on:click="@post('/m'); setTimeout(() => { $dragged = '' })"`, ">Move here<")
-	if got := ui.PickUp("dragged", "c1"); got.Name != "data-on:click" || got.Value != "$dragged = 'c1'" {
+	wantAll(t, move, `data-signals:dragged-via__ifmissing="''"`, `data-show="$draggedVia === 'pickup'"`, `style="display: none"`, `data-on:click="@post('/m'); setTimeout(() => { $dragged = ''; $draggedVia = '' })"`, ">Move here<")
+	if got := ui.PickUp("dragged", "c1"); got.Name != "data-on:click" || got.Value != "$dragged = 'c1'; $draggedVia = 'pickup'" {
 		t.Errorf("PickUp = %+v", got)
 	}
 }
