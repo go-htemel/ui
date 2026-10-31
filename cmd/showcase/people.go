@@ -44,34 +44,61 @@ var demoPeople = func() []person {
 	return out
 }()
 
-// peoplePage sorts the people by key ("name", "role" or "team"; anything else keeps the
-// original order) in direction dir ("desc" or ascending), and returns the requested page with
-// the page number clamped into range and the page count.
-func peoplePage(key, dir string, page int) (rows []person, current, pages int) {
-	all := slices.Clone(demoPeople)
+// peopleQuery is what the people table asks for: the signals the demo sends. Q and Team filter
+// (the content inputs page's FilterBar); the data page leaves them empty.
+type peopleQuery struct {
+	Q       string `json:"q"`
+	Team    string `json:"team"`
+	Sort    string `json:"sort"`
+	SortDir string `json:"sortDir"`
+	Page    int    `json:"page"`
+}
+
+// run filters the people by Q (a case-insensitive substring of the name, role or team) and Team
+// (exact), sorts them by Sort ("name", "role" or "team"; anything else keeps the original order)
+// in direction SortDir ("desc" or ascending), and returns the requested page with the page
+// number clamped into range and the page count (at least 1, so an empty result has one empty
+// page).
+func (q peopleQuery) run() (rows []person, current, pages int) {
+	needle := strings.ToLower(strings.TrimSpace(q.Q))
+	var all []person
+	for _, p := range demoPeople {
+		if q.Team != "" && p.Team != q.Team {
+			continue
+		}
+		if needle != "" && !strings.Contains(strings.ToLower(p.Name+" "+p.Role+" "+p.Team), needle) {
+			continue
+		}
+		all = append(all, p)
+	}
 	field := map[string]func(person) string{
 		"name": func(p person) string { return p.Name },
 		"role": func(p person) string { return p.Role },
 		"team": func(p person) string { return p.Team },
-	}[key]
+	}[q.Sort]
 	if field != nil {
 		slices.SortStableFunc(all, func(a, b person) int {
 			c := cmp.Compare(strings.ToLower(field(a)), strings.ToLower(field(b)))
-			if dir == "desc" {
+			if q.SortDir == "desc" {
 				return -c
 			}
 			return c
 		})
 	}
-	pages = (len(all) + peoplePageSize - 1) / peoplePageSize
-	current = min(max(page, 1), pages)
+	pages = max((len(all)+peoplePageSize-1)/peoplePageSize, 1)
+	current = min(max(q.Page, 1), pages)
 	start := (current - 1) * peoplePageSize
-	return all[start : start+peoplePageSize], current, pages
+	return all[start:min(start+peoplePageSize, len(all))], current, pages
+}
+
+// peoplePage is run for an unfiltered query.
+func peoplePage(key, dir string, page int) (rows []person, current, pages int) {
+	return peopleQuery{Sort: key, SortDir: dir, Page: page}.run()
 }
 
 // peopleBody renders the rows of one page, with the id the handler patches.
-func peopleBody(key, dir string, page int) *html.TbodyElement {
-	rows, _, _ := peoplePage(key, dir, page)
+func peopleBody(q peopleQuery) *html.TbodyElement {
+	rows, _, _ := q.run()
 	body := ui.TableBody().Id(peopleBodyID)
 	for _, p := range rows {
 		body.Children(html.Tr(
@@ -80,30 +107,31 @@ func peopleBody(key, dir string, page int) *html.TbodyElement {
 			ui.Td(ui.Badge(ui.Brand, p.Team)),
 		))
 	}
+	if len(rows) == 0 {
+		body.Children(ui.EmptyRow(3, ui.EmptyState(ui.IconSearch(), "No people match", "Try another search or team.", nil)))
+	}
 	return body
 }
 
-func peoplePager(page int) *html.NavElement {
-	_, current, pages := peoplePage("", "", page)
+func peoplePager(q peopleQuery) *html.NavElement {
+	_, current, pages := q.run()
 	return ui.PaginationSignal(current, pages, "page", datastar.Get(peopleURL), "People pages").Id(peoplePagerID)
 }
 
 // peopleHandler serves GET /demo/people: the signals arrive in the datastar query parameter.
 func peopleHandler(w http.ResponseWriter, r *http.Request) {
-	var in struct {
-		Sort    string `json:"sort"`
-		SortDir string `json:"sortDir"`
-		Page    int    `json:"page"`
-	}
+	var in peopleQuery
 	if err := dsse.ReadSignals(r, &in); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	_, page, _ := peoplePage(in.Sort, in.SortDir, in.Page)
+	_, page, _ := in.run()
+	requested := in.Page
+	in.Page = page
 	sse := dsse.NewSSE(w, r)
-	patch(sse, peopleBody(in.Sort, in.SortDir, page))
-	patch(sse, peoplePager(page))
-	if page != in.Page {
+	patch(sse, peopleBody(in))
+	patch(sse, peoplePager(in))
+	if page != requested {
 		if err := sse.MarshalAndPatchSignals(map[string]any{"page": page}); err != nil {
 			slog.Error("patch signals", "err", err)
 		}

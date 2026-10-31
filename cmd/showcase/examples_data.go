@@ -19,10 +19,10 @@ func sortableTable() htemel.FlowContent {
 				ui.SortableTh("Role", "role", "sort", get),
 				ui.SortableTh("Team", "team", "sort", get),
 			),
-			peopleBody("", "asc", 1),
+			peopleBody(peopleQuery{SortDir: "asc", Page: 1}),
 			ui.TableCaption("People, sortable by every column"),
 		),
-		html.Div(peoplePager(1)).Class("mt-4"),
+		html.Div(peoplePager(peopleQuery{Page: 1})).Class("mt-4"),
 	).Attrs(datastar.Signals(map[string]any{"sort": "", "sortDir": "asc", "page": 1}))
 }
 

@@ -86,3 +86,35 @@ func TestProgressAdvances(t *testing.T) {
 		t.Errorf("unexpected events %q", events)
 	}
 }
+
+func TestPeopleFilter(t *testing.T) {
+	allowed := datastarAttributes(t)
+	rows, page, pages := peopleQuery{Q: "ada", Page: 1}.run()
+	if len(rows) == 0 || pages < 1 || page != 1 {
+		t.Fatalf("q=ada: %d rows, page %d of %d", len(rows), page, pages)
+	}
+	for _, r := range rows {
+		if !strings.Contains(strings.ToLower(r.Name+r.Role+r.Team), "ada") {
+			t.Errorf("q=ada matched %+v", r)
+		}
+	}
+	for _, r := range func() []person { rs, _, _ := (peopleQuery{Team: "Core", Page: 1}).run(); return rs }() {
+		if r.Team != "Core" {
+			t.Errorf("team=Core matched %+v", r)
+		}
+	}
+	// No match: one empty page with an empty state, not a panic.
+	rows, page, pages = peopleQuery{Q: "zzz", Page: 3}.run()
+	if len(rows) != 0 || page != 1 || pages != 1 {
+		t.Errorf("q=zzz: %d rows, page %d of %d", len(rows), page, pages)
+	}
+	_, body := getSignals(t, "/demo/people", `{"q":"zzz","team":"","sort":"","sortDir":"asc","page":3}`)
+	if !strings.Contains(body, "No people match") || !strings.Contains(body, `"page":1`) {
+		t.Errorf("empty result: %s", body)
+	}
+	for _, line := range strings.Split(body, "\n") {
+		if s, ok := strings.CutPrefix(line, "data: elements "); ok && strings.Contains(s, "<tbody") {
+			checkTablePatch(t, "filtered body", s, allowed)
+		}
+	}
+}

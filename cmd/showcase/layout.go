@@ -173,3 +173,18 @@ func indexPage() htemel.Node {
 		cards,
 	))
 }
+
+// framed draws node in a fixed-size preview frame: a CSS container (@container) with the page
+// background, clipped and ringed like a window, width wide (capped at the example's width) and
+// height high ("auto" to fit the content). The layouts switch on their container's width, so a
+// 375px frame shows their phone form whatever the viewport is.
+func framed(width, height string, node htemel.FlowContent) *html.DivElement {
+	style := "width: " + width + "; max-width: 100%"
+	if height != "auto" {
+		style += "; height: " + height
+	}
+	return html.Div(node).
+		Class(ui.Classes("@container overflow-hidden rounded-surface bg-neutral-50 text-neutral-900 ring-1 ring-neutral-950/10",
+			"dark:bg-neutral-950 dark:text-neutral-100 dark:ring-white/10")).
+		Style(style)
+}

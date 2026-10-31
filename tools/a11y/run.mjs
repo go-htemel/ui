@@ -1,7 +1,8 @@
 // Accessibility scan of the showcase: every page, light and dark, plus interactive states
 // (open dialog, drawer and bottom sheet, open dropdown, switched tab, expanded accordion, open
 // mobile nav drawer of the narrow navbar, the open customizable select picker, the color scheme
-// toggle switched to the other scheme, the server-rendered Markdown editor preview). Every page
+// toggle switched to the other scheme, the server-rendered Markdown editor preview, the phone
+// shell's drawer, the narrow split's detail, the collapsed rail, edited tags, chosen files). Every page
 // must also load without console errors (requests to the blocked external CDNs excepted).
 //
 // Dark mode follows the .dark class on <html> (ui.css's @custom-variant), set by the inline
@@ -29,7 +30,7 @@ const CDN_DIR = process.env.A11Y_CDN_DIR || "";
 const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.indexOf("--json") + 1] : "";
 
 const PAGES = ["/", ...["buttons", "display", "layout", "feedback", "forms", "overlays", "disclosure",
-  "drag-and-drop", "data", "navigation", "status", "theming", "code", "markdown", "prose"].map((s) => `/components/${s}`)];
+  "drag-and-drop", "data", "navigation", "status", "theming", "code", "markdown", "layouts", "content-inputs", "prose"].map((s) => `/components/${s}`)];
 // A11Y_PAGES=forms,overlays limits the run to those pages (by the last path segment, "/" for the
 // home page) while iterating; task a11y always runs them all.
 if (process.env.A11Y_PAGES) {
@@ -172,6 +173,105 @@ const STATES = {
       async close(page) {
         await page.locator("#journal-write-tab").click();
         await page.locator("#journal-write-tab[aria-selected=true]").waitFor({ timeout: 5000 });
+      },
+    },
+  ],
+  "/components/layouts": [
+    {
+      // The phone-width shell hides its sidebar; the menu button opens it in the left Drawer,
+      // which focuses itself (it holds links, no form control).
+      name: "phone drawer open",
+      async open(page) {
+        await page.locator('button[aria-controls="demoPhoneMenu-dialog"]').click();
+        await page.locator("#demoPhoneMenu-dialog[open]").waitFor({ timeout: 5000 });
+        const r = await page.evaluate(() => {
+          const d = document.getElementById("demoPhoneMenu-dialog");
+          return { focused: document.activeElement === d, current: d.querySelector('a[aria-current="page"]')?.textContent };
+        });
+        if (!r.focused) throw new Error("the drawer did not take focus");
+        if (!/Posts/.test(r.current || "")) throw new Error(`the drawer copy has no current link (${r.current})`);
+      },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#demoPhoneMenu-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+    {
+      // In the 375px split, choosing a note shows only the detail and focuses it; Back returns.
+      name: "split detail (narrow)",
+      async open(page) {
+        await page.locator("#phoneSplit-list button", { hasText: "Talk outline" }).click();
+        await page.locator("#phoneSplit-list").waitFor({ state: "hidden", timeout: 5000 });
+        await page.locator("#phoneSplit-detail h2", { hasText: "Talk outline" }).waitFor({ timeout: 5000 });
+        await page.waitForTimeout(100);
+        const focus = await page.evaluate(() => document.activeElement.id);
+        if (focus !== "phoneSplit-detail") throw new Error(`focus is on #${focus}, want the detail pane`);
+      },
+      async close(page) {
+        await page.locator("#phoneSplit-detail button", { hasText: "Back" }).filter({ visible: true }).click();
+        await page.locator("#phoneSplit-list").waitFor({ timeout: 5000 });
+        await page.waitForTimeout(100);
+        const focus = await page.evaluate(() => document.activeElement.id);
+        if (focus !== "phoneSplit-list") throw new Error(`Back left focus on #${focus}, want the list pane`);
+      },
+    },
+    {
+      // The collapsible shell's rail button: a 4rem rail, labels visually hidden but still the
+      // links' names, the state in localStorage; close expands it again.
+      name: "rail collapsed",
+      async open(page) {
+        await page.locator('#demoRail-sidebar button[aria-controls="demoRail-sidebar"]').click();
+        await page.waitForFunction(() => document.getElementById("demoRail-sidebar").getBoundingClientRect().width < 80, null, { timeout: 5000 });
+        const r = await page.evaluate(() => {
+          const b = document.querySelector('#demoRail-sidebar button[aria-controls="demoRail-sidebar"]');
+          const label = document.querySelector('#demoRail-sidebar a[href="#posts"] span.truncate');
+          return { expanded: b.getAttribute("aria-expanded"), name: b.getAttribute("aria-label"), stored: localStorage.getItem("ui-shell-rail:demoRail"),
+            labelWidth: label.getBoundingClientRect().width, title: document.querySelector('#demoRail-sidebar a[href="#posts"]').title };
+        });
+        if (r.expanded !== "false" || r.name !== "Expand sidebar") throw new Error(`rail button: aria-expanded ${r.expanded}, name ${r.name}`);
+        if (r.stored !== "1") throw new Error(`localStorage holds ${r.stored}, want 1`);
+        if (r.labelWidth > 1.5 || r.title !== "Posts") throw new Error(`labels are not visually hidden (${r.labelWidth}px) or the icon has no title (${r.title})`);
+        const link = page.locator("#demoRail-sidebar").getByRole("link", { name: /^Posts/ });
+        if ((await link.count()) !== 1) throw new Error("the collapsed Posts link lost its accessible name");
+      },
+      async close(page) {
+        await page.locator('#demoRail-sidebar button[aria-controls="demoRail-sidebar"]').click();
+        await page.waitForFunction(() => document.getElementById("demoRail-sidebar").getBoundingClientRect().width > 200, null, { timeout: 5000 });
+        await page.evaluate(() => localStorage.removeItem("ui-shell-rail:demoRail"));
+      },
+    },
+  ],
+  "/components/content-inputs": [
+    {
+      name: "tags edited",
+      async open(page) {
+        const field = page.locator("#tags");
+        await field.fill("writing");
+        await field.press("Enter");
+        await page.locator('ui-taginput [data-ui-tag="writing"]').waitFor({ timeout: 5000 });
+        await page.locator('ui-taginput [data-ui-tag="go"] button').click();
+        await page.locator('ui-taginput [data-ui-tag="go"]').waitFor({ state: "detached", timeout: 5000 });
+      },
+    },
+    {
+      // A chosen image is listed with its size and a blob: preview; the multiple picker's upload
+      // hook drives the progress signal.
+      name: "files chosen",
+      async open(page) {
+        const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
+        await page.locator("#cover").setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
+        await page.locator('ui-fileupload [data-ui-files] li [data-ui-file-name]', { hasText: "cover.png" }).waitFor({ timeout: 5000 });
+        const r = await page.evaluate(() => {
+          const li = document.querySelector("ui-fileupload [data-ui-files] li");
+          return { src: li.querySelector("img").src, hidden: li.querySelector("img").hidden, size: li.querySelector("[data-ui-file-size]").textContent,
+            remove: li.querySelector("[data-ui-file-remove]").getAttribute("aria-label") };
+        });
+        if (!r.src.startsWith("blob:") || r.hidden) throw new Error(`no image preview: ${JSON.stringify(r)}`);
+        if (r.size !== "70 B" || r.remove !== "Remove cover.png") throw new Error(`row: ${JSON.stringify(r)}`);
+        await page.locator("#attachments").setInputFiles([
+          { name: "notes.md", mimeType: "text/markdown", buffer: Buffer.from("# Notes\n") },
+          { name: "data.csv", mimeType: "text/csv", buffer: Buffer.from("a,b\n1,2\n") },
+        ]);
+        await page.getByText("Uploading data.csv").or(page.getByText("Uploading notes.md")).waitFor({ timeout: 5000 });
+        await page.waitForFunction(() => document.querySelector('[role=progressbar][aria-label="Upload"]')?.getAttribute("aria-valuenow") === "100", null, { timeout: 5000 });
+        if ((await page.locator("ui-fileupload").nth(1).locator("[data-ui-files] li").count()) !== 2) throw new Error("the multiple picker does not list 2 files");
       },
     },
   ],
@@ -434,6 +534,123 @@ const CHECKS = {
           ...(l.scrollHeight === l.clientHeight ? [] : [`tablist of ${l.id}: scrollHeight ${l.scrollHeight} != clientHeight ${l.clientHeight}`]),
           ...(l.underline === "2px" ? [] : [`tablist of ${l.id}: active underline is ${l.underline}, want 2px`]),
         ]);
+      },
+    },
+  ],
+  "/components/layouts": [
+    {
+      // Container queries, not the viewport: in the ~930px frames the sidebar is beside the
+      // content, in the 375px frames it is hidden behind the menu button; the wide split shows
+      // both panes, the narrow one only the list; the page never scrolls sideways.
+      name: "layouts follow their container",
+      async run(page) {
+        const r = await page.evaluate(() => {
+          const vis = (el) => !!el && el.checkVisibility();
+          const w = (id) => document.getElementById(id)?.getBoundingClientRect().width || 0;
+          return {
+            wideSidebar: w("demoShell-sidebar"), phoneSidebar: vis(document.getElementById("demoPhone-sidebar")),
+            phoneMenu: vis(document.querySelector('button[aria-controls="demoPhoneMenu-dialog"]')),
+            wideMenu: vis(document.querySelector('button[aria-controls="demoShellMenu-dialog"]')),
+            split: [vis(document.getElementById("split-list")), vis(document.getElementById("split-detail"))],
+            phoneSplit: [vis(document.getElementById("phoneSplit-list")), vis(document.getElementById("phoneSplit-detail"))],
+            scroll: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            mains: document.querySelectorAll("main").length,
+          };
+        });
+        const f = [];
+        if (Math.round(r.wideSidebar) !== 256) f.push(`wide shell sidebar is ${r.wideSidebar}px, want 256`);
+        if (r.wideMenu) f.push("the wide shell shows the menu button");
+        if (r.phoneSidebar || !r.phoneMenu) f.push(`phone shell: sidebar visible ${r.phoneSidebar}, menu button visible ${r.phoneMenu}`);
+        if (!r.split[0] || !r.split[1]) f.push(`wide split panes visible: ${r.split}`);
+        if (!r.phoneSplit[0] || r.phoneSplit[1]) f.push(`narrow split panes visible: ${r.phoneSplit}, want list only`);
+        if (r.scroll > 0) f.push(`the page scrolls sideways by ${r.scroll}px`);
+        if (r.mains !== 1) f.push(`${r.mains} <main> elements (embedded shells must not add one)`);
+        return f;
+      },
+    },
+  ],
+  "/components/content-inputs": [
+    {
+      // The hidden inputs are the form value: their count and values follow the chips through
+      // adds (Enter, comma, paste), refusals (duplicate, limit) and removals (Backspace, button).
+      name: "tag input form value",
+      async run(page) {
+        const f = [];
+        const field = page.locator("#tags");
+        const state = () => page.evaluate(() => {
+          const el = document.querySelector("ui-taginput");
+          return {
+            chips: [...el.querySelectorAll("[data-ui-tag]")].map((c) => c.getAttribute("data-ui-tag")),
+            hidden: [...el.querySelectorAll('input[type=hidden][name="tags"]')].map((i) => i.value),
+            status: el.querySelector("[data-ui-tag-status]").textContent,
+            focus: document.activeElement === el.querySelector("[data-ui-tag-input]"),
+          };
+        });
+        const expect = async (step, want) => {
+          const s = await state();
+          if (JSON.stringify(s.chips) !== JSON.stringify(want) || JSON.stringify(s.hidden) !== JSON.stringify(want)) {
+            f.push(`${step}: chips ${JSON.stringify(s.chips)}, hidden inputs ${JSON.stringify(s.hidden)}, want ${JSON.stringify(want)}`);
+          }
+          return s;
+        };
+        await expect("initial", ["go", "htmx"]);
+        await field.fill("css");
+        await field.press("Enter");
+        await expect("Enter", ["go", "htmx", "css"]);
+        await field.fill("");
+        await field.pressSequentially("a, b,");
+        await expect("comma", ["go", "htmx", "css", "a", "b"]);
+        await field.fill("HTMX");
+        await field.press("Enter");
+        let s = await expect("duplicate", ["go", "htmx", "css", "a", "b"]);
+        if (!/already/.test(s.status)) f.push(`duplicate not announced: ${s.status}`);
+        await field.fill("more");
+        await field.press("Enter");
+        s = await expect("limit", ["go", "htmx", "css", "a", "b"]);
+        if (!/Up to 5/.test(s.status)) f.push(`limit not announced: ${s.status}`);
+        await field.fill("");
+        await field.press("Backspace");
+        await expect("Backspace", ["go", "htmx", "css", "a"]);
+        await page.locator('ui-taginput [data-ui-tag="a"] button').click();
+        s = await expect("remove button", ["go", "htmx", "css"]);
+        if (!s.focus) f.push("focus did not return to the text field after a removal");
+        const sig = await page.locator("p", { hasText: "Signal:" }).textContent();
+        if (sig !== 'Signal: ["go","htmx","css"]') f.push(`TagSignal mirror: ${sig}`);
+        // Leave the initial tags for the scans and states.
+        await page.locator('ui-taginput [data-ui-tag="css"] button').click();
+        return f;
+      },
+    },
+    {
+      // The slug follows the title until edited by hand; clearing it resumes the following.
+      name: "slug follows the title",
+      async run(page) {
+        const f = [];
+        const slug = () => page.locator("#postSlug").inputValue();
+        await page.locator("#postTitle").fill("Hello, Wörld! Ça va?");
+        await page.waitForTimeout(100);
+        if ((await slug()) !== "hello-world-ca-va") f.push(`slug is ${await slug()}, want hello-world-ca-va`);
+        await page.locator("#postSlug").fill("my-post");
+        await page.locator("#postTitle").fill("Something else");
+        await page.waitForTimeout(100);
+        if ((await slug()) !== "my-post") f.push(`after a manual edit the slug became ${await slug()}`);
+        await page.locator("#postSlug").fill("");
+        await page.waitForTimeout(100);
+        if ((await slug()) !== "something-else") f.push(`clearing the slug did not resume following: ${await slug()}`);
+        await page.locator("#postTitle").fill("");
+        return f;
+      },
+    },
+    {
+      // The search GETs /demo/people after a pause; every row then matches.
+      name: "filter bar searches on the server",
+      async run(page) {
+        const f = [];
+        await page.locator('input[type=search][name="q"]').fill("hopper");
+        await page.waitForFunction(() => [...document.querySelectorAll("#people-body tr")].every((tr) => /Hopper/.test(tr.textContent)), null, { timeout: 5000 }).catch(() => f.push("rows do not all match 'hopper'"));
+        await page.getByRole("button", { name: "Reset", exact: true }).click();
+        await page.waitForFunction(() => document.querySelectorAll("#people-body tr").length === 5 && document.querySelector('input[name="q"]').value === "", null, { timeout: 5000 }).catch(() => f.push("Reset did not restore the list"));
+        return f;
       },
     },
   ],

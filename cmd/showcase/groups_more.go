@@ -81,6 +81,32 @@ func init() {
 			},
 		},
 		Group{
+			Slug: "layouts", Title: "Layouts",
+			Intro: "AppShell, SplitLayout, SettingsLayout, StackedLayout and PageHeader. Each layout is a CSS container and switches on its own width, so the frames below show the wide and the phone form side by side, and layouts nest.",
+			Examples: []Example{
+				ex("App shell (sidebar from 48rem, drawer below)", appShellDefault),
+				ex("Collapsible icon rail", appShellCollapsible),
+				ex("Dark sidebar", appShellDark),
+				ex("Top bar only", appShellTopbar),
+				ex("Phone width: the menu opens the sidebar in a drawer", appShellPhone),
+				ex("Split layout: notes list and note", splitLayoutNotes),
+				ex("Settings layout", settingsLayout),
+				ex("Stacked layout with link tabs", stackedLayout),
+				ex("Page and section headers", pageHeaders),
+			},
+		},
+		Group{
+			Slug: "content-inputs", Title: "Content inputs",
+			Intro: "Inputs for writing and publishing: tags, file uploads, dates and times, a slug that follows the title, and a filter bar that searches on the server.",
+			Examples: []Example{
+				ex("Tag input", tagInputs),
+				ex("File upload", fileUploads),
+				ex("Date and time", dateTimeInputs),
+				ex("Slug field", slugField),
+				ex("Filter bar (server search over SSE)", filterBar),
+			},
+		},
+		Group{
 			Slug: "prose", Title: "Prose",
 			Intro: "Prose styles long-form HTML that has no classes: rendered Markdown, CMS pages, notes. markdown.Render wraps its sanitised output in it.",
 			Examples: []Example{
