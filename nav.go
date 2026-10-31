@@ -10,26 +10,40 @@ import (
 type NavItem struct {
 	label, href string
 	active      bool
+	attrs       []htemel.Attribute
 }
 
-// NavLink returns a navigation link. active marks the current page: the link is highlighted and
-// gets aria-current="page".
+// NavLink returns a navigation link. active marks the current page: the link gets
+// aria-current="page", which is what highlights it.
 func NavLink(label, href string, active bool) NavItem {
 	return NavItem{label: label, href: href, active: active}
 }
 
-const (
-	navLinkIdle   = "font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white"
-	navLinkActive = "bg-neutral-100 font-semibold text-neutral-900 dark:bg-white/10 dark:text-white"
-	navLinkBase   = "block rounded-control px-3 py-2 text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500"
-)
+// Attrs returns the link with attributes added to its <a>, such as a Datastar click handler. The
+// highlight follows aria-current, so a client-side router can move it by binding that attribute:
+//
+//	ui.NavLink("Team", "/team", false).Attrs(
+//		datastar.OnClick("$page = 'team'", datastar.Prevent()),
+//		datastar.Attr("aria-current", "$page === 'team' ? 'page' : false"))
+func (n NavItem) Attrs(attrs ...htemel.Attribute) NavItem {
+	n.attrs = append(append([]htemel.Attribute(nil), n.attrs...), attrs...)
+	return n
+}
+
+// navLinkClass styles idle links and, through aria-current="page", the active one: a neutral tint
+// with the label in the primary color, so the current page stands out on white and on neutral-50.
+const navLinkClass = "block rounded-control px-3 py-2 text-sm font-medium text-neutral-600 transition-colors duration-150 " +
+	"hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 " +
+	"aria-[current=page]:bg-neutral-100 aria-[current=page]:font-semibold aria-[current=page]:text-primary-700 " +
+	"dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:outline-primary-500 " +
+	"dark:aria-[current=page]:bg-white/10 dark:aria-[current=page]:text-white"
 
 func (n NavItem) link() *html.AElement {
-	a := html.A().Href(n.href).Text(n.label)
+	a := html.A().Href(n.href).Text(n.label).Class(Classes(navLinkClass))
 	if n.active {
-		return a.Class(Classes(navLinkBase, navLinkActive)).Aria("current", "page")
+		a.Aria("current", "page")
 	}
-	return a.Class(Classes(navLinkBase, navLinkIdle))
+	return a.Attrs(n.attrs...)
 }
 
 func navList(class string, items []NavItem) *html.UlElement {
@@ -43,15 +57,18 @@ func navList(class string, items []NavItem) *html.UlElement {
 // NavbarMenuSignal is the signal Navbar uses for its mobile menu.
 const NavbarMenuSignal = "navOpen"
 
-// Navbar returns a top bar with brand on the left and the links beside it. Below the md
-// breakpoint the links move into a Drawer that slides in from the right, opened by a menu button
-// and held in the signal NavbarMenuSignal; the drawer's X button, Escape and a click on the
-// backdrop close it, and focus returns to the menu button.
+// Navbar returns a top bar with brand on the left and the links beside it. The bar is a CSS
+// container (@container) and switches on its own width, not the viewport's: from the @2xl
+// container size (42rem) the links sit inline; below it they move into a Drawer that slides in
+// from the right, opened by a menu button and held in the signal NavbarMenuSignal. The drawer's
+// X button, Escape and a click on the backdrop close it, and focus returns to the menu button. A
+// navbar in a narrow column therefore collapses even on a wide screen.
 //
 //	ui.Navbar(html.A().Href("/").Text("Acme"),
 //		ui.NavLink("Dashboard", "/", true), ui.NavLink("Team", "/team", false))
 //
-// Use NavbarSignal when a page has more than one navbar.
+// Use NavbarSignal when a page has more than one navbar (and give each nav its own aria-label;
+// the default is "Main").
 func Navbar(brand htemel.FlowContent, items ...NavItem) *html.NavElement {
 	return NavbarSignal(NavbarMenuSignal, brand, items...)
 }
@@ -61,7 +78,7 @@ func NavbarSignal(signal string, brand htemel.FlowContent, items ...NavItem) *ht
 	menu := Drawer(signal, DrawerRight, "Menu", navList("space-y-1", items))
 	toggle := html.Button(IconMenu()).Type(html.ButtonTypeButton).
 		Class(Classes("-mr-2 inline-flex cursor-pointer items-center justify-center rounded-control p-2 text-neutral-600 transition-colors duration-150 hover:bg-neutral-100",
-			"focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 md:hidden dark:text-neutral-300 dark:hover:bg-white/10")).
+			"focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 @2xl:hidden dark:text-neutral-300 dark:hover:bg-white/10")).
 		Aria("label", "Open menu").
 		Aria("haspopup", "dialog").
 		Aria("controls", domID(signal)+"-dialog").
@@ -70,13 +87,13 @@ func NavbarSignal(signal string, brand htemel.FlowContent, items ...NavItem) *ht
 	bar := html.Div(
 		html.Div(
 			brand,
-			navList("hidden items-center gap-x-1 md:flex", items),
+			navList("hidden items-center gap-x-1 @2xl:flex", items),
 		).Class(Classes("flex items-center gap-x-8")),
 		toggle,
-	).Class(Classes("mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"))
+	).Class(Classes("mx-auto flex h-14 max-w-7xl items-center justify-between px-4 @xl:px-6 @5xl:px-8"))
 	return html.Nav(bar, menu).
 		Aria("label", "Main").
-		Class(Classes("border-b border-neutral-200 bg-white dark:border-white/10 dark:bg-neutral-900"))
+		Class(Classes("@container border-b border-neutral-200 bg-white dark:border-white/10 dark:bg-neutral-900"))
 }
 
 // SidebarSection is a titled, collapsible group of links in a Sidebar, built by SidebarGroup.
@@ -119,7 +136,7 @@ func Sidebar(signal string, sections ...SidebarSection) *html.NavElement {
 			IconChevronDown().Class("size-4 shrink-0 text-neutral-400 transition-transform duration-200 ease-out motion-reduce:transition-none").
 				Attrs(datastar.Class("-rotate-90", "!"+open)),
 		).Type(html.ButtonTypeButton).
-			Class(Classes("flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-1.5 text-left text-xs font-semibold",
+			Class(Classes("flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-1.5 text-left text-xs font-semibold transition-colors duration-150",
 				"tracking-wide text-neutral-500 uppercase hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500",
 				"dark:text-neutral-400 dark:hover:text-white")).
 			Aria("controls", id).
@@ -175,7 +192,7 @@ func BreadcrumbsLabel(label string, items ...Crumb) *html.NavElement {
 			entry = s
 		default:
 			entry = html.A().Href(c.Href).Text(c.Label).
-				Class(Classes("text-neutral-500 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500",
+				Class(Classes("text-neutral-500 transition-colors duration-150 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500",
 					"dark:text-neutral-400 dark:hover:text-white"))
 		}
 		li := html.Li(entry).Class("flex items-center gap-x-1.5")
