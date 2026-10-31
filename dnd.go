@@ -86,29 +86,40 @@ func DropZone(action string, children ...htemel.FlowContent) *html.DivElement {
 		)
 }
 
+// ViaSuffix names the companion signal of a pick-up: PickUp("dragged", ...) also sets
+// $draggedVia to 'pickup', and MoveHere is shown only while it is. Mouse and touch drops (DropInto)
+// set the payload signal alone, so MoveHere buttons never flash during a drop.
+const ViaSuffix = "Via"
+
 // PickUp is the click handler of a "pick up" button inside a Draggable: it stores payload in
-// signal, the touch and keyboard counterpart of starting a drag. Declare the signal on an
-// ancestor, as for DropInto.
+// signal and marks the pick-up in signal+ViaSuffix ($draggedVia = 'pickup'), the touch and
+// keyboard counterpart of starting a drag. Declare signal on an ancestor, as for DropInto;
+// MoveHere declares the Via signal.
 func PickUp(signal, payload string) htemel.Attribute {
-	return datastar.OnClick("$" + signal + " = " + datastar.Quote(payload))
+	return datastar.OnClick("$" + signal + " = " + datastar.Quote(payload) + "; $" + signal + ViaSuffix + " = 'pickup'")
 }
 
 // MoveHere returns the button of a DropZone that drops the picked-up item there: it runs action,
 // the same expression the zone's drop runs but without DropInto, since PickUp already put the
-// payload in signal, and then clears the signal. It is shown only while signal is not empty.
+// payload in signal, and then clears the signal and its Via companion. It is shown only while
+// something was picked up with PickUp ($<signal>Via === 'pickup'), not while a mouse or touch
+// drop briefly holds the payload in signal. It declares the Via signal (empty unless the page
+// already has it).
 //
 //	ui.DropZone(ui.DropInto("dragged", act), ui.MoveHere("dragged", "Move here", act))
 //
 // Pass the plain action (datastar.Post(...)), not the DropInto expression.
 func MoveHere(signal, label, action string) *html.ButtonElement {
+	via := signal + ViaSuffix
 	return html.Button().
 		Type(html.ButtonTypeButton).
 		Class(Classes("w-full cursor-pointer rounded-control border border-dashed border-primary-600 px-3 py-2 text-sm font-medium text-primary-600",
-			"hover:bg-primary-500/10 hover:text-primary-700 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 dark:text-primary-400 dark:hover:text-primary-400")).
+			"transition-colors duration-150 hover:bg-primary-500/10 hover:text-primary-700 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 dark:text-primary-400 dark:hover:text-primary-400")).
 		Style(hiddenUntilDatastar).
 		Attrs(
-			datastar.Show("$"+signal+" !== ''"),
-			datastar.OnClick(action+"; setTimeout(() => { $"+signal+" = '' })"),
+			datastar.Signal(via, datastar.Quote(""), datastar.IfMissing()),
+			datastar.Show("$"+via+" === 'pickup'"),
+			datastar.OnClick(action+"; setTimeout(() => { $"+signal+" = ''; $"+via+" = '' })"),
 		).
 		Text(label)
 }
@@ -116,9 +127,9 @@ func MoveHere(signal, label, action string) *html.ButtonElement {
 // DropInto returns a drop action that stores the payload in signal, runs action and then clears
 // the signal again: DropInto("dragged", datastar.Post("/move")) is
 // "$dragged = <DragData>; @post('/move'); setTimeout(() => { $dragged = ” })". The request has
-// already read the signal when the timeout fires, and clearing it keeps MoveHere hidden after a
-// mouse drop. Declare the signal on an ancestor, for example with
-// datastar.Signal("dragged", datastar.Quote("")), so that it exists before the first drop.
+// already read the signal when the timeout fires. It never touches the Via companion of
+// PickUp, so MoveHere stays hidden during a drop. Declare the signal on an ancestor, for example
+// with datastar.Signal("dragged", datastar.Quote("")), so that it exists before the first drop.
 func DropInto(signal, action string) string {
 	return "$" + signal + " = " + DragData + "; " + action + "; setTimeout(() => { $" + signal + " = '' })"
 }
