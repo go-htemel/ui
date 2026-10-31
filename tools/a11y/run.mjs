@@ -1,8 +1,8 @@
 // Accessibility scan of the showcase: every page, light and dark, plus interactive states
 // (open dialog, drawer and bottom sheet, open dropdown, switched tab, expanded accordion, open
 // mobile nav drawer of the narrow navbar, the open customizable select picker, the color scheme
-// toggle switched to the other scheme). Every page must also load without console errors
-// (requests to the blocked external CDNs excepted).
+// toggle switched to the other scheme, the server-rendered Markdown editor preview). Every page
+// must also load without console errors (requests to the blocked external CDNs excepted).
 //
 // Dark mode follows the .dark class on <html> (ui.css's @custom-variant), set by the inline
 // ui.ColorSchemeBootstrap script from localStorage or, in system mode, from prefers-color-scheme.
@@ -29,7 +29,7 @@ const CDN_DIR = process.env.A11Y_CDN_DIR || "";
 const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.indexOf("--json") + 1] : "";
 
 const PAGES = ["/", ...["buttons", "display", "layout", "feedback", "forms", "overlays", "disclosure",
-  "drag-and-drop", "data", "navigation", "status", "theming", "code"].map((s) => `/components/${s}`)];
+  "drag-and-drop", "data", "navigation", "status", "theming", "code", "markdown", "prose"].map((s) => `/components/${s}`)];
 const SCHEMES = ["light", "dark"];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
 const WCAG = /^wcag\d+a{1,3}$/;
@@ -151,6 +151,24 @@ const STATES = {
       async close(page) { await page.keyboard.press("Escape"); },
     },
   ],
+  "/components/markdown": [
+    {
+      // The Preview tab posts the signals; the server renders the Markdown (with the code package
+      // highlighting the fenced Go) and patches the preview, which is then scanned.
+      name: "preview rendered",
+      async open(page) {
+        await page.locator("#journal-preview-tab").click();
+        await page.locator("#journal-preview-tab[aria-selected=true]").waitFor({ timeout: 5000 });
+        await page.locator("#journal-preview .ui-prose figure.ui-code .tok-keyword").first().waitFor({ timeout: 5000 });
+        const toolbar = await page.locator("#journal-write-panel").evaluate((p) => getComputedStyle(p.closest(".ui-mdeditor").querySelector("[role=toolbar]")).display);
+        if (toolbar !== "none") throw new Error(`the toolbar is still shown on the Preview tab (${toolbar})`);
+      },
+      async close(page) {
+        await page.locator("#journal-write-tab").click();
+        await page.locator("#journal-write-tab[aria-selected=true]").waitFor({ timeout: 5000 });
+      },
+    },
+  ],
   "/components/navigation": [
     {
       // The navbar collapses by container width: the 380px demo frame shows the menu button at
@@ -235,6 +253,119 @@ const CHECKS = {
         if (r.d.some((d) => d !== "0.15s")) f.push(`icon transition is ${r.d}, want 0.15s`);
         if (r.live !== "") f.push(`live region starts as ${JSON.stringify(r.live)}`);
         if (r.checkOpacity !== "0") f.push(`check icon opacity ${r.checkOpacity} before a click`);
+        return f;
+      },
+    },
+  ],
+  "/components/markdown": [
+    {
+      // A toolbar click goes through <ui-mdeditor>: the selection is wrapped, an input event
+      // reaches data-bind (the counter, which reads the signal, follows), the word stays
+      // selected, and Ctrl+Z undoes the edit (insertText keeps the undo stack).
+      name: "toolbar bold updates the textarea and the signal",
+      async run(page) {
+        const before = await page.evaluate(() => {
+          const ta = document.querySelector("#journal");
+          window.__inputs = 0;
+          ta.addEventListener("input", () => window.__inputs++);
+          const i = ta.value.indexOf("Woke");
+          ta.focus();
+          ta.setSelectionRange(i, i + 4);
+          return { i, value: ta.value, count: document.querySelector("#journal-count").textContent };
+        });
+        await page.locator(".ui-mdeditor:has(#journal) [data-ui-md-action=bold]").click();
+        await page.waitForTimeout(150);
+        const after = await page.evaluate(() => {
+          const ta = document.querySelector("#journal");
+          return { value: ta.value, sel: ta.value.slice(ta.selectionStart, ta.selectionEnd), inputs: window.__inputs, count: document.querySelector("#journal-count").textContent };
+        });
+        const f = [];
+        if (after.value !== before.value.slice(0, before.i) + "**Woke**" + before.value.slice(before.i + 4)) f.push(`value after Bold: ${JSON.stringify(after.value.slice(before.i - 2, before.i + 14))}`);
+        if (after.sel !== "Woke") f.push(`selection after Bold is ${JSON.stringify(after.sel)}, want "Woke"`);
+        if (after.inputs < 1) f.push("no input event after Bold");
+        const chars = (s) => +(/(\d+) \/ /.exec(s) || [])[1];
+        if (chars(after.count) !== chars(before.count) + 4) f.push(`counter did not follow the signal: ${before.count} -> ${after.count}`);
+        await page.locator("#journal").press("Control+z");
+        await page.waitForTimeout(100);
+        if (await page.locator("#journal").inputValue() !== before.value) f.push("Ctrl+Z did not undo the Bold edit");
+        return f;
+      },
+    },
+    {
+      // Roving tabindex: one tab stop, arrow keys and Home/End move it.
+      name: "toolbar roving tabindex",
+      async run(page) {
+        const bar = page.locator(".ui-mdeditor:has(#note) [role=toolbar]");
+        await bar.locator("[data-ui-md-action]").first().focus();
+        await page.keyboard.press("ArrowRight");
+        const second = await page.evaluate(() => document.activeElement.getAttribute("data-ui-md-action"));
+        await page.keyboard.press("End");
+        const last = await page.evaluate(() => document.activeElement.getAttribute("data-ui-md-action"));
+        const stops = await bar.locator("[data-ui-md-action][tabindex='0']").count();
+        await page.keyboard.press("Home");
+        const first = await page.evaluate(() => document.activeElement.getAttribute("data-ui-md-action"));
+        const f = [];
+        if (second !== "italic" || last !== "task" || first !== "bold") f.push(`arrow keys moved focus to ${second}, ${last}, ${first}; want italic, task, bold`);
+        if (stops !== 1) f.push(`${stops} toolbar buttons are tab stops, want 1`);
+        return f;
+      },
+    },
+    {
+      // Enter in a list item continues the list; Enter on the empty item ends it. Ctrl+B with
+      // nothing selected inserts a placeholder.
+      name: "list continuation and shortcuts",
+      async run(page) {
+        const ta = page.locator("#note");
+        await ta.fill("");
+        await ta.focus();
+        await page.keyboard.type("- [x] milk");
+        await page.keyboard.press("Enter");
+        const continued = await ta.inputValue();
+        await page.keyboard.press("Enter");
+        const ended = await ta.inputValue();
+        await page.keyboard.press("Control+b");
+        const bolded = await ta.inputValue();
+        const f = [];
+        if (continued !== "- [x] milk\n- [ ] ") f.push(`after Enter: ${JSON.stringify(continued)}`);
+        if (ended !== "- [x] milk\n") f.push(`after a second Enter: ${JSON.stringify(ended)}`);
+        if (bolded !== "- [x] milk\n**bold text**") f.push(`after Ctrl+B: ${JSON.stringify(bolded)}`);
+        return f;
+      },
+    },
+    {
+      // The split editor fetches its preview on load (data-init) and lays out side by side.
+      name: "split preview",
+      async run(page) {
+        await page.locator("#post-preview .ui-prose table").waitFor({ timeout: 5000 }).catch(() => {});
+        const r = await page.evaluate(() => {
+          const p = document.querySelector("#post-preview").closest("[role=region]"), ta = document.querySelector("#post");
+          return { prose: !!p.querySelector(".ui-prose table"), side: Math.abs(p.getBoundingClientRect().top - ta.getBoundingClientRect().top) < 2 && p.getBoundingClientRect().left > ta.getBoundingClientRect().right - 2 };
+        });
+        return [...(r.prose ? [] : ["split preview did not render"]), ...(r.side ? [] : ["split preview is not beside the textarea"])];
+      },
+    },
+  ],
+  "/components/prose": [
+    {
+      // Fenced code is highlighted by the code package; task lists lose their bullets and draw
+      // the checkbox; the page never scrolls sideways.
+      name: "code, task list and width",
+      async run(page) {
+        const r = await page.evaluate(() => {
+          const kw = document.querySelector(".ui-prose figure.ui-code .tok-keyword");
+          const list = document.querySelector(".ui-prose ul.contains-task-list");
+          const box = list && list.querySelector("input[type=checkbox]");
+          return {
+            kw: kw && getComputedStyle(kw).color, body: getComputedStyle(document.querySelector(".ui-prose p")).color,
+            bullet: list && getComputedStyle(list).listStyleType, appearance: box && getComputedStyle(box).appearance,
+            page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          };
+        });
+        const f = [];
+        if (!r.kw || r.kw === r.body) f.push(`fenced code is not highlighted (${r.kw})`);
+        if (r.bullet !== "none") f.push(`task list bullet is ${r.bullet}`);
+        if (r.appearance !== "none") f.push(`task checkbox appearance is ${r.appearance}`);
+        if (r.page > 0) f.push(`the page scrolls sideways by ${r.page}px`);
         return f;
       },
     },

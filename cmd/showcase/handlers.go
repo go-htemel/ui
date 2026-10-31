@@ -12,6 +12,7 @@ import (
 	dsse "github.com/starfederation/datastar-go/datastar"
 
 	"github.com/go-htemel/ui"
+	"github.com/go-htemel/ui/markdown"
 )
 
 func routes() http.Handler {
@@ -28,6 +29,7 @@ func routes() http.Handler {
 		renderPage(w, groupPage(g))
 	})
 	r.Get("/avatar.svg", avatarSVG)
+	r.Get("/placeholder.svg", placeholderSVG)
 	r.Mount("/assets", http.StripPrefix("/assets", ui.Assets()))
 
 	r.Route("/demo", func(r chi.Router) {
@@ -38,6 +40,7 @@ func routes() http.Handler {
 		r.Post("/kanban/reset", resetBoard)
 		r.Get("/people", peopleHandler)
 		r.Post("/progress", progressHandler)
+		r.Post("/markdown/preview", markdownPreview)
 	})
 	return r
 }
@@ -140,4 +143,33 @@ func avatarSVG(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
 		`<rect width="64" height="64" fill="#0ea5e9"/><circle cx="32" cy="25" r="11" fill="#e0f2fe"/>` +
 		`<path d="M12 60c2-12 10-18 20-18s18 6 20 18z" fill="#e0f2fe"/></svg>`))
+}
+
+// markdownPreview renders the text of a MarkdownEditor (the editor named by ?editor=, whose
+// signal has the same name) and patches its preview.
+func markdownPreview(w http.ResponseWriter, r *http.Request) {
+	editor := r.URL.Query().Get("editor")
+	switch editor {
+	case "journal", "post":
+	default:
+		http.Error(w, "unknown editor", http.StatusBadRequest)
+		return
+	}
+	var signals map[string]any
+	if err := dsse.ReadSignals(r, &signals); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	src, _ := signals[editor].(string)
+	// The id prefix keeps headings and footnotes from taking ids the page already uses.
+	body := markdown.Render(src, markdown.WithIDPrefix(editor+"-md-"), markdown.WithSize(ui.Sm))
+	patch(dsse.NewSSE(w, r), ui.MarkdownPreview(ui.MarkdownPreviewID(editor), body))
+}
+
+// placeholderSVG serves the landscape picture of the Prose examples.
+func placeholderSVG(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "image/svg+xml")
+	_, _ = w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320">` +
+		`<rect width="640" height="320" fill="#c7d2fe"/><circle cx="500" cy="80" r="36" fill="#eef2ff"/>` +
+		`<path d="M0 320 180 140l120 110 90-70 250 140z" fill="#6366f1"/><path d="M0 320l260-120 380 120z" fill="#4338ca"/></svg>`))
 }

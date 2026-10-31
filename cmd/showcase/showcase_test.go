@@ -199,7 +199,7 @@ func TestExamplesHaveSource(t *testing.T) {
 			t.Errorf("group %s has no examples", g.Slug)
 		}
 		for _, e := range g.Examples {
-			if !strings.HasPrefix(e.Source, "func ") || !strings.Contains(e.Source, "ui.") && !strings.Contains(e.Source, "code.") {
+			if !strings.HasPrefix(e.Source, "func ") || !strings.Contains(e.Source, "ui.") && !strings.Contains(e.Source, "code.") && !strings.Contains(e.Source, "markdown.") {
 				t.Errorf("%s / %s: unexpected source %q", g.Slug, e.Title, e.Source)
 			}
 		}
@@ -268,5 +268,37 @@ func TestToastAndValidation(t *testing.T) {
 	events, _ = sse(t, h, "/demo/validate", `{"username":"admin"}`)
 	if len(events) != 1 || !strings.Contains(events[0], "event: datastar-patch-signals") || !strings.Contains(events[0], "That username is taken.") {
 		t.Errorf("validate: unexpected events %q", events)
+	}
+}
+
+func TestMarkdownPreview(t *testing.T) {
+	allowed := datastarAttributes(t)
+	h := routes()
+	body := `{"journal":"# Hi\n\n<script>alert(1)</script>\n\n` + "```go\\nfunc x() {}\\n```" + `","post":"ignored"}`
+	_, elements := sse(t, h, "/demo/markdown/preview?editor=journal", body)
+	if len(elements) != 1 {
+		t.Fatalf("want one preview patch, got %d", len(elements))
+	}
+	el := elements[0]
+	checkFragment(t, "preview patch", el, allowed)
+	for _, want := range []string{
+		`<div id="journal-preview" class="min-w-0">`,
+		`<div class="ui-prose ui-prose-sm">`, `<h1 id="journal-md-hi">Hi</h1>`,
+		`<figure class="ui-code"`, `<span class="tok-keyword">func</span>`,
+	} {
+		if !strings.Contains(el, want) {
+			t.Errorf("preview lacks %q:\n%s", want, el)
+		}
+	}
+	if strings.Contains(el, "<script") || strings.Contains(el, "ignored") {
+		t.Errorf("preview leaks script or another editor's text:\n%s", el)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/demo/markdown/preview?editor=nope", strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("unknown editor: status %d, want 400", rec.Code)
 	}
 }

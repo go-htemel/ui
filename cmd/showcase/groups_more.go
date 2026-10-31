@@ -70,5 +70,24 @@ func init() {
 				ex("Capped height", codeMaxHeight),
 			},
 		},
+		// Content: writing and reading long-form text (blog, CMS, notes, journal).
+		Group{
+			Slug: "markdown", Title: "Markdown editor",
+			Intro: "MarkdownEditor: a textarea with a formatting toolbar, Write / Preview tabs or a split view, and a word count. The preview is rendered on the server by the markdown package and patched over SSE; the toolbar needs ui.js.",
+			Examples: []Example{
+				ex("Tabs, with a character limit", markdownEditorTabs),
+				ex("Split view (from 36rem wide)", markdownEditorSplit),
+				ex("Compact note: fewer tools, autosize, image paste", markdownEditorCompact),
+			},
+		},
+		Group{
+			Slug: "prose", Title: "Prose",
+			Intro: "Prose styles long-form HTML that has no classes: rendered Markdown, CMS pages, notes. markdown.Render wraps its sanitised output in it.",
+			Examples: []Example{
+				ex("A rendered article", proseArticle),
+				ex("Sizes", proseSizes),
+				ex("Hand-written HTML", proseHandwritten),
+			},
+		},
 	)
 }
