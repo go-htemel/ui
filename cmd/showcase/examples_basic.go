@@ -86,7 +86,7 @@ func keyboard() htemel.FlowContent {
 	return html.P(
 		htemel.Text("Press "), ui.Kbd("⌘"), htemel.Text(" "), ui.Kbd("K"),
 		htemel.Text(" to search, or "), ui.Kbd("Esc"), htemel.Text(" to close a dialog."),
-	).Class("text-sm text-zinc-700 dark:text-zinc-300")
+	).Class("text-sm text-neutral-700 dark:text-neutral-300")
 }
 
 func icons() htemel.FlowContent {
@@ -94,10 +94,10 @@ func icons() htemel.FlowContent {
 		ui.Inline(ui.Md,
 			ui.IconCheck(), ui.IconX(), ui.IconChevronDown(), ui.IconSearch(),
 			ui.IconPlus(), ui.IconTrash(), ui.IconPencil(), ui.IconGripVertical(), ui.IconSpinner(),
-		).Class("flex flex-wrap items-center gap-4 text-zinc-700 dark:text-zinc-300"),
+		).Class("flex flex-wrap items-center gap-4 text-neutral-700 dark:text-neutral-300"),
 		ui.Inline(ui.Md,
 			ui.Icon("fa-solid fa-house"), ui.Icon("fa-solid fa-gear"), ui.Icon("fa-regular fa-bell"),
-		).Class("flex flex-wrap items-center gap-4 text-lg text-sky-600 dark:text-sky-400"),
+		).Class("flex flex-wrap items-center gap-4 text-lg text-primary-600 dark:text-primary-400"),
 	)
 }
 
@@ -121,7 +121,7 @@ func stackAndInline() htemel.FlowContent {
 
 func container() htemel.FlowContent {
 	return ui.Container(
-		html.P().Class("rounded-md bg-zinc-100 p-4 text-center text-sm dark:bg-white/5").
+		html.P().Class("rounded-surface bg-neutral-100 p-4 text-center text-sm dark:bg-white/5").
 			Text("Centred, at most max-w-7xl wide, with responsive padding."),
 	)
 }

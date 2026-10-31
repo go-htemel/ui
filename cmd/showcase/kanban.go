@@ -86,12 +86,12 @@ func (b *board) view() *html.DivElement {
 			ui.DropInto("dragged", datastar.Post("/demo/kanban/move/"+col.key)),
 			ui.MoveHere("dragged", "Move here", datastar.Post("/demo/kanban/move/"+col.key)),
 			html.Div(
-				html.H3().Class("text-sm font-semibold text-zinc-900 dark:text-white").Text(col.title),
+				html.H3().Class("text-sm font-semibold text-neutral-900 dark:text-white").Text(col.title),
 				ui.Badge(ui.Neutral, strconv.Itoa(len(in))),
 			).Class("flex items-center justify-between px-1 pb-1"),
 			htemel.Each(in, func(c kanbanCard) htemel.Node { return kanbanCardView(c) }),
 		).Id("column-" + col.key).
-			Class(ui.Classes("flex min-h-48 flex-col gap-2 rounded-md bg-zinc-100 p-3 dark:bg-white/5")))
+			Class(ui.Classes("flex min-h-48 flex-col gap-2 rounded-surface bg-neutral-100 p-3 dark:bg-white/5")))
 	}
 	return root
 }
@@ -101,10 +101,10 @@ func kanbanCardView(c kanbanCard) *html.DivElement {
 	// row: an icon button, then the title, which may wrap.
 	return ui.Draggable(c.ID,
 		ui.IconButton(ui.Ghost, ui.IconGripVertical().Class("size-4"), "Pick up "+c.Title, ui.WithSize(ui.Xs)).
-			AddClass("-ml-1 shrink-0 text-zinc-400").
+			AddClass("-ml-1 shrink-0 text-neutral-400").
 			Attrs(ui.PickUp("dragged", c.ID)),
 		html.Span().Class("min-w-0 flex-1 break-words").Text(c.Title),
 	).Id("card-" + c.ID).
-		AddClass(ui.Classes("flex items-center gap-2 rounded-md bg-white p-2 pr-3 text-sm text-zinc-800 shadow-xs ring-1 ring-zinc-950/5",
-			"dark:bg-zinc-800 dark:text-zinc-100 dark:ring-white/10"))
+		AddClass(ui.Classes("flex items-center gap-2 rounded-surface bg-white p-2 pr-3 text-sm text-neutral-800 shadow-xs ring-1 ring-neutral-950/5",
+			"dark:bg-neutral-800 dark:text-neutral-100 dark:ring-white/10"))
 }

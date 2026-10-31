@@ -10,7 +10,7 @@ import (
 func navbar() htemel.FlowContent {
 	// Narrow the window: below md the links collapse behind the menu button.
 	return ui.NavbarSignal("demoNav",
-		html.A().Href("#").Class("text-base font-bold text-zinc-900 dark:text-white").Text("Acme"),
+		html.A().Href("#").Class("text-base font-bold text-neutral-900 dark:text-white").Text("Acme"),
 		ui.NavLink("Dashboard", "#dashboard", true),
 		ui.NavLink("Team", "#team", false),
 		ui.NavLink("Projects", "#projects", false),

@@ -32,7 +32,7 @@ func dropdown() htemel.FlowContent {
 			ui.MenuDivider(),
 			ui.MenuItem("Archive", datastar.OnClick(datastar.Post("/demo/toast?title=Archived"))),
 		),
-		html.Span().Class("text-sm text-zinc-500 dark:text-zinc-400").
+		html.Span().Class("text-sm text-neutral-500 dark:text-neutral-400").
 			Attrs(datastar.Text("$projectMenu ? 'Menu open' : 'Menu closed'")),
 	)
 }

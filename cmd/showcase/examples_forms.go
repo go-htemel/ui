@@ -44,7 +44,7 @@ func textareaAndSelect() htemel.FlowContent {
 			ui.Choice("team", "Team").Selected(true),
 			ui.Choice("enterprise", "Enterprise"),
 		).Attrs(datastar.Bind("plan"))),
-		html.P().Class("text-sm text-zinc-500 dark:text-zinc-400").Children(
+		html.P().Class("text-sm text-neutral-500 dark:text-neutral-400").Children(
 			htemel.Text("Plan signal: "),
 			html.Code().Attrs(datastar.Text("$plan")),
 		),

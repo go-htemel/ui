@@ -22,7 +22,7 @@ func progressSignal() htemel.FlowContent {
 	// the server, which patches the signal back 25 higher.
 	return ui.Stack(ui.Md,
 		ui.ProgressSignal("upload", 100, ui.ProgressLabel("Upload")),
-		html.P().Class("text-sm text-zinc-600 dark:text-zinc-400").
+		html.P().Class("text-sm text-neutral-600 dark:text-neutral-400").
 			Children(html.Span().Attrs(datastar.Text("$upload")), htemel.Text("% uploaded")),
 		ui.Inline(ui.Sm,
 			ui.Button(ui.Secondary, "+10 in the browser", ui.WithSize(ui.Sm)).

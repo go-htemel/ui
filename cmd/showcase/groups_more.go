@@ -1,5 +1,17 @@
 package main
 
+import (
+	"strings"
+
+	"github.com/go-htemel/ui"
+)
+
+// withCSS appends a stylesheet to an example's source, under a comment naming it.
+func withCSS(e Example, label, css string) Example {
+	e.Source += "\n\n/* " + label + " */\n" + strings.TrimSpace(css)
+	return e
+}
+
 // The data, navigation and status pages are registered here rather than in groups.go, so the
 // list in groups.go keeps its original groups and these are appended after them.
 func init() {
@@ -35,6 +47,14 @@ func init() {
 				ex("Skeleton and spinner", skeletonAndSpinner),
 				ex("Tooltip", tooltips),
 				ex("Input group", inputGroups),
+			},
+		},
+		Group{
+			Slug: "theming", Title: "Theming",
+			Intro: "Components use design tokens (primary, neutral, success, warning, danger, info; rounded-control, rounded-surface; font-sans) defined as CSS variables. Override them in CSS, globally or per [data-theme] scope, and everything rethemes live with no Go change.",
+			Examples: []Example{
+				withCSS(ex("Live theme switch", themeSwitcher), "Page CSS: the [data-theme] token overrides", themeDemoCSS),
+				withCSS(ex("Default tokens", tokenSwatches), "ui.ThemeCSS(): the default tokens", ui.ThemeCSS()),
 			},
 		},
 	)

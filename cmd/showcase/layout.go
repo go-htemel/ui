@@ -21,6 +21,10 @@ const (
 // balanced, and it is the face the Tailwind design language assumes.
 const fontTheme = `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif; }`
 
+// pageCSS is the Tailwind source of every page, the browser-build counterpart of an app.css: the
+// default ui tokens, the Inter font, and the alternative token sets of the theming page.
+var pageCSS = ui.ThemeCSS() + "\n" + fontTheme + "\n\n" + themeDemoCSS
+
 // page wraps content in the showcase document: CDN assets, the sidebar and the toast region.
 func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 	return htemel.Group(
@@ -33,7 +37,7 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 				html.Link().Rel("preconnect").Href("https://fonts.googleapis.com"),
 				html.Link().Rel("stylesheet").Href(interCSS),
 				html.Script().Src(tailwindJS),
-				html.Style().Attr("type", "text/tailwindcss").Text(fontTheme),
+				html.Style().Attr("type", "text/tailwindcss").Text(pageCSS),
 				html.Script().Type(html.ScriptTypeModule).Src(datastarJS),
 				html.Link().Rel("stylesheet").Href(fontAwesomeCSS),
 				ui.ScriptTag("/assets"),
@@ -51,10 +55,10 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 
 func sidebar(current string) *html.NavElement {
 	link := func(href, label string, active bool) *html.LiElement {
-		cls := "block rounded-md px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
+		cls := "block rounded-control px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white"
 		a := html.A().Href(href).Text(label)
 		if active {
-			cls = "block rounded-md px-3 py-1.5 text-sm font-semibold bg-zinc-100 text-zinc-900 dark:bg-white/10 dark:text-white"
+			cls = "block rounded-control px-3 py-1.5 text-sm font-semibold bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-white"
 			a.Aria("current", "page")
 		}
 		return html.Li(a.Class(ui.Classes(cls)))
@@ -64,10 +68,10 @@ func sidebar(current string) *html.NavElement {
 		list.Children(link("/components/"+g.Slug, g.Title, current == g.Slug))
 	}
 	return html.Nav(
-		html.A().Href("/").Class("text-base font-bold text-zinc-900 dark:text-white").Text("go-htemel/ui"),
-		html.P().Class("mt-1 text-xs text-zinc-500 dark:text-zinc-400").Text("htemel · Tailwind · Datastar"),
+		html.A().Href("/").Class("text-base font-bold text-neutral-900 dark:text-white").Text("go-htemel/ui"),
+		html.P().Class("mt-1 text-xs text-neutral-500 dark:text-neutral-400").Text("htemel · Tailwind · Datastar"),
 		list,
-	).Class("shrink-0 border-b border-zinc-200 px-4 py-6 lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:border-r lg:border-b-0 dark:border-white/10").
+	).Class("shrink-0 border-b border-neutral-200 px-4 py-6 lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:border-r lg:border-b-0 dark:border-white/10").
 		Aria("label", "Components")
 }
 
@@ -75,8 +79,8 @@ func sidebar(current string) *html.NavElement {
 // source in a collapsible block underneath.
 func groupPage(g Group) htemel.Node {
 	body := html.Div(
-		html.H1().Class("text-2xl font-bold tracking-tight text-zinc-900 dark:text-white").Text(g.Title),
-		html.P().Class("mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400").Text(g.Intro),
+		html.H1().Class("text-2xl font-bold tracking-tight text-neutral-900 dark:text-white").Text(g.Title),
+		html.P().Class("mt-2 max-w-2xl text-sm text-neutral-600 dark:text-neutral-400").Text(g.Intro),
 	)
 	for _, e := range g.Examples {
 		body.Children(exampleView(e))
@@ -86,12 +90,12 @@ func groupPage(g Group) htemel.Node {
 
 func exampleView(e Example) *html.SectionElement {
 	return html.Section(
-		html.H2().Class("text-sm font-semibold text-zinc-900 dark:text-white").Text(e.Title),
-		html.Div(e.Node()).Class(ui.Classes("mt-3 min-w-0 rounded-md bg-white p-6 ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10")),
+		html.H2().Class("text-sm font-semibold text-neutral-900 dark:text-white").Text(e.Title),
+		html.Div(e.Node()).Class(ui.Classes("mt-3 min-w-0 rounded-surface bg-white p-6 ring-1 ring-neutral-950/5 dark:bg-neutral-900 dark:ring-white/10")),
 		html.Details(
-			html.Summary().Class("cursor-pointer select-none text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white").Text("Show source"),
+			html.Summary().Class("cursor-pointer select-none text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white").Text("Show source"),
 			html.Pre(html.Code().Text(e.Source)).
-				Class(ui.Classes("mt-2 max-h-[32rem] min-w-0 overflow-auto rounded-md bg-zinc-900 p-4 text-xs/5 text-zinc-100 ring-1 ring-white/10 dark:bg-black/40")),
+				Class(ui.Classes("mt-2 max-h-[32rem] min-w-0 overflow-auto rounded-surface bg-neutral-900 p-4 text-xs/5 text-neutral-100 ring-1 ring-white/10 dark:bg-black/40")),
 		).Class("mt-3"),
 	).Class("mt-10")
 }
@@ -100,14 +104,14 @@ func indexPage() htemel.Node {
 	cards := html.Div().Class("mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3")
 	for _, g := range groups {
 		cards.Children(html.A(
-			html.H2().Class("text-sm font-semibold text-zinc-900 dark:text-white").Text(g.Title),
-			html.P().Class("mt-1 text-sm text-zinc-600 dark:text-zinc-400").Textf("%d examples · %s", len(g.Examples), g.Intro),
+			html.H2().Class("text-sm font-semibold text-neutral-900 dark:text-white").Text(g.Title),
+			html.P().Class("mt-1 text-sm text-neutral-600 dark:text-neutral-400").Textf("%d examples · %s", len(g.Examples), g.Intro),
 		).Href("/components/" + g.Slug).
-			Class(ui.Classes("block rounded-md bg-white p-5 ring-1 ring-zinc-950/5 hover:ring-sky-500 dark:bg-zinc-900 dark:ring-white/10 dark:hover:ring-sky-400")))
+			Class(ui.Classes("block rounded-surface bg-white p-5 ring-1 ring-neutral-950/5 hover:ring-primary-500 dark:bg-neutral-900 dark:ring-white/10 dark:hover:ring-primary-400")))
 	}
 	return page("Overview", "", html.Div(
-		html.H1().Class("text-2xl font-bold tracking-tight text-zinc-900 dark:text-white").Text("go-htemel/ui"),
-		html.P().Class("mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400").
+		html.H1().Class("text-2xl font-bold tracking-tight text-neutral-900 dark:text-white").Text("go-htemel/ui"),
+		html.P().Class("mt-2 max-w-2xl text-sm text-neutral-600 dark:text-neutral-400").
 			Text("Components for htemel: typed Go functions that render Tailwind-styled HTML, with Datastar for every interaction. Each page shows the live component with the Go code that produced it underneath."),
 		cards,
 	))
