@@ -84,9 +84,13 @@ const menuMotion = "opacity-0 -translate-y-px open:opacity-100 open:translate-y-
 
 // menuSync shows or hides the menu when the signal is set from outside (ui.Open, ui.Close or the
 // server). The toggle event sets the signal to the state the menu is already in, so it does not
-// loop.
+// loop. A menu whose Dropdown is not rendered (display: none, or inside a closed <dialog>) is
+// not shown: AppShell renders its sidebar footer twice, in the sidebar and in the drawer, with
+// one signal, and showing the hidden copy would close the visible one (an auto popover closes
+// the others) and leave the menu shut.
 func menuSync(signal string) string {
-	return "if ($" + signal + " !== el.matches(\":popover-open\")) $" + signal + " ? el.showPopover() : el.hidePopover()"
+	return "if ($" + signal + " !== el.matches(\":popover-open\")) { " +
+		"if (!$" + signal + ") el.hidePopover(); else if (el.parentElement.checkVisibility()) el.showPopover() }"
 }
 
 // menuPlace positions the menu under the trigger in browsers without CSS anchor positioning. It

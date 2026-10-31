@@ -190,8 +190,8 @@ func TestDropdownAccessibility(t *testing.T) {
 		`style="anchor-name: --rowMenu-anchor"`,
 		`data-attr:aria-expanded="($rowMenu) ? 'true' : 'false'"`,
 		`<div id="rowMenu-menu" popover="auto" role="menu" aria-labelledby="rowMenu-trigger" style="position-anchor: --rowMenu-anchor; position-area: bottom span-left; position-try-fallbacks: flip-block"`,
-		`data-on:toggle="$rowMenu = evt.newState === 'open'"`,                                                        // popover -> signal
-		`data-effect="if ($rowMenu !== el.matches(":popover-open")) $rowMenu ? el.showPopover() : el.hidePopover()"`, // signal -> popover
+		`data-on:toggle="$rowMenu = evt.newState === 'open'"`, // popover -> signal
+		`data-effect="if ($rowMenu !== el.matches(":popover-open")) { if (!$rowMenu) el.hidePopover(); else if (el.parentElement.checkVisibility()) el.showPopover() }"`, // signal -> popover, unless not rendered
 		`data-on:beforetoggle="if (evt.newState !== 'open' || CSS.supports('position-anchor: --a')) return;`,
 		`document.getElementById('rowMenu-trigger').getBoundingClientRect()`,
 		`<button type="button" role="menuitem" tabindex="-1"`, `<a href="/x" role="menuitem" tabindex="-1"`,

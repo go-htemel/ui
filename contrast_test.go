@@ -305,10 +305,10 @@ func matrix() []spec {
 	add("Dialog", "body text", "dialog.go:57", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 	add("Drawer", "body text", "drawer.go:96", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 
-	// Menu items (dropdown.go:118-121): roving focus draws a 2px primary ring inset over the
+	// Menu items (dropdown.go:122-125): roving focus draws a 2px primary ring inset over the
 	// neutral-100 / white-5% focus tint of the white / neutral-800 menu; in dark it is primary-400,
 	// since primary-500 is 2.8:1 on the tinted neutral-800.
-	add("MenuItem", "focus-visible outline", "dropdown.go:119,dropdown.go:120", nonText, on("focus-visible:outline-primary-600", "focus-visible:bg-neutral-100").over(cardL), on("dark:focus-visible:outline-primary-400", "dark:focus-visible:bg-white/5").over("dark:bg-neutral-800"))
+	add("MenuItem", "focus-visible outline", "dropdown.go:123,dropdown.go:124", nonText, on("focus-visible:outline-primary-600", "focus-visible:bg-neutral-100").over(cardL), on("dark:focus-visible:outline-primary-400", "dark:focus-visible:bg-white/5").over("dark:bg-neutral-800"))
 
 	// Other focus rings that sit on the page background.
 	add("Disclosure", "focus-visible outline", "disclosure.go:68", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
