@@ -149,7 +149,8 @@ Components never name a palette color. They use semantic tokens, defined as CSS 
 | `--color-info-{50..950}` | `bg-info-50`, `text-info-700`, ... | `sky` | Info tone (sky, not blue, so it does not read as a second primary next to indigo) |
 | `--radius-control` | `rounded-control`, `rounded-l-control`, ... | `--radius-md` | buttons, button and input groups, inputs, menu items, nav links, pagination, tooltips, `Kbd` |
 | `--radius-surface` | `rounded-surface` | `--radius-md` | Card, Dialog, Dropdown panel, Alert, Toast, Stat, Table frame |
-| `--font-sans` (Tailwind's own) | `font-sans` | Tailwind's sans stack | `ui.BodyClasses()` puts `font-sans` on `<body>` |
+| `--color-field-border`, `--color-field-border-hover` | `outline-field-border`, `border-field-border`, `ring-field-border`, ... | `oklch(65% 0.015 286)`, `neutral-500`; dark: white at 35% and 55% | outline of Input, Textarea, Select and InputGroup affixes, border of Checkbox and Radio, Switch track (see [Contrast](#contrast)) |
+| `--font-sans` (Tailwind's own) | `font-sans` | Tailwind's sans stack | `ui.BodyClasses()` puts `font-sans` on `<body>`; `ui.FontCSS` sets it to Geist (see [Fonts](#fonts)) |
 
 The `Brand` tone (`ui.Badge(ui.Brand, "Team")`, also Alert, Toast and Progress) uses the
 primary family's tints (`bg-primary-50 text-primary-700`, dark `bg-primary-400/10
@@ -175,8 +176,28 @@ components render. The steps follow one convention:
 - Links and active labels are `text-primary-600` (hover `700`) in light and
   `dark:text-primary-400` (hover `300`) in dark.
 - Focus rings are `outline-primary-600` (`outline-neutral-500` on neutral controls) in light and
-  `primary-500` in dark; input borders are `outline-neutral-500` / `dark:outline-white/35`;
-  placeholders `neutral-500` / `dark:neutral-400`.
+  `primary-500` in dark; placeholders are `neutral-500` / `dark:neutral-400`.
+- Field outlines (Input, Textarea, Select, InputGroup affixes, unchecked Checkbox and Radio, the
+  off Switch track) use `--color-field-border`, and darken on hover to `--color-field-border-hover`
+  (`neutral-500`, 4.8:1). WCAG 1.4.11 asks 3:1 for the boundary of a control, not more, so the
+  token is the lightest neutral-hued shade that clears it on both white and the page background:
+  `oklch(65% 0.015 286)`, `#8e8e98`, 3.24:1 on white and 3.11:1 on `neutral-50`. In dark it is
+  white at 35% (3.1:1 or more composited over the page, a card and the field), hover white at 55%.
+  The token flips with `.dark`, so components carry no `dark:` variant for it. Secondary and
+  file-input button rings, the Table frame and `Kbd` are decoration, not the boundary of an input,
+  and stay at their pale `neutral-300` / `neutral-950/5` ring.
+
+  If you find the outlines too strong or too weak, override the tokens in your `@theme` (light)
+  and a `.dark` rule (dark). To get the pale Tailwind UI look, point them at a lighter step:
+
+  ```css
+  @theme { --color-field-border: var(--color-neutral-300); }
+  ```
+
+  That outline is about 1.5:1 on white, **below the 3:1 of WCAG 1.4.11**: people with low vision
+  may not see where a field starts. It is a deliberate trade of that criterion for looks, and
+  `go test -run Contrast .` fails on it. The values follow the zinc neutral; if you retheme
+  `neutral`, rerun the contrast test and adjust them.
 
 #### The default primary: indigo
 
@@ -221,7 +242,52 @@ scale as the zinc alias, so `bg-neutral-*` in your own markup follows the token 
 
 > **Font:** if `--font-sans` falls back to `system-ui`, Windows renders Segoe UI, whose metrics
 > place text about a pixel above centre in buttons and badges. Point it at a metrically balanced
-> face such as Inter, as above (the showcase does).
+> face such as Inter, as above, or use the bundled Geist (next section; the showcase does).
+
+### Fonts
+
+The library ships [Geist](https://vercel.com/font) and Geist Mono as opt-in, self-hosted
+variable fonts. Geist is a clean neutral sans designed for interfaces, with balanced vertical
+metrics (no Segoe UI offset in buttons and badges) and a matching monospace for code blocks. They
+are served from your own origin, so no page view makes a request to a third-party font service
+(no Google Fonts, no IP address or referrer handed to a CDN, nothing for a privacy policy or a
+strict `font-src 'self'` policy to carve out). The two woff2 files (70 KB and 71 KB, weights
+100 to 900 each) are embedded in the module and served by `ui.Assets()` as `font/woff2` with the
+same year-long `immutable` caching and `ETag` as `ui.js`, under `/fonts/`.
+
+Add the stylesheet next to the tokens and the preload links to `<head>`, with the prefix where
+you mounted `Assets`:
+
+```go
+// Tailwind source: tokens, then fonts
+css := ui.ThemeCSS() + ui.FontCSS("/assets")
+
+head := html.Head( /* ... */ )
+for _, l := range ui.FontPreload("/assets") { // <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/...?v=<hash>">
+	head.Children(l)
+}
+```
+
+`FontCSS(prefix)` returns two `@font-face` rules (`font-display: swap`, `font-weight: 100 900`,
+`src: url(<prefix>/fonts/....woff2?v=<hash>)`) and an `@theme` block with
+`--font-sans: "Geist", ui-sans-serif, system-ui, sans-serif` and `--font-mono: "Geist Mono",
+ui-monospace, SFMono-Regular, Menlo, monospace`, so `font-sans` (on `<body>` through
+`BodyClasses`) and `font-mono` (code blocks, `Kbd`) use them. `FontPreload(prefix)` returns the
+two `<link>` elements with exactly the same URLs, content hash included, so the browser fetches
+each file once and the first paint already has the face. Without the preload the text shows the
+fallback first and swaps; the metrics differ slightly, so preloading avoids a visible reflow.
+
+Fonts are opt-in. An application that does not include `FontCSS` keeps Tailwind's system stacks
+and never requests a font file (the files are only served, not linked). To use another face, leave
+`FontCSS` out and set `--font-sans` / `--font-mono` in your own `@theme`; to keep Geist for text
+and change only the code face, override `--font-mono` after `FontCSS`. The body weight stays at
+the default 400: Geist reads well there, and a heavier base such as 450 would shrink the step to
+`font-medium` that labels and headings rely on.
+
+Geist and Geist Mono are copyright Vercel, in collaboration with basement.studio, licensed under
+the [SIL Open Font License 1.1](assets/fonts/LICENSE-Geist.txt). The OFL allows bundling and
+redistributing the fonts with software, as this module does, but not selling them by themselves;
+keep the licence file with the font files if you copy them out of the module.
 
 ### Scoped themes, live
 
@@ -406,7 +472,7 @@ small embedded script (vanilla ES2020, no dependencies, about 150 lines) that de
 `ui.ScriptTag()`:
 
 ```go
-mux.Handle("/assets/", http.StripPrefix("/assets", ui.Assets()))   // GET /assets/ui.js (and /assets/ui.css)
+mux.Handle("/assets/", http.StripPrefix("/assets", ui.Assets()))   // GET /assets/ui.js (and /assets/ui.css, /assets/fonts/*.woff2)
 
 html.Head(ui.ScriptTag("/assets")) // <script type="module" src="/assets/ui.js?v=<hash>">
 ```
