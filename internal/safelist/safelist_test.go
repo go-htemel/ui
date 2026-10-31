@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/go-htemel/ui"
 )
@@ -82,5 +83,36 @@ func TestThemedSafelist(t *testing.T) {
 		if strings.Contains(c, "-sky-") || strings.HasSuffix(c, "rounded-md") {
 			t.Errorf("themed safelist still has %q", c)
 		}
+	}
+}
+
+// TestOnlyClassBearingStrings checks that strings which never reach a class-bearing call (JS
+// expressions, HTTP header values) contribute nothing, and that literals, referenced constants,
+// map values and datastar class names do.
+func TestOnlyClassBearingStrings(t *testing.T) {
+	const src = `package x
+
+import "github.com/starfederation/datastar-go/datastar"
+
+const base = "flex gap-2"
+const unused = "unused-class"
+
+var sizes = map[int]string{1: "text-sm", 2: "text-lg"}
+
+func a(w http.ResponseWriter, el El) {
+	w.Header().Set("Cache-Control", "immutable")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	el.Attrs(datastar.On("toggle", "evt.newState === 'open' && close"))
+	el.Class("px-2 py-1").AddClass(Classes(base, pick(sizes, 1, 2)))
+	el.Attrs(datastar.Class("rotate-180", "open"))
+}
+`
+	got, err := Classes(fstest.MapFS{"x.go": {Data: []byte(src)}}, ui.DefaultTheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"flex", "font-sans", "gap-2", "px-2", "py-1", "rotate-180", "text-lg", "text-sm"}
+	if !slices.Equal(got, want) {
+		t.Errorf("Classes = %q, want %q", got, want)
 	}
 }
