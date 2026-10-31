@@ -12,8 +12,7 @@ var themeCSS string
 
 // ThemeCSS returns the default design tokens as a Tailwind v4 stylesheet: one @theme block that
 // defines the color families the components use (primary, neutral, success, warning, danger,
-// info, each a 50-950 scale: primary is a tuned Emerald Sky in literal OKLCH, the others alias a
-// Tailwind palette) and the radius tokens
+// info, each a 50-950 scale: each an alias of a Tailwind palette: primary is indigo) and the radius tokens
 // (--radius-control, --radius-surface). Write it into your Tailwind sources, import it after
 // tailwindcss, and override the variables in your own CSS:
 //

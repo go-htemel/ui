@@ -1,5 +1,5 @@
-// Command palettetune derives the default primary scale ("Emerald Sky") from the owner's
-// original palette. Each step keeps its OKLCH hue and chroma (reduced only to stay inside sRGB)
+// Command palettetune derives a WCAG-tuned primary scale for a custom palette (it is not the
+// default, which is stock Tailwind indigo; see the README, "Contrast"). Each step keeps its OKLCH hue and chroma (reduced only to stay inside sRGB)
 // and its lightness is solved to satisfy the WCAG and spacing rules printed with the table.
 //
 //	go run ./cmd/palettetune           # before/after table

@@ -127,7 +127,7 @@ Components never name a palette color. They use semantic tokens, defined as CSS 
 
 | Token | Utilities | Default | Used for |
 | --- | --- | --- | --- |
-| `--color-primary-{50..950}` | `bg-primary-600`, `text-primary-600`, `outline-primary-600`, ... | Emerald Sky (tuned, literal OKLCH) | primary buttons, links, focus rings, selected and active states, drop targets |
+| `--color-primary-{50..950}` | `bg-primary-600`, `text-primary-600`, `outline-primary-600`, ... | `indigo` | primary buttons, links, focus rings, selected and active states, drop targets |
 | `--color-neutral-{50..950}` | `bg-neutral-50`, `text-neutral-500`, `ring-neutral-950/5`, ... | `zinc` | surfaces, text, borders, dividers, the page background |
 | `--color-success-{50..950}` | `bg-success-50`, `text-success-700`, ... | `green` | Success tone (Badge, Alert, Toast, Progress), positive Stat deltas |
 | `--color-warning-{50..950}` | `bg-warning-50`, `text-warning-800`, ... | `amber` | Warning tone |
@@ -148,36 +148,25 @@ light and dark, and the Go contrast test (`go test -run Contrast .`) measures ev
 components render. The steps follow one convention:
 
 - Solid surfaces with white text (Primary button, current page) use `bg-primary-600`, hover
-  `bg-primary-700` in light. In dark they start at `dark:bg-primary-700` and hover to the
-  *lighter* `dark:hover:bg-primary-600`: the tuned 500 is only 3.2:1 with white, so the usual
-  600 to 500 dark hover would miss 4.5:1. Danger is `bg-danger-600`, hover `700` in light and
-  `dark:bg-danger-700`, hover `dark:hover:bg-danger-600` (lighter, 4.8:1) in dark. Progress
-  fills and completed Steps sit at 600 (light) and 500 (dark fill).
+  `bg-primary-700` in light (indigo-600 is 6.5:1 with white). In dark they use
+  `dark:bg-primary-600` and hover to the *lighter* `dark:hover:bg-primary-500` (4.6:1 with
+  white). The Tailwind UI pairing 500 to 400 does not pass: indigo-400 is only 3.1:1 with
+  white. Danger is `bg-danger-600`, hover `700` in light and `dark:bg-danger-700`, hover
+  `dark:hover:bg-danger-600` (lighter, 4.8:1) in dark. Progress fills and completed Steps sit
+  at 600 (light) and 500 (dark fill).
 - Links and active labels are `text-primary-600` (hover `700`) in light and
   `dark:text-primary-400` (hover `300`) in dark.
 - Focus rings are `outline-primary-600` (`outline-neutral-500` on neutral controls) in light and
   `primary-500` in dark; input borders are `outline-neutral-500` / `dark:outline-white/35`;
   placeholders `neutral-500` / `dark:neutral-400`.
 
-#### The default primary: Emerald Sky
+#### The default primary: indigo
 
-The default `primary` is not a Tailwind palette alias. It is a tuned version of a hand-made
-palette, "Emerald Sky", written as literal `oklch(...)` values in `assets/ui.css`: its hue drifts
-from green (about 150 at 50) to blue (about 247 at 950) and each step keeps its original chroma.
-The original had one step just under AA (600 was 4.42:1 with white) and uneven lightness (300 to
-400 and 800 to 900 nearly identical). `go run ./cmd/palettetune` re-derives it: per step it keeps
-hue and chroma (reducing chroma only to stay in the sRGB gamut) and sets lightness to satisfy:
-
-- 600: white text at least 4.8:1 (solids; as link text it stays at 4.5:1 or more on the
-  `neutral-50` page, which 4.6 would not); 700: at least 6:1; 800: at least 8:1.
-- 500: white at least 3.1:1 (non-text). It is deliberately not solved for 4.5:1, which would
-  collapse it into 600.
-- 400 and 300: at least 6:1 and 8:1 on `neutral-900`/`neutral-950` (dark-mode text).
-- 50 to 200: `neutral-900` text at least 12:1 on them.
-- Consecutive steps differ by at least 0.06 in OKLCH lightness (about 0.09 across 400, 500, 600).
-
-Stock Tailwind `sky` is still available (`--color-primary-600: var(--color-sky-600)`, ...; the
-showcase's Theming page has it as "Sky (Tailwind stock)"), but see the next section.
+The default `primary` is stock Tailwind `indigo`: every step is a plain alias
+(`--color-primary-600: var(--color-indigo-600)`), like the other families. There is no custom
+palette. The showcase's Theming page has "Sky (Tailwind stock)" and other themes to try. To build
+your own palette, `go run ./cmd/palettetune` is a helper that solves OKLCH lightness per step
+against the WCAG rules; its output is for custom palettes, not the default.
 
 #### Retheming to a stock palette
 
@@ -185,7 +174,7 @@ The test guards the shipped defaults only (the tokens in `assets/ui.css`). Light
 sky, cyan, amber, lime and yellow only reach 4.5:1 against white text at the 700 step, so with
 one of those the solids need `bg-primary-700` (hover 800) and links `text-primary-700`: map the
 tokens one step darker (`--color-primary-600: var(--color-sky-700)`, `--color-primary-700:
-var(--color-sky-800)`) or accept the contrast failures. A darker hue (indigo, blue, violet) has
+var(--color-sky-800)`) or accept the contrast failures. Indigo (the default), blue and violet have
 room to spare. After retheming, run the test against your palette: change the tokens in a
 checkout of this module and rerun it (`CONTRAST_REPORT=contrast.md go test -run 'Contrast$' .`
 writes the full table with a suggested step for every failing pair).

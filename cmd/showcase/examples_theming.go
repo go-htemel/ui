@@ -54,7 +54,7 @@ func themeSwitcher() htemel.FlowContent {
 	// variables defined under [data-theme="..."] (shown below) retheme every component on the page.
 	return ui.Stack(ui.Lg,
 		ui.Field("theme", "Theme", ui.Select("theme",
-			ui.Choice("", "Default (Emerald Sky, zinc, md corners)"),
+			ui.Choice("", "Default (indigo, zinc, md corners)"),
 			ui.Choice("sky", "Sky (Tailwind stock)"),
 			ui.Choice("indigo", "Indigo (lg and xl corners)"),
 			ui.Choice("emerald", "Emerald on stone (pill controls)"),
