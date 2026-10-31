@@ -104,6 +104,8 @@ var (
 	cssDecl  = regexp.MustCompile(`--color-([a-z0-9-]+):\s*([^;]+);`)
 	cssVar   = regexp.MustCompile(`^var\(--color-([a-z0-9-]+)\)$`)
 	cssOKLCH = regexp.MustCompile(`^oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)\s*\)$`)
+	cssRGB   = regexp.MustCompile(`^rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*(?:/\s*([\d.]+)\s*)?\)$`)
+	darkRule = regexp.MustCompile(`(?s)\.dark\s*\{([^{}]*)\}`)
 )
 
 // Theme resolves design-token color names ("primary-600") to colors. It starts from Palette and
@@ -113,13 +115,28 @@ type Theme struct {
 	decl map[string]string // name -> raw CSS value
 }
 
-// NewTheme parses the --color-* declarations of css (typically ui.ThemeCSS()).
+// NewTheme parses the --color-* declarations of css (typically ui.ThemeCSS()) as the light
+// scheme: declarations inside a `.dark { ... }` rule are left out.
 func NewTheme(css string) *Theme {
 	t := &Theme{decl: map[string]string{}}
+	t.add(darkRule.ReplaceAllString(css, ""))
+	return t
+}
+
+// NewDarkTheme is NewTheme with the declarations of the `.dark { ... }` rules of css applied on
+// top, i.e. the tokens as they resolve under <html class="dark">.
+func NewDarkTheme(css string) *Theme {
+	t := NewTheme(css)
+	for _, m := range darkRule.FindAllStringSubmatch(css, -1) {
+		t.add(m[1])
+	}
+	return t
+}
+
+func (t *Theme) add(css string) {
 	for _, m := range cssDecl.FindAllStringSubmatch(css, -1) {
 		t.decl[m[1]] = strings.TrimSpace(m[2])
 	}
-	return t
 }
 
 // Alias returns the palette name a token ultimately points at ("primary-600" -> "sky-600"), or
@@ -135,7 +152,8 @@ func (t *Theme) Alias(name string) string {
 	return name
 }
 
-// Color resolves a token or palette name to an opaque color.
+// Color resolves a token or palette name to a color; opaque unless the token is an rgb() with
+// an alpha.
 func (t *Theme) Color(name string) (RGBA, error) {
 	name = t.Alias(name)
 	if raw, ok := t.decl[name]; ok {
@@ -144,6 +162,16 @@ func (t *Theme) Color(name string) (RGBA, error) {
 			c, _ := strconv.ParseFloat(m[2], 64)
 			h, _ := strconv.ParseFloat(m[3], 64)
 			return OKLCH{l, c, h}.RGB(), nil
+		}
+		if m := cssRGB.FindStringSubmatch(raw); m != nil {
+			r, _ := strconv.Atoi(m[1])
+			g, _ := strconv.Atoi(m[2])
+			b, _ := strconv.Atoi(m[3])
+			a := 1.0
+			if m[4] != "" {
+				a, _ = strconv.ParseFloat(m[4], 64)
+			}
+			return RGBA{uint8(r), uint8(g), uint8(b), a}, nil
 		}
 		if strings.HasPrefix(raw, "#") {
 			return ParseHex(raw)
@@ -158,7 +186,7 @@ func (t *Theme) Color(name string) (RGBA, error) {
 
 // utility matches a Tailwind color utility after its variants are stripped: text-primary-600,
 // bg-white/10, outline-neutral-400, ...
-var utility = regexp.MustCompile(`^(?:bg|text|outline|ring|border|accent|fill|stroke|decoration|placeholder)-([a-z]+(?:-\d+)?)(?:/(\d+))?$`)
+var utility = regexp.MustCompile(`^(?:bg|text|outline|ring|border|accent|fill|stroke|decoration|placeholder)-([a-z]+(?:-[a-z]+)*(?:-\d+)?)(?:/(\d+))?$`)
 
 // ClassColor resolves the color utility in class (any variant prefixes such as "dark:" or
 // "hover:" are ignored) to a color with its opacity modifier as alpha. Only the last

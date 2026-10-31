@@ -102,7 +102,7 @@ func DescriptionList(pairs ...DLItem) *html.DlElement {
 }
 
 const affixClass = "inline-flex shrink-0 items-center bg-neutral-50 px-3 text-sm text-neutral-500 outline-1 -outline-offset-1 " +
-	"outline-neutral-500 dark:bg-white/5 dark:text-neutral-400 dark:outline-white/35"
+	"outline-field-border dark:bg-white/5 dark:text-neutral-400"
 
 // InputGroupElement is the <div> InputGroup returns. Its element methods are the <div>'s; Control
 // returns the control inside it, which is what Field labels.

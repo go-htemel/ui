@@ -523,3 +523,29 @@
     }
   }
 }
+
+/* Field borders. The outline of a text field, textarea, select, input-group affix, checkbox,
+   radio and switch is a boundary that WCAG 1.4.11 asks to be 3:1 against what it sits on, and no
+   more: neutral-500 (4.8:1) clears that with room to spare and reads as stark. field-border is
+   the lightest neutral-hued shade that clears 3.05:1 on both white and the page background
+   (neutral-50): oklch(65% 0.015 286), #8e8e98: 3.24:1 on white, 3.11:1 on neutral-50. field-border-hover
+   is one notch darker (neutral-500). In dark mode the same two names are white at 35% and 55%,
+   composited over the field and its backdrop (3.1:1 or more on the page, the card and the field).
+
+   They are ordinary tokens, so outline-field-border and enabled:hover:outline-field-border-hover
+   follow the scheme with no dark: variant, and an application overrides them in its own @theme
+   (light) and .dark rule (dark). For the Tailwind UI look (a pale gray-300 outline) point
+   field-border at var(--color-neutral-300): that is about 1.5:1, below the 3:1 of WCAG 1.4.11,
+   and the contrast test will say so. The values follow the zinc neutral; if you retheme
+   neutral, rerun go test -run Contrast . and adjust them. */
+@theme {
+  --color-field-border: oklch(65% 0.015 286);
+  --color-field-border-hover: var(--color-neutral-500);
+}
+
+@layer base {
+  .dark {
+    --color-field-border: rgb(255 255 255 / 0.35);
+    --color-field-border-hover: rgb(255 255 255 / 0.55);
+  }
+}

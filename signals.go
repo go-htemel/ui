@@ -38,13 +38,20 @@ func initially(signal, expr string) htemel.Attribute {
 // until Datastar evaluates the expression, instead of flashing on load.
 const hiddenUntilDatastar = "display: none"
 
-// closeButton is the small X button of alerts, toasts and dialogs; expr runs on click.
+// closeButton is the small X button of Alert, in the tone's color; expr runs on click.
 func closeButton(label, expr string) *html.ButtonElement {
 	return html.Button(IconX().Class("size-4 shrink-0")).
 		Type(html.ButtonTypeButton).
 		Class(Classes("-m-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-control p-1",
 			"transition-colors duration-150 hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10")).
 		Aria("label", label).
+		Attrs(datastar.OnClick(expr))
+}
+
+// ghostClose is the X button of Dialog, Drawer and Toast: a Ghost IconButton with no ring, so the
+// only chrome is the hover background. (Alert uses closeButton, which takes the tone's color.)
+func ghostClose(label, expr string) *html.ButtonElement {
+	return IconButton(Ghost, IconX().Class("size-4 shrink-0"), label, WithSize(Xs), withClass("-m-1")).
 		Attrs(datastar.OnClick(expr))
 }
 

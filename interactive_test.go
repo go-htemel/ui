@@ -128,7 +128,7 @@ func TestDialogAccessibility(t *testing.T) {
 		`data-effect="$confirmDelete ? (el.open || el.showModal()) : (el.open && el.close())"`, // signal -> dialog
 		`data-on:close="$confirmDelete = false"`,                                               // Escape, closedby, method=dialog -> signal
 		`data-on:click__outside="if ('closedBy' in HTMLDialogElement.prototype) return; $confirmDelete = false"`,
-		`aria-label="Close" data-on:click="$confirmDelete = false"`,
+		`aria-label="Close" title="Close" data-on:click="$confirmDelete = false"`,
 		`autofocus>Cancel</button>`, // initial focus on the first action
 	)
 	for _, gone := range []string{`role="dialog"`, `aria-modal`, `data-show`, `display: none`, `keydown`, `overflow`, `_ret`, ` open>`, ` open `, ` open=`} {
@@ -161,7 +161,7 @@ func TestDrawer(t *testing.T) {
 		`<dialog id="filters-dialog" aria-labelledby="filters-title" closedby="any"`, `<h2 id="filters-title"`,
 		`data-effect="$filters ? (el.open || el.showModal()) : (el.open && el.close())"`,
 		`data-on:close="$filters = false"`,
-		`aria-label="Close" data-on:click="$filters = false"`,
+		`aria-label="Close" title="Close" data-on:click="$filters = false"`,
 		`m-0 mt-auto`, `translate-y-full open:translate-y-0 starting:open:translate-y-full`,
 		`overflow-y-auto`, `motion-reduce:transition-none`,
 		// The actions are pinned after the scrolling body, whatever their position among children.

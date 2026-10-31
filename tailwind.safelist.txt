@@ -76,6 +76,7 @@ border-b
 border-b-2
 border-danger-600
 border-dashed
+border-field-border
 border-info-600
 border-l
 border-l-4
@@ -138,7 +139,6 @@ dark:border-primary-500
 dark:border-success-500
 dark:border-warning-500
 dark:border-white/10
-dark:border-white/35
 dark:checked:bg-primary-500
 dark:checked:border-primary-500
 dark:disabled:bg-white/10
@@ -175,9 +175,7 @@ dark:hover:text-primary-400
 dark:hover:text-white
 dark:indeterminate:bg-primary-500
 dark:indeterminate:border-primary-500
-dark:not-checked:enabled:hover:border-white/60
 dark:not-has-checked:has-enabled:hover:bg-white/15
-dark:outline-white/35
 dark:peer-disabled:bg-white/25
 dark:peer-disabled:text-white/25
 dark:placeholder:text-neutral-400
@@ -192,7 +190,6 @@ dark:ring-success-500/20
 dark:ring-warning-400/20
 dark:ring-white/10
 dark:ring-white/20
-dark:ring-white/35
 dark:shadow-none
 dark:sm:border-white/10
 dark:text-danger-300
@@ -226,6 +223,7 @@ divide-y
 duration-150
 duration-200
 ease-out
+enabled:hover:outline-field-border-hover
 file:bg-white
 file:border-0
 file:cursor-pointer
@@ -281,6 +279,7 @@ gap-x-6
 gap-x-8
 gap-y-1
 gap-y-3
+ghost
 grid
 grid-cols-1
 grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]
@@ -384,7 +383,7 @@ mt-auto
 mx-3
 mx-auto
 my-1
-not-checked:enabled:hover:border-neutral-700
+not-checked:enabled:hover:border-field-border-hover
 not-has-checked:has-enabled:hover:bg-neutral-300
 object-cover
 opacity-0
@@ -395,7 +394,7 @@ open:scale-100
 open:translate-x-0
 open:translate-y-0
 outline-1
-outline-neutral-500
+outline-field-border
 overflow-auto
 overflow-hidden
 overflow-x-auto
@@ -446,10 +445,11 @@ relative
 ring-1
 ring-2
 ring-danger-600/20
+ring-field-border
+ring-field-border-hover
 ring-info-600/20
 ring-inset
 ring-neutral-300
-ring-neutral-500
 ring-neutral-500/20
 ring-neutral-950/5
 ring-primary-600

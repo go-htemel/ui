@@ -95,7 +95,7 @@ func modal(signal, titleID string, panel *html.DivElement, class string) *html.D
 func dialogHeader(signal, titleID, title, class string) *html.DivElement {
 	return html.Div(
 		html.H2().Id(titleID).Class(Classes("text-base font-semibold text-neutral-900 dark:text-white")).Text(title),
-		closeButton("Close", Close(signal)).AddClass(Classes("text-neutral-500 dark:text-neutral-400")),
+		ghostClose("Close", Close(signal)),
 	).Class(Classes(class))
 }
 

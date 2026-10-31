@@ -134,3 +134,22 @@ func TestPaletteSource(t *testing.T) {
 		t.Errorf("compared %d colors, want 121", n)
 	}
 }
+
+func TestDarkThemeAndRGB(t *testing.T) {
+	css := "@theme {\n --color-edge: oklch(65% 0.015 286);\n --color-edge-hover: var(--color-neutral-500);\n --color-neutral-500: #112233;\n}\n" +
+		"@layer base {\n  html.dark { color-scheme: dark; }\n  .dark {\n    --color-edge: rgb(255 255 255 / 0.35);\n  }\n}\n"
+	light, dark := NewTheme(css), NewDarkTheme(css)
+	if c, err := light.ClassColor("outline-edge"); err != nil || c.A != 1 || c.Hex() != (OKLCH{65, 0.015, 286}).RGB().Hex() {
+		t.Errorf("light edge = %+v, %v", c, err)
+	}
+	c, err := dark.ClassColor("outline-edge")
+	if err != nil || c.R != 255 || c.A != 0.35 {
+		t.Errorf("dark edge = %+v, %v", c, err)
+	}
+	if c, _ := dark.ClassColor("hover:outline-edge-hover"); c.Hex() != "#112233" {
+		t.Errorf("dark edge-hover = %s, want the light value (not overridden)", c.Hex())
+	}
+	if c, _ := dark.ClassColor("outline-edge/50"); c.A != 0.5 {
+		t.Errorf("opacity modifier = %v", c.A)
+	}
+}

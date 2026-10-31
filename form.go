@@ -26,11 +26,11 @@ type CompositeControl interface {
 // controlBase is the look shared by Input, Textarea and Select. ui-control is not a utility: it
 // marks the control for the rules in ui.css that restyle what utilities cannot reach (autofill
 // colors, number spin buttons, the search clear button, the date picker icon, the color swatch).
-const controlBase = "ui-control block w-full rounded-control bg-white text-base text-neutral-900 outline-1 -outline-offset-1 outline-neutral-500 " +
+const controlBase = "ui-control block w-full rounded-control bg-white text-base text-neutral-900 outline-1 -outline-offset-1 outline-field-border enabled:hover:outline-field-border-hover " +
 	"placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-2 focus:outline-primary-600 sm:text-sm/6 " +
 	"disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500 " +
 	"aria-invalid:outline-danger-500 aria-invalid:focus:outline-danger-600 " +
-	"dark:bg-white/5 dark:text-white dark:outline-white/35 dark:placeholder:text-neutral-400 dark:focus:outline-primary-500 " +
+	"dark:bg-white/5 dark:text-white dark:placeholder:text-neutral-400 dark:focus:outline-primary-500 " +
 	"dark:disabled:bg-white/10 dark:disabled:text-neutral-400 dark:aria-invalid:outline-danger-400"
 
 // fileButton draws the "Choose file" button of a file input like a small Secondary button.
@@ -149,12 +149,12 @@ const choiceLabel = "inline-flex cursor-pointer items-center gap-x-3 text-sm/6 t
 // choiceBox is the drawn box of Checkbox and Radio: the native input with appearance-none, so it
 // keeps its semantics, focus and keyboard behaviour but none of the browser's rendering (no
 // accent-color halo on hover). The mark is a sibling drawn on top (see choiceMark).
-const choiceBox = "peer col-start-1 row-start-1 size-4 cursor-pointer appearance-none border border-neutral-500 bg-white " +
-	"transition-colors duration-150 not-checked:enabled:hover:border-neutral-700 " +
+const choiceBox = "peer col-start-1 row-start-1 size-4 cursor-pointer appearance-none border border-field-border bg-white " +
+	"transition-colors duration-150 not-checked:enabled:hover:border-field-border-hover " +
 	"checked:border-primary-600 checked:bg-primary-600 " +
 	"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 " +
 	"disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:checked:border-neutral-300 disabled:checked:bg-neutral-300 " +
-	"dark:border-white/35 dark:bg-white/5 dark:not-checked:enabled:hover:border-white/60 " +
+	"dark:bg-white/5 " +
 	"dark:checked:border-primary-500 dark:checked:bg-primary-500 dark:focus-visible:outline-primary-500 " +
 	"dark:disabled:border-white/10 dark:disabled:bg-white/10 dark:disabled:checked:border-white/10 dark:disabled:checked:bg-white/20 " +
 	"forced-colors:appearance-auto"
@@ -223,8 +223,8 @@ func RadioGroup(legend string, radios ...*html.LabelElement) *html.FieldsetEleme
 // label. attrs go on the <input>: Switch("Notifications", datastar.Bind("notify")).
 //
 // The input covers the whole track with appearance-none, so the track and knob are all that is
-// drawn. Off, the track has a neutral-500 inset ring and the knob a neutral-500 ring (both 3:1
-// against what is behind them); on, the track fills with the primary color. Hover darkens the
+// drawn. Off, the track has a field-border inset ring (3:1 against the card) and the knob a field-border-hover
+// ring (3:1 against the track); on, the track fills with the primary color. Hover darkens the
 // track, keyboard focus outlines it, and a disabled switch is muted.
 func Switch(label string, attrs ...htemel.Attribute) *html.LabelElement {
 	track := html.Span(
@@ -232,14 +232,14 @@ func Switch(label string, attrs ...htemel.Attribute) *html.LabelElement {
 			Class(Classes("absolute inset-0 size-full cursor-pointer appearance-none rounded-full focus:outline-none disabled:cursor-not-allowed")).
 			Attrs(attrs...),
 		html.Span().Aria("hidden", "true").
-			Class(Classes("pointer-events-none size-5 rounded-full bg-white shadow-xs ring-1 ring-neutral-500 group-has-checked:ring-primary-600",
+			Class(Classes("pointer-events-none size-5 rounded-full bg-white shadow-xs ring-1 ring-field-border-hover group-has-checked:ring-primary-600",
 				"transition-transform duration-200 ease-out group-has-checked:translate-x-5 motion-reduce:transition-none",
 				"dark:ring-0 dark:group-has-checked:ring-0")),
-	).Class(Classes("group relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-neutral-200 p-0.5 ring-1 ring-neutral-500 ring-inset",
+	).Class(Classes("group relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-neutral-200 p-0.5 ring-1 ring-field-border ring-inset",
 		"transition-colors duration-150 has-checked:bg-primary-600 has-checked:ring-primary-600",
 		"not-has-checked:has-enabled:hover:bg-neutral-300 has-checked:has-enabled:hover:bg-primary-700 has-checked:has-enabled:hover:ring-primary-700",
 		"has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary-600 has-disabled:opacity-50",
-		"dark:bg-white/10 dark:ring-white/35 dark:has-checked:bg-primary-500 dark:has-checked:ring-primary-500",
+		"dark:bg-white/10 dark:has-checked:bg-primary-500 dark:has-checked:ring-primary-500",
 		"dark:not-has-checked:has-enabled:hover:bg-white/15 dark:has-checked:has-enabled:hover:bg-primary-400 dark:has-checked:has-enabled:hover:ring-primary-400",
 		"dark:has-focus-visible:outline-primary-500"))
 	return html.Label(track).Class(Classes(choiceLabel)).Text(label)
