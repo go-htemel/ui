@@ -75,7 +75,7 @@ func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement 
 // drag data, so DropInto works for both without change.
 func DropZone(action string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).
-		Class(Classes("data-over:outline-2 data-over:outline-dashed data-over:outline-primary-600 data-over:bg-primary-500/10")).
+		Class(Classes("data-over:outline-2 data-over:outline-dashed data-over:outline-primary-600 data-over:bg-primary-500/10 dark:data-over:outline-primary-500")).
 		Attrs(
 			htemel.Attr("data-ui-dropzone", ""),
 			datastar.On("dragenter", "evt.preventDefault(); el.toggleAttribute('data-over', true)"),

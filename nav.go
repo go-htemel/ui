@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/go-htemel/htemel"
 	"github.com/go-htemel/htemel/datastar"
 	"github.com/go-htemel/htemel/html"
@@ -10,6 +12,9 @@ import (
 type NavItem struct {
 	label, href string
 	active      bool
+	ancestor    bool
+	icon        htemel.PhrasingContent
+	badge       string
 	attrs       []htemel.Attribute
 }
 
@@ -30,6 +35,30 @@ func (n NavItem) Attrs(attrs ...htemel.Attribute) NavItem {
 	return n
 }
 
+// Icon returns the link with an icon before its label, such as ui.IconHome(). An icon link
+// keeps its label in a <span> and carries title=label: in the icon rail of a collapsed AppShell
+// (SidebarCollapsible) the label is visually hidden but stays the link's accessible name, and the
+// title is its tooltip.
+func (n NavItem) Icon(icon htemel.PhrasingContent) NavItem {
+	n.icon = icon
+	return n
+}
+
+// Badge returns the link with a count or short label after its text, such as "12" unread posts.
+// The badge is part of the link's accessible name ("Drafts 12").
+func (n NavItem) Badge(text string) NavItem {
+	n.badge = text
+	return n
+}
+
+// Ancestor marks the link as an ancestor of the current page (Posts while an editor for one post
+// is open): its label is semibold and full contrast, without the tint and without
+// aria-current="page", which belongs to the page itself.
+func (n NavItem) Ancestor() NavItem {
+	n.ancestor = true
+	return n
+}
+
 // navLinkClass styles idle links and, through aria-current="page", the active one: a neutral tint
 // with the label in the primary color, so the current page stands out on white and on neutral-50.
 const navLinkClass = "block rounded-control px-3 py-2 text-sm font-medium text-neutral-600 transition-colors duration-150 " +
@@ -38,10 +67,51 @@ const navLinkClass = "block rounded-control px-3 py-2 text-sm font-medium text-n
 	"dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:outline-primary-500 " +
 	"dark:aria-[current=page]:bg-white/10 dark:aria-[current=page]:text-white"
 
-func (n NavItem) link() *html.AElement {
-	a := html.A().Href(n.href).Text(n.label).Class(Classes(navLinkClass))
+// navAncestorClass is the ancestor state (NavItem.Ancestor): the label at full contrast.
+const navAncestorClass = "data-ancestor:font-semibold data-ancestor:text-neutral-900 dark:data-ancestor:text-white"
+
+// navRichClass replaces the block layout of navLinkClass for links with an icon or a badge. In
+// the rail of a collapsed AppShell (an ancestor with data-rail, from an @3xl container) the
+// label and the badge become visually hidden; they stay the accessible name.
+const (
+	navRichClass  = "flex items-center gap-x-3"
+	navIconClass  = "size-5 shrink-0 text-neutral-500 in-aria-[current=page]:text-primary-700 dark:text-neutral-400 dark:in-aria-[current=page]:text-white"
+	navLabelClass = "min-w-0 flex-1 truncate @3xl:in-data-rail:sr-only"
+	navBadgeClass = "ml-auto shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700 dark:bg-white/10 dark:text-neutral-300 @3xl:in-data-rail:sr-only"
+)
+
+func (n NavItem) link() *html.AElement { return n.linkClass(navLinkClass) }
+
+// linkClass renders the link with base, a class list that starts with "block " (replaced by a
+// flex row when the link has an icon or a badge).
+func (n NavItem) linkClass(base string) *html.AElement {
+	a := html.A().Href(n.href)
+	if n.icon == nil && n.badge == "" {
+		a.Text(n.label).Class(Classes(base, cond(n.ancestor, navAncestorClass)))
+	} else {
+		a.Class(Classes(strings.Replace(base, "block ", navRichClass+" ", 1), cond(n.ancestor, navAncestorClass)))
+		if n.icon != nil {
+			if el, ok := n.icon.(htemel.Element); ok {
+				el.SetAttr("class", Classes(navIconClass))
+			}
+			a.Children(n.icon).Title(n.label)
+		}
+		label := html.Span().Text(n.label)
+		if n.icon != nil {
+			label.Class(Classes(navLabelClass))
+		} else {
+			label.Class("min-w-0 flex-1 truncate")
+		}
+		a.Children(label)
+		if n.badge != "" {
+			a.Children(html.Span().Class(Classes(navBadgeClass)).Text(n.badge))
+		}
+	}
 	if n.active {
 		a.Aria("current", "page")
+	}
+	if n.ancestor && !n.active {
+		a.Attrs(htemel.Attr("data-ancestor", ""))
 	}
 	return a.Attrs(n.attrs...)
 }
@@ -138,11 +208,13 @@ func Sidebar(signal string, sections ...SidebarSection) *html.NavElement {
 		).Type(html.ButtonTypeButton).
 			Class(Classes("flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-1.5 text-left text-xs font-semibold transition-colors duration-150",
 				"tracking-wide text-neutral-500 uppercase hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500",
-				"dark:text-neutral-400 dark:hover:text-white")).
+				"dark:text-neutral-400 dark:hover:text-white @3xl:in-data-rail:hidden")).
 			Aria("controls", id).
 			Attrs(expanded(open)...).
 			Attrs(datastar.OnClick(Toggle(path)))
-		list := navList("mt-1 space-y-0.5", s.items).Id(id).Style(hiddenUntilDatastar).Attrs(datastar.Show(open))
+		// In the icon rail of a collapsed AppShell the heading is hidden, so every section is shown
+		// (!block beats the inline display: none of data-show).
+		list := navList("mt-1 space-y-0.5 @3xl:in-data-rail:!block @3xl:in-data-rail:mt-0", s.items).Id(id).Style(hiddenUntilDatastar).Attrs(datastar.Show(open))
 		nav.Children(html.Div(button, list).Class("py-1").
 			Attrs(datastar.Signal(path, boolExpr(startOpen), datastar.IfMissing())))
 	}

@@ -18,7 +18,7 @@ import (
 // classPattern matches a Tailwind class: optional variant prefixes (dark:, hover:, *:,
 // has-checked:, container queries such as @2xl:, ...), an optional ! or -, then a lowercase utility made of hyphenated segments,
 // which may carry an opacity (/10), a fraction or an arbitrary value ([0.625rem]).
-var classPattern = regexp.MustCompile(`^(?:@?[a-z0-9*&>\[\]=_-]+:)*!?-?@?[a-z][a-z0-9]*(?:-[a-z0-9.\[\]%#(),]+)*(?:/[0-9.]+)?$`)
+var classPattern = regexp.MustCompile(`^(?:@?[a-z0-9*&>\[\]=_-]+:)*!?-?@?[a-z][a-z0-9]*(?:-[a-z0-9.\[\]%#(),_]+)*(?:/[0-9.]+)?$`)
 
 // classCalls are the methods and functions whose string arguments are class lists. A call
 // through the datastar package is handled separately: only its name argument is a class.

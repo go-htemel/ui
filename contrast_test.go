@@ -271,14 +271,14 @@ func matrix() []spec {
 	// Tooltip (info.go:36-40): opaque bubble.
 	add("Tooltip", "text", "info.go:37", text, on("text-white", "bg-neutral-900"), on("text-white", "dark:bg-neutral-700"))
 
-	// Nav (nav.go:34-39, 140), Breadcrumb (nav.go:188-195), Tabs, Pagination.
-	add("Nav link", "inactive", "nav.go:35", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
-	add("Nav link", "active (aria-current)", "nav.go:37", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100").over(cardL), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10").over(cardD))
-	add("Nav link", "active on the page background", "nav.go:37", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10"))
-	add("Nav link", "focus-visible outline", "nav.go:36", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
-	add("Sidebar group", "heading", "nav.go:140", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Breadcrumb", "current", "nav.go:188", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Breadcrumb", "link", "nav.go:195", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	// Nav (nav.go:34-39, 140), Breadcrumb (nav.go:260-195), Tabs, Pagination.
+	add("Nav link", "inactive", "nav.go:64", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
+	add("Nav link", "active (aria-current)", "nav.go:66", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100").over(cardL), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10").over(cardD))
+	add("Nav link", "active on the page background", "nav.go:66", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10"))
+	add("Nav link", "focus-visible outline", "nav.go:65", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	add("Sidebar group", "heading", "nav.go:210", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Breadcrumb", "current", "nav.go:260", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Breadcrumb", "link", "nav.go:267", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Tabs", "active", "tabs.go:23", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
@@ -292,7 +292,8 @@ func matrix() []spec {
 	add("Divider", "label", "layout.go:44", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// DropZone highlight (dnd.go:78) and MoveHere (dnd.go:116-117).
-	add("DropZone", "data-over outline", "dnd.go:78", nonText, on("data-over:outline-primary-600", ""), on("data-over:outline-primary-600", ""))
+	add("DropZone", "data-over outline", "dnd.go:78", nonText, on("data-over:outline-primary-600", ""), on("dark:data-over:outline-primary-500", ""))
+	add("DropZone", "data-over outline on a card", "dnd.go:78", nonText, on("data-over:outline-primary-600", "").over(cardL), on("dark:data-over:outline-primary-500", "").over(cardD))
 	add("MoveHere", "dashed border", "dnd.go:116", nonText, on("border-primary-600", ""), on("border-primary-600", ""))
 	add("MoveHere", "text", "dnd.go:116", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("MoveHere", "text on hover", "dnd.go:117", text, on("hover:text-primary-700", "hover:bg-primary-500/10"), on("dark:hover:text-primary-400", "hover:bg-primary-500/10"))
@@ -318,6 +319,8 @@ func matrix() []spec {
 	m = append(m, proseRows()...)
 	// MarkdownEditor (mdeditor.go): see mdeditor_test.go.
 	m = append(m, mdeditorRows()...)
+	// Layouts, NavItem states and content inputs: see layout_contrast_test.go.
+	m = append(m, layoutRows()...)
 	return m
 }
 
