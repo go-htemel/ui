@@ -29,13 +29,15 @@ const (
 	Xl Size = "xl"
 )
 
-// Tone is the semantic color of a badge, alert or toast. The zero Tone renders as Neutral. See
-// Danger for the red tone.
+// Tone is the semantic color of a badge, alert, toast or progress bar. The zero Tone renders as
+// Neutral. Brand uses the primary color (tints for Badge and Alert, the solid for Toast accents
+// and Progress fills). See Danger for the red tone.
 type Tone string
 
 // Tones.
 const (
 	Neutral Tone = "neutral"
+	Brand   Tone = "brand"
 	Info    Tone = "info"
 	Success Tone = "success"
 	Warning Tone = "warning"

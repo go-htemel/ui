@@ -20,7 +20,7 @@ type progressConfig struct {
 // ProgressSize sets the bar thickness (default Md).
 func ProgressSize(s Size) ProgressOption { return func(c *progressConfig) { c.size = s } }
 
-// ProgressTone colors the bar. The default, Neutral, uses the primary color.
+// ProgressTone colors the bar. The default, Neutral, uses the primary color, as Brand does.
 func ProgressTone(t Tone) ProgressOption { return func(c *progressConfig) { c.tone = t } }
 
 // ProgressLabel names the bar for assistive technology (aria-label).
@@ -30,6 +30,7 @@ var progressHeights = map[Size]string{Xs: "h-1", Sm: "h-1.5", Md: "h-2.5", Lg: "
 
 var progressTones = map[Tone]string{
 	Neutral: "bg-primary-600 dark:bg-primary-500",
+	Brand:   "bg-primary-600 dark:bg-primary-500",
 	Info:    "bg-info-600 dark:bg-info-500",
 	Success: "bg-success-700 dark:bg-success-500",
 	Warning: "bg-warning-700 dark:bg-warning-500",

@@ -40,6 +40,7 @@ func ToastRegion() *html.DivElement {
 
 var toneAccent = map[Tone]string{
 	Neutral: "border-neutral-500",
+	Brand:   "border-primary-600 dark:border-primary-500",
 	Info:    "border-info-600 dark:border-info-500",
 	Success: "border-success-600 dark:border-success-500",
 	Warning: "border-warning-600 dark:border-warning-500",
