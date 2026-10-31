@@ -57,7 +57,7 @@ var groups = []Group{
 	},
 	{
 		Slug: "overlays", Title: "Overlays",
-		Intro: "Dialog and Dropdown: shown with data-show, closed by click-outside and Escape.",
+		Intro: "Dialog is a native modal <dialog> and Dropdown a native popover: the browser handles the top layer, Escape, light dismiss and focus.",
 		Examples: []Example{
 			ex("Dialog", dialog),
 			ex("Dropdown menu", dropdown),

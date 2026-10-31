@@ -22,13 +22,18 @@ func dialog() htemel.FlowContent {
 }
 
 func dropdown() htemel.FlowContent {
-	return ui.Dropdown("projectMenu",
-		ui.Button(ui.Secondary, "Options", ui.WithTrailingIcon(ui.IconChevronDown())),
-		ui.MenuItem("Rename"),
-		ui.MenuItem("Duplicate"),
-		ui.MenuLink("Open settings", "#settings"),
-		ui.MenuDivider(),
-		ui.MenuItem("Archive", datastar.OnClick(datastar.Post("/demo/toast?title=Archived"))),
+	// The menu is a native popover: it opens without the signal, which only mirrors its state.
+	return ui.Inline(ui.Md,
+		ui.Dropdown("projectMenu",
+			ui.Button(ui.Secondary, "Options", ui.WithTrailingIcon(ui.IconChevronDown())),
+			ui.MenuItem("Rename"),
+			ui.MenuItem("Duplicate"),
+			ui.MenuLink("Open settings", "#settings"),
+			ui.MenuDivider(),
+			ui.MenuItem("Archive", datastar.OnClick(datastar.Post("/demo/toast?title=Archived"))),
+		),
+		html.Span().Class("text-sm text-zinc-500 dark:text-zinc-400").
+			Attrs(datastar.Text("$projectMenu ? 'Menu open' : 'Menu closed'")),
 	)
 }
 
