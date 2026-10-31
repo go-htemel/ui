@@ -35,7 +35,7 @@ func ExampleButton() {
 	b := ui.Button(ui.Link, "Docs", ui.WithSize(ui.Sm)).Attrs(datastar.OnClick(datastar.Get("/docs")))
 	out, _ := htemel.RenderString(b)
 	fmt.Println(out)
-	// Output: <button type="button" class="inline-flex items-center justify-center gap-x-1.5 rounded-control font-semibold whitespace-nowrap cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-primary-700 underline-offset-4 hover:text-primary-800 hover:underline focus-visible:outline-primary-700 dark:text-primary-400 dark:hover:text-primary-300 dark:focus-visible:outline-primary-500 text-sm" data-on:click="@get(&#39;/docs&#39;)">Docs</button>
+	// Output: <button type="button" class="inline-flex items-center justify-center gap-x-1.5 rounded-control font-semibold whitespace-nowrap cursor-pointer transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-primary-700 underline-offset-4 hover:text-primary-800 hover:underline focus-visible:outline-primary-700 dark:text-primary-400 dark:hover:text-primary-300 dark:focus-visible:outline-primary-500 text-sm" data-on:click="@get(&#39;/docs&#39;)">Docs</button>
 }
 
 func ExampleClasses() {

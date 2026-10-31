@@ -230,10 +230,16 @@ func TestDisclosureAccessibility(t *testing.T) {
 		`id="showMore-button"`, `aria-controls="showMore-panel"`, `aria-expanded="false"`,
 		`data-attr:aria-expanded="($showMore) ? 'true' : 'false'"`,
 		`id="showMore-panel"`, `role="region"`, `aria-labelledby="showMore-button"`,
-		`style="display: none"`, `data-show="$showMore"`,
+		// The panel follows the button's aria-expanded in CSS: collapsed grid row and
+		// visibility: hidden until the peer button is expanded, then 1fr and visible.
+		`class="peer `, `invisible grid grid-rows-[0fr]`, `peer-aria-expanded:visible peer-aria-expanded:grid-rows-[1fr]`,
+		`<div class="min-h-0 overflow-hidden">`,
 	)
+	if strings.Contains(got, "data-show") || strings.Contains(got, "display: none") {
+		t.Errorf("the panel must not be hidden with data-show (no height transition then):\n%s", got)
+	}
 	if strings.Contains(got, " hidden") {
-		t.Errorf("panel must be hidden by data-show alone, not the hidden attribute:\n%s", got)
+		t.Errorf("panel must not use the hidden attribute (it would override the CSS state):\n%s", got)
 	}
 	acc := render(t, ui.Accordion("faq", ui.AccordionItem("a", "A"), ui.AccordionItem("b", "B")))
 	wantAll(t, acc, `data-on:keydown="`, `'ArrowDown'`, `'ArrowUp'`, `aria-controls="faq-b-panel"`, `aria-labelledby="faq-b-button"`)

@@ -161,9 +161,9 @@ func Switch(label string, attrs ...htemel.Attribute) *html.LabelElement {
 			Attrs(attrs...),
 		html.Span().Aria("hidden", "true").
 			Class(Classes("pointer-events-none size-5 rounded-full bg-white shadow-xs ring-1 ring-neutral-900/5",
-				"transition-transform duration-200 group-has-checked:translate-x-5")),
+				"transition-transform duration-200 ease-out group-has-checked:translate-x-5 motion-reduce:transition-none")),
 	).Class(Classes("group relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-neutral-200 p-0.5",
-		"transition-colors duration-200 has-checked:bg-primary-600 has-focus-visible:outline-2 has-focus-visible:outline-offset-2",
+		"transition-colors duration-150 has-checked:bg-primary-600 has-focus-visible:outline-2 has-focus-visible:outline-offset-2",
 		"has-focus-visible:outline-primary-700 dark:has-focus-visible:outline-primary-500 dark:bg-white/10 dark:has-checked:bg-primary-500"))
 	return html.Label(track).Class(Classes(choiceLabel)).Text(label)
 }

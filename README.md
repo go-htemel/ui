@@ -308,7 +308,9 @@ Datastar with:
 (`prefers-color-scheme`), at WCAG 2.1 A/AA. It also opens the interactive states first: the
 dialog, the drawer and the bottom sheet, the dropdown, a switched tab, an expanded disclosure
 and accordion, and the mobile navbar's drawer. The report groups violations by rule with impact, count, selectors and pages, and the
-task exits non-zero on any WCAG violation. Rules tagged only `best-practice` are listed
+task exits non-zero on any WCAG violation. Two behaviour checks run alongside and fail it
+too: no tab list overflows vertically (the scrollbar a tab's negative margin used to cause), and
+a Dialog's opacity really transitions when it opens and closes. Rules tagged only `best-practice` are listed
 separately and do not fail the run. The scan fails loudly, rather than passing, when Tailwind
 did not apply (the showcase loads Tailwind and Datastar from CDNs).
 
@@ -329,7 +331,7 @@ MIT
 ## Accessibility
 
 The interactive components follow the matching WAI-ARIA patterns. Overlays use the platform:
-`Dialog` is a modal `<dialog>` and `Dropdown` a `popover`, so the top layer, inertness, Escape,
+`Dialog` and `Drawer` are modal `<dialog>`s and `Dropdown` a `popover`, so the top layer, inertness, Escape,
 light dismiss and focus return come from the browser. The rest is Datastar attributes and
 expressions. Each component's Go documentation lists exactly what it covers.
 
@@ -343,6 +345,18 @@ expressions. Each component's Go documentation lists exactly what it covers.
 | `Disclosure`, `Accordion` | `aria-expanded`, `aria-controls`, panel `role="region"` | Accordion: ArrowDown/ArrowUp, Home/End between headers |
 | `Draggable`, `DropZone` | `aria-grabbed`, `data-dragging`, `data-over` highlight | `PickUp` and `MoveHere` buttons replace dragging for keyboard and touch |
 | `ToastRegion`, `Toast` | polite live region, `role="status"`, labelled Dismiss button | the auto-dismiss countdown pauses on hover and while focus is inside |
+
+### Motion
+
+Transitions are short and only animate what the compositor handles: colour changes on hover and
+focus take 150ms (`transition-colors duration-150`); things that appear take 200ms `ease-out`
+and reverse when they go (Dialog fade and 2% scale, Drawer slide, Dropdown and Tooltip fade with
+a 1px shift, Toast slide-in and fade-out, Tabs panel fade, Disclosure and Accordion height via a
+`grid-rows-[0fr]` to `[1fr]` transition). Every transitioned element carries
+`motion-reduce:transition-none`, so `prefers-reduced-motion: reduce` shows the end state at once;
+colour-only transitions are left on, since nothing moves. The overlay transitions use
+`@starting-style` and `transition-behavior: allow-discrete` (Chrome/Edge 117+, Safari 17.4+,
+Firefox 129+); older browsers open and close them without animation.
 
 ### Browser support
 

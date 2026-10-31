@@ -35,8 +35,9 @@ func Tooltip(trigger htemel.PhrasingContent, text string) *html.SpanElement {
 		trigger,
 		html.Span().Id(id).Role("tooltip").Text(text).
 			Class(Classes("pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 -translate-x-1/2 rounded-control bg-neutral-900 px-2 py-1",
-				"text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity",
-				"group-hover:opacity-100 group-focus-within:opacity-100 dark:bg-neutral-700")),
+				"text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-lg",
+				"translate-y-px transition-[opacity,translate] duration-200 ease-out motion-reduce:transition-none",
+				"group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 dark:bg-neutral-700")),
 	).Class("group relative inline-flex")
 }
 

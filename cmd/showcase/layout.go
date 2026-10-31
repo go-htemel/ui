@@ -96,7 +96,7 @@ func exampleView(e Example) *html.SectionElement {
 			// list-none and the -webkit- rule hide the browser's disclosure triangle; the chevron icon
 			// rotates via group-open: instead.
 			html.Summary(
-				ui.IconChevronRight().Class("size-3.5 shrink-0 transition-transform duration-150 group-open:rotate-90"),
+				ui.IconChevronRight().Class("size-3.5 shrink-0 transition-transform duration-150 group-open:rotate-90 motion-reduce:transition-none"),
 				html.Span().Text("Show source"),
 			).Class("inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-neutral-500 select-none hover:text-neutral-900 [&::-webkit-details-marker]:hidden dark:text-neutral-400 dark:hover:text-white"),
 			html.Pre(html.Code().Text(e.Source)).

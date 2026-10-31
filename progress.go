@@ -43,7 +43,10 @@ func progressBar(max int, opts []ProgressOption) (*html.DivElement, *html.DivEle
 			opt(&c)
 		}
 	}
-	fill := html.Div().Class(Classes("h-full rounded-full transition-[width] duration-300", pick(progressTones, c.tone, Neutral)))
+	// The fill is as wide as the track and slides in from the left (translate, which the
+	// compositor animates) instead of changing its width; the track's rounded overflow clips it.
+	fill := html.Div().Class(Classes("h-full w-full rounded-full transition-[translate] duration-200 ease-out motion-reduce:transition-none",
+		pick(progressTones, c.tone, Neutral)))
 	track := html.Div(fill).
 		Role("progressbar").
 		Aria("valuemin", "0").
@@ -68,7 +71,7 @@ func Progress(value, max int, opts ...ProgressOption) *html.DivElement {
 		value = 0
 	}
 	track, fill := progressBar(max, opts)
-	fill.Style("width: " + strconv.FormatFloat(float64(value)*100/float64(max), 'f', -1, 64) + "%")
+	fill.Style("translate: " + strconv.FormatFloat(float64(value)*100/float64(max)-100, 'f', -1, 64) + "%")
 	return track.Aria("valuenow", strconv.Itoa(value))
 }
 
@@ -82,8 +85,8 @@ func ProgressSignal(signal string, max int, opts ...ProgressOption) *html.DivEle
 	}
 	sig, m := "$"+signal, strconv.Itoa(max)
 	track, fill := progressBar(max, opts)
-	fill.Style("width: 0%").
-		Attrs(datastar.Style("width", "Math.min(100, Math.max(0, "+sig+" / "+m+" * 100)) + '%'"))
+	fill.Style("translate: -100%").
+		Attrs(datastar.Style("translate", "(Math.min(100, Math.max(0, "+sig+" / "+m+" * 100)) - 100) + '%'"))
 	return track.Aria("valuenow", "0").
 		Attrs(initially(signal, "0"), datastar.Attr("aria-valuenow", "Math.min("+m+", Math.max(0, "+sig+"))"))
 }
@@ -97,7 +100,7 @@ func Skeleton(lines int) *html.DivElement {
 		Role("status").
 		Aria("busy", "true").
 		Aria("label", "Loading").
-		Class(Classes("flex animate-pulse flex-col gap-y-3"))
+		Class(Classes("flex animate-pulse flex-col gap-y-3 motion-reduce:animate-none"))
 	for i := range lines {
 		w := "w-full"
 		if i == lines-1 && lines > 1 {

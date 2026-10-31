@@ -7,7 +7,7 @@ import (
 )
 
 const buttonBase = "inline-flex items-center justify-center gap-x-1.5 rounded-control font-semibold whitespace-nowrap " +
-	"cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 " +
+	"cursor-pointer transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 " +
 	"disabled:cursor-not-allowed disabled:opacity-50"
 
 var buttonVariants = map[Variant]string{

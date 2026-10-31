@@ -61,7 +61,7 @@ func Dropdown(signal string, trigger *html.ButtonElement, items ...htemel.FlowCo
 		Aria("labelledby", triggerID).
 		Style("position-anchor: "+anchor+"; position-area: bottom span-left; position-try-fallbacks: flip-block").
 		Class(Classes("mt-2 w-56 rounded-surface bg-white p-1 shadow-lg ring-1 ring-neutral-950/5",
-			"dark:bg-neutral-800 dark:ring-white/10")).
+			"dark:bg-neutral-800 dark:ring-white/10", menuMotion)).
 		Attrs(
 			datastar.On("beforetoggle", menuPlace(triggerID)),
 			datastar.On("toggle", "$"+signal+" = evt.newState === 'open'"),
@@ -75,6 +75,12 @@ func Dropdown(signal string, trigger *html.ButtonElement, items ...htemel.FlowCo
 			datastar.OnKeyDown(menuKeys()),
 		)
 }
+
+// menuMotion fades the menu in while it moves down by 1px, and back out on close, in 200ms.
+// starting:open: (@starting-style) gives the first frame after showPopover() the closed values,
+// and transition-discrete keeps the popover displayed and in the top layer until it has faded.
+const menuMotion = "opacity-0 -translate-y-px open:opacity-100 open:translate-y-0 starting:open:opacity-0 starting:open:-translate-y-px " +
+	"transition-[opacity,translate,display,overlay] transition-discrete duration-200 ease-out motion-reduce:transition-none"
 
 // menuSync shows or hides the menu when the signal is set from outside (ui.Open, ui.Close or the
 // server). The toggle event sets the signal to the state the menu is already in, so it does not
@@ -109,7 +115,7 @@ func menuKeys() string {
 		"items[(n + items.length) % items.length].focus()"
 }
 
-const menuItemClass = "flex w-full cursor-pointer items-center gap-x-2 rounded-control px-3 py-2 text-left text-sm text-neutral-700 " +
+const menuItemClass = "flex w-full cursor-pointer items-center gap-x-2 rounded-control px-3 py-2 text-left text-sm text-neutral-700 transition-colors duration-150 " +
 	"hover:bg-neutral-100 hover:text-neutral-900 focus-visible:bg-neutral-100 focus-visible:outline-none " +
 	"dark:text-neutral-300 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5"
 

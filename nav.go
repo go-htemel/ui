@@ -21,7 +21,7 @@ func NavLink(label, href string, active bool) NavItem {
 const (
 	navLinkIdle   = "font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white"
 	navLinkActive = "bg-neutral-100 font-semibold text-neutral-900 dark:bg-white/10 dark:text-white"
-	navLinkBase   = "block rounded-control px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500"
+	navLinkBase   = "block rounded-control px-3 py-2 text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500"
 )
 
 func (n NavItem) link() *html.AElement {
@@ -116,7 +116,7 @@ func Sidebar(signal string, sections ...SidebarSection) *html.NavElement {
 		id := domID(signal) + "-" + key
 		button := html.Button(
 			html.Span().Text(s.title),
-			IconChevronDown().Class("size-4 shrink-0 text-neutral-400 transition-transform duration-200").
+			IconChevronDown().Class("size-4 shrink-0 text-neutral-400 transition-transform duration-200 ease-out motion-reduce:transition-none").
 				Attrs(datastar.Class("-rotate-90", "!"+open)),
 		).Type(html.ButtonTypeButton).
 			Class(Classes("flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-1.5 text-left text-xs font-semibold",

@@ -97,6 +97,56 @@ const STATES = {
   ],
 };
 
+// Behaviour checks beyond axe, keyed by page. Each returns a list of failure messages; any
+// failure fails the run (exit 1) like a WCAG violation.
+const CHECKS = {
+  "/components/disclosure": [
+    {
+      // The tablist scrolls horizontally (overflow-x: auto, which makes overflow-y auto too), so
+      // anything taller than the list, such as a tab with a negative bottom margin, shows a
+      // vertical scrollbar.
+      name: "tablist has no vertical overflow",
+      async run(page) {
+        const lists = await page.evaluate(() => [...document.querySelectorAll("[role=tablist]")].map((l) => ({
+          id: l.querySelector("[role=tab]")?.id, scrollHeight: l.scrollHeight, clientHeight: l.clientHeight,
+          underline: getComputedStyle(l.querySelector("[aria-selected=true]")).borderBottomWidth,
+        })));
+        if (!lists.length) return ["no [role=tablist] on the page"];
+        return lists.flatMap((l) => [
+          ...(l.scrollHeight === l.clientHeight ? [] : [`tablist of ${l.id}: scrollHeight ${l.scrollHeight} != clientHeight ${l.clientHeight}`]),
+          ...(l.underline === "2px" ? [] : [`tablist of ${l.id}: active underline is ${l.underline}, want 2px`]),
+        ]);
+      },
+    },
+  ],
+  "/components/overlays": [
+    {
+      // The dialog fades in and out (opacity via @starting-style and transition-discrete) in 200ms.
+      name: "dialog open/close transitions",
+      async run(page) {
+        const r = await page.evaluate(async () => {
+          const d = document.querySelector("dialog");
+          const op = () => +getComputedStyle(d).opacity;
+          const frame = () => new Promise((res) => requestAnimationFrame(() => res()));
+          const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+          d.showModal(); await frame();
+          const opened0 = op(); await wait(250);
+          const opened = op();
+          d.close(); await frame(); await wait(40);
+          const closing = [op(), getComputedStyle(d).display]; await wait(250);
+          return { opened0, opened, closing, closed: getComputedStyle(d).display };
+        });
+        const f = [];
+        if (!(r.opened0 < 1)) f.push(`opacity right after showModal() is ${r.opened0}, want < 1`);
+        if (r.opened !== 1) f.push(`opacity 250ms after showModal() is ${r.opened}, want 1`);
+        if (!(r.closing[0] < 1 && r.closing[0] > 0 && r.closing[1] !== "none")) f.push(`no fade-out after close(): ${JSON.stringify(r.closing)}`);
+        if (r.closed !== "none") f.push(`dialog still displayed 290ms after close(): ${r.closed}`);
+        return f;
+      },
+    },
+  ],
+};
+
 // axe-core 4.11 cannot parse the missing components Chromium serializes for achromatic Tailwind v4
 // colors ("oklch(0.985 0 none)") and silently skips the whole color-contrast rule on such a page.
 // Report "none" as 0 (which is what it means for rendering) so contrast is really measured.
@@ -167,6 +217,7 @@ function simplify(v, ctx) {
 }
 
 const findings = [];
+const checkFailures = [];
 let scans = 0;
 
 async function scan(page, ctx) {
@@ -212,6 +263,12 @@ try {
       await waitForStyles(page, scheme, url);
       incompleteTotal += await scan(page, { page: path, scheme, state: "default" });
       process.stdout.write(`scanned ${scheme.padEnd(5)} ${path}\n`);
+
+      for (const ch of CHECKS[path] || []) {
+        const fails = await ch.run(page);
+        for (const m of fails) checkFailures.push(`${path} (${scheme}) [${ch.name}]: ${m}`);
+        process.stdout.write(`checked ${scheme.padEnd(5)} ${path} [${ch.name}]: ${fails.length ? "FAIL" : "ok"}\n`);
+      }
 
       for (const st of STATES[path] || []) {
         if (st.viewport) await page.setViewportSize(st.viewport);
@@ -276,9 +333,13 @@ function print(title, list) {
 
 console.log(`\n${scans} scans, ${PAGES.length} pages x ${SCHEMES.length} schemes + interactive states. axe "incomplete" (needs manual review): ${incompleteTotal}`);
 if (advice.length) print("best-practice (advisory, not failing)", advice);
-if (fails.length) {
-  print("WCAG violations", fails);
-  console.log(`\nFAIL: ${fails.length} WCAG violation node(s).`);
+if (checkFailures.length) {
+  console.log(`\n=== behaviour checks: ${checkFailures.length} failure(s) ===`);
+  for (const m of checkFailures) console.log(`    ${m}`);
+}
+if (fails.length) print("WCAG violations", fails);
+if (fails.length || checkFailures.length) {
+  console.log(`\nFAIL: ${fails.length} WCAG violation node(s), ${checkFailures.length} behaviour check failure(s).`);
   process.exit(1);
 }
-console.log("\nPASS: no WCAG A/AA violations.");
+console.log("\nPASS: no WCAG A/AA violations; behaviour checks passed.");

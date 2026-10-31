@@ -10,9 +10,12 @@ import (
 // signal starts false unless the page defines it).
 //
 // The button is a real <button> with aria-expanded bound to the signal and aria-controls naming
-// the panel, which is a role="region" labelled by the button. The panel is shown and hidden with
-// data-show only (an inline display: none), not the hidden attribute: the two would fight, since
-// removing data-show's style would leave hidden in force.
+// the panel, which is a role="region" labelled by the button. The panel follows the button's
+// aria-expanded through CSS alone (peer-aria-expanded:), so its state cannot drift from what
+// assistive technology is told: it opens by animating its grid row from 0fr to 1fr (200ms, no
+// height measurement, no script) and, while closed, is visibility: hidden, which removes its
+// content from the tab order and the accessibility tree once it has collapsed. With
+// prefers-reduced-motion it opens and closes at once.
 func Disclosure(signal, title string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(
 		disclosureParts(domID(signal), title, "$"+signal, Toggle(signal), children)...,
@@ -57,22 +60,27 @@ func disclosureParts(id, title, open, toggle string, children []htemel.FlowConte
 	buttonID := id + "-button"
 	button := html.Button(
 		html.Span().Text(title),
-		IconChevronDown().Class("size-5 shrink-0 text-neutral-400 transition-transform duration-200").
+		IconChevronDown().Class("size-5 shrink-0 text-neutral-400 transition-transform duration-200 ease-out motion-reduce:transition-none").
 			Attrs(datastar.Class("rotate-180", open)),
 	).Type(html.ButtonTypeButton).
 		Id(buttonID).
-		Class(Classes("flex w-full cursor-pointer items-center justify-between gap-x-4 py-3 text-left text-sm font-semibold",
+		Class(Classes("peer flex w-full cursor-pointer items-center justify-between gap-x-4 py-3 text-left text-sm font-semibold",
 			"text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500 dark:text-white")).
 		Aria("controls", panelID).
 		Attrs(expanded(open)...).
 		Attrs(datastar.OnClick(toggle))
-	panel := html.Div(children...).
+	// The region is a one-row grid whose row grows from 0fr to 1fr when the button (its peer) is
+	// aria-expanded; the inner wrapper clips the content while the row is shorter than it.
+	panel := html.Div(
+		html.Div(
+			html.Div(children...).Class(Classes("pb-4 text-sm text-neutral-600 dark:text-neutral-300")),
+		).Class("min-h-0 overflow-hidden"),
+	).
 		Id(panelID).
 		Role("region").
 		Aria("labelledby", buttonID).
-		Class(Classes("pb-4 text-sm text-neutral-600 dark:text-neutral-300")).
-		Style(hiddenUntilDatastar).
-		Attrs(datastar.Show(open))
+		Class(Classes("invisible grid grid-rows-[0fr] transition-[grid-template-rows,visibility] duration-200 ease-out motion-reduce:transition-none",
+			"peer-aria-expanded:visible peer-aria-expanded:grid-rows-[1fr]"))
 	return []htemel.FlowContent{button, panel}
 }
 

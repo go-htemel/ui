@@ -70,8 +70,8 @@ func Toast(id string, t Tone, title, message string, timeout time.Duration) *htm
 	).Id("toast-"+key).
 		Role("status").
 		Class(Classes("pointer-events-auto flex w-full gap-x-3 rounded-surface border-l-4 bg-white p-4 shadow-lg ring-1 ring-neutral-950/5",
-			"dark:bg-neutral-800 dark:ring-white/10", pick(toneAccent, t, Neutral))).
-		Attrs(datastar.Signal(ToastSignal+"."+key, "true"), datastar.Show(sig))
+			"dark:bg-neutral-800 dark:ring-white/10", pick(toneAccent, t, Neutral), toastMotion)).
+		Attrs(datastar.Signal(ToastSignal+"."+key, "true"), datastar.Show(sig), datastar.Class("opacity-0", "!"+sig))
 	if timeout > 0 {
 		tick := min(toastTick, timeout)
 		el.Attrs(datastar.OnInterval(
@@ -82,6 +82,13 @@ func Toast(id string, t Tone, title, message string, timeout time.Duration) *htm
 	}
 	return el
 }
+
+// toastMotion slides a new toast in from the right (@starting-style applies when the element is
+// first rendered) and fades it out when it is dismissed: data-class adds opacity-0 in the same
+// update in which data-show sets display: none, and transition-discrete keeps it displayed until
+// the fade ends.
+const toastMotion = "transition-[opacity,translate,display] transition-discrete duration-200 ease-out " +
+	"starting:translate-x-full starting:opacity-0 motion-reduce:transition-none"
 
 // toastTick is how often a toast's countdown advances.
 const toastTick = 250 * time.Millisecond

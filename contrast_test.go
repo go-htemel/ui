@@ -152,7 +152,7 @@ func matrix() []spec {
 	add("Input", "placeholder", "form.go:26", text, on("placeholder:text-neutral-500", "bg-white"), on("dark:placeholder:text-neutral-400", "dark:bg-white/5"))
 	add("Input", "border (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", ""), on("dark:outline-white/35", ""))
 	add("Input", "border against the field (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", "bg-white"), on("dark:outline-white/35", "dark:bg-white/5"))
-	add("InputGroup", "affix border", "info.go:104", nonText, on("outline-neutral-500", "bg-neutral-50"), on("dark:outline-white/35", "dark:bg-white/5"))
+	add("InputGroup", "affix border", "info.go:105", nonText, on("outline-neutral-500", "bg-neutral-50"), on("dark:outline-white/35", "dark:bg-white/5"))
 	add("Input", "focus outline", "form.go:26", nonText, on("focus:outline-primary-700", ""), on("dark:focus:outline-primary-500", ""))
 	add("Input", "invalid outline", "form.go:28", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
 	disabled("Input", "disabled text", "form.go:27", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
@@ -171,15 +171,15 @@ func matrix() []spec {
 	add("Table", "sort button focus outline", "table.go:133", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	add("Table", "empty-state description", "table.go:155", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 
-	// Stat (info.go:50-65) on its white / neutral-900 card. The value is text-2xl semibold.
-	add("Stat", "value", "info.go:50", largeText, on("text-neutral-900", "").over(cardL), on("dark:text-white", "").over(cardD))
-	add("Stat", "label", "info.go:63", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
-	add("Stat", "delta neutral", "info.go:53", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
-	add("Stat", "delta positive", "info.go:56", text, on("text-success-700", "").over(cardL), on("dark:text-success-400", "").over(cardD))
-	add("Stat", "delta negative", "info.go:58", text, on("text-danger-600", "").over(cardL), on("dark:text-danger-400", "").over(cardD))
-	add("DescriptionList", "term", "info.go:95", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	// Stat (info.go:51-66) on its white / neutral-900 card. The value is text-2xl semibold.
+	add("Stat", "value", "info.go:51", largeText, on("text-neutral-900", "").over(cardL), on("dark:text-white", "").over(cardD))
+	add("Stat", "label", "info.go:64", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
+	add("Stat", "delta neutral", "info.go:54", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
+	add("Stat", "delta positive", "info.go:57", text, on("text-success-700", "").over(cardL), on("dark:text-success-400", "").over(cardD))
+	add("Stat", "delta negative", "info.go:59", text, on("text-danger-600", "").over(cardL), on("dark:text-danger-400", "").over(cardD))
+	add("DescriptionList", "term", "info.go:96", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
-	// Progress (progress.go:32-36, 51): fill against its track; Steps (progress.go:142-159) labels.
+	// Progress (progress.go:32-36, 51): fill against its track; Steps (progress.go:145-162) labels.
 	for _, p := range []struct{ name, line, l, d string }{
 		{"Neutral", "32", "bg-primary-600", "dark:bg-primary-500"},
 		{"Info", "33", "bg-info-600", "dark:bg-info-500"},
@@ -189,13 +189,13 @@ func matrix() []spec {
 	} {
 		add("Progress/"+p.name, "fill on track", "progress.go:"+p.line, nonText, on(p.l, "bg-neutral-200"), on(p.d, "dark:bg-white/10"))
 	}
-	add("Steps", "completed number", "progress.go:142", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
-	add("Steps", "current number", "progress.go:146", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
-	add("Steps", "upcoming number", "progress.go:150", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Steps", "upcoming label", "progress.go:153", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Steps", "current label", "progress.go:155", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Steps", "completed number", "progress.go:145", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
+	add("Steps", "current number", "progress.go:149", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
+	add("Steps", "upcoming number", "progress.go:153", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Steps", "upcoming label", "progress.go:156", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Steps", "current label", "progress.go:158", text, on("text-neutral-900", ""), on("dark:text-white", ""))
 
-	// Tooltip (info.go:37-39): opaque bubble.
+	// Tooltip (info.go:37-40): opaque bubble.
 	add("Tooltip", "text", "info.go:38", text, on("text-white", "bg-neutral-900"), on("text-white", "dark:bg-neutral-700"))
 
 	// Nav (nav.go:22-24, 123), Breadcrumb (nav.go:171-179), Tabs, Pagination.
@@ -227,7 +227,7 @@ func matrix() []spec {
 	add("Drawer", "body text", "drawer.go:73", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 
 	// Other focus rings that sit on the page background.
-	add("Disclosure", "focus-visible outline", "disclosure.go:65", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
+	add("Disclosure", "focus-visible outline", "disclosure.go:68", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
 	return m
 }
 

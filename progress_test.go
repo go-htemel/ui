@@ -32,18 +32,18 @@ func init() {
 func TestProgressClamps(t *testing.T) {
 	for _, tc := range []struct {
 		value, max int
-		now, width string
+		now, style string
 	}{
-		{150, 100, `aria-valuenow="100"`, "width: 100%"},
-		{-5, 100, `aria-valuenow="0"`, "width: 0%"},
-		{1, 0, `aria-valuenow="1"`, "width: 1%"},
-		{1, 3, `aria-valuenow="1"`, "width: 33.33"},
+		{150, 100, `aria-valuenow="100"`, "translate: 0%"},
+		{-5, 100, `aria-valuenow="0"`, "translate: -100%"},
+		{1, 0, `aria-valuenow="1"`, "translate: -99%"},
+		{1, 3, `aria-valuenow="1"`, "translate: -66.66"},
 	} {
 		s, err := htemel.RenderString(ui.Progress(tc.value, tc.max))
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !strings.Contains(s, tc.now) || !strings.Contains(s, tc.width) || !strings.Contains(s, `role="progressbar"`) {
+		if !strings.Contains(s, tc.now) || !strings.Contains(s, tc.style) || !strings.Contains(s, `role="progressbar"`) {
 			t.Errorf("Progress(%d, %d) = %s", tc.value, tc.max, s)
 		}
 	}

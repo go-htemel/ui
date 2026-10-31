@@ -19,7 +19,7 @@ func Tab(key, label string, panel ...htemel.FlowContent) TabItem {
 }
 
 const (
-	tabBase     = "-mb-px cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500"
+	tabBase     = "cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500"
 	tabActive   = "border-primary-700 text-primary-700 dark:border-primary-400 dark:text-primary-400"
 	tabInactive = "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:text-neutral-400 dark:hover:border-white/20 dark:hover:text-neutral-200"
 )
@@ -43,8 +43,14 @@ func Tabs(signal string, tabs ...TabItem) *html.DivElement {
 	}
 	sig := "$" + signal
 	active, inactive := Classes(tabActive), Classes(tabInactive)
-	list := html.Div().Role("tablist").Attrs(datastar.OnKeyDown(tabKeys)).Class(Classes("flex gap-x-6 overflow-x-auto border-b border-neutral-200 dark:border-white/10"))
-	root := html.Div(list).Attrs(initially(signal, datastar.Quote(tabs[0].key)))
+	// The baseline is the border of a wrapper, and the list overlaps it by 1px (-mb-px), so the
+	// active tab's 2px border covers it. The tabs themselves keep their box inside the list: a
+	// negative margin on them would overflow the list vertically, and overflow-x-auto (which
+	// makes overflow-y auto too) would then show a vertical scrollbar.
+	list := html.Div().Role("tablist").Attrs(datastar.OnKeyDown(tabKeys)).Class(Classes("-mb-px flex gap-x-6 overflow-x-auto"))
+	root := html.Div(
+		html.Div(list).Class(Classes("border-b border-neutral-200 dark:border-white/10")),
+	).Attrs(initially(signal, datastar.Quote(tabs[0].key)))
 	for i, t := range tabs {
 		id := domID(signal) + "-" + domID(t.key)
 		selected := sig + " === " + datastar.Quote(t.key)
@@ -72,7 +78,9 @@ func Tabs(signal string, tabs ...TabItem) *html.DivElement {
 			Id(id+"-panel").
 			Aria("labelledby", id+"-tab").
 			Tabindex(0).
-			Class("pt-4 focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500").
+			// data-show reveals the panel; @starting-style (starting:) fades it in from there.
+			Class(Classes("pt-4 transition-opacity duration-200 ease-out starting:opacity-0 motion-reduce:transition-none",
+				"focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500")).
 			Attrs(datastar.Show(selected))
 		if i > 0 {
 			panel.Style(hiddenUntilDatastar)

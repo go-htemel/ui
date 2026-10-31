@@ -8,7 +8,7 @@ import (
 	"github.com/go-htemel/htemel/html"
 )
 
-const pageItemClass = "inline-flex min-w-9 items-center justify-center gap-x-1 rounded-control px-3 py-1.5 text-sm font-medium " +
+const pageItemClass = "inline-flex min-w-9 items-center justify-center gap-x-1 rounded-control px-3 py-1.5 text-sm font-medium transition-colors duration-150 " +
 	"text-neutral-700 ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 " +
 	"focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500 aria-[current=page]:bg-primary-700 aria-[current=page]:text-white aria-[current=page]:ring-primary-700 " +
 	"aria-[current=page]:hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 " +

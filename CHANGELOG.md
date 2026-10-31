@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+### Motion
+
+One light, consistent motion scale, compositor-only (opacity, translate, scale, rotate, grid
+rows; never width, height or position) and switched off by `prefers-reduced-motion`
+(`motion-reduce:transition-none` on every transitioned element; a golden test enforces it and
+the 200ms ceiling):
+
+- Hover and focus colour changes: `transition-colors duration-150` (buttons, menu items, nav
+  links, pagination items, tabs, close buttons, the switch track). Colour-only transitions keep
+  running under reduced motion: nothing moves.
+- Appearing: `duration-200 ease-out`, reversed on the way out. `Dialog` fades and scales from
+  98%, `Drawer` slides from its edge, both with a fading backdrop and both animating close too
+  (`@starting-style` via `starting:open:`, `transition-discrete` over `display` and `overlay`);
+  `Dropdown` fades with a 1px drop the same way; `Tooltip` fades with a 1px rise; a `Toast`
+  slides in from the right and fades out when dismissed; `Tabs` panels fade in.
+- `Disclosure` and `Accordion` panels open and close by animating a grid row from `0fr` to `1fr`
+  with no script: the panel follows its button's `aria-expanded` (`peer-aria-expanded:`) and is
+  `visibility: hidden` once collapsed. They no longer use `data-show` / `display: none`.
+- `Progress` slides its fill (`translate`) instead of animating `width`; the inline style is now
+  `translate: -N%`. `Skeleton` stops pulsing under reduced motion.
+
+### Tabs: no vertical scrollbar
+
+The tab list scrolls horizontally (`overflow-x-auto`), and each tab's `-mb-px` made it 1px
+taller than the list, so browsers showed a vertical scrollbar. The baseline is now the border of
+a wrapper that the list overlaps by 1px; the tabs keep their 2px underline inside the list. The
+axe run asserts `scrollHeight === clientHeight` for every tab list.
+
 ### Drawer
 
 - **Added:** `Drawer(signal, side, title, children...)` and `DrawerActions(...)`, slide-over

@@ -122,7 +122,7 @@ func SortableTh(label, key, sortSignal, action string) *html.ThElement {
 	if action != "" {
 		click += "; " + action
 	}
-	arrow := IconChevronDown().Class("size-4 shrink-0 transition-transform").
+	arrow := IconChevronDown().Class("size-4 shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none").
 		Attrs(
 			datastar.Style("opacity", "("+active+") ? 1 : 0.3"),
 			datastar.Class("rotate-180", active+" && "+sortDir+" === 'asc'"),
