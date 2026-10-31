@@ -35,6 +35,8 @@ func routes() http.Handler {
 		r.Post("/validate", validateUsername)
 		r.Post("/kanban/move/{column}", moveCard)
 		r.Post("/kanban/reset", resetBoard)
+		r.Get("/people", peopleHandler)
+		r.Post("/progress", progressHandler)
 	})
 	return r
 }
