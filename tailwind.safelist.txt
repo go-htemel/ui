@@ -37,6 +37,9 @@ aria-[current=page]:ring-primary-600
 aria-[current=page]:text-white
 aria-invalid:focus:outline-danger-600
 aria-invalid:outline-danger-500
+aria-pressed:bg-primary-600
+aria-pressed:hover:bg-primary-700
+aria-pressed:text-white
 backdrop:bg-neutral-950/50
 backdrop:duration-200
 backdrop:ease-out
@@ -93,6 +96,8 @@ dark:aria-[current=page]:hover:bg-primary-500
 dark:aria-[current=page]:ring-primary-600
 dark:aria-[current=page]:text-white
 dark:aria-invalid:outline-danger-400
+dark:aria-pressed:bg-primary-600
+dark:aria-pressed:hover:bg-primary-500
 dark:backdrop:bg-neutral-950/70
 dark:bg-danger-400/10
 dark:bg-danger-500
@@ -380,6 +385,7 @@ rounded-surface
 rounded-t-surface
 row-start-1
 scale-[.98]
+secondary
 self-center
 self-start
 shadow-lg

@@ -133,6 +133,13 @@ func matrix() []spec {
 	add("Button/Link", "focus-visible outline", "button.go:24", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
 	disabled("Button/Link", "disabled", "button.go:24", on("text-primary-600", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
 
+	// ColorSchemeToggle segments (colorscheme.go:87-88 colorSchemeSegment on top of Secondary,
+	// button.go:16): the selected segment is a primary solid with white text; the others are
+	// plain Secondary buttons.
+	add("ColorSchemeToggle/inactive segment", "default", "button.go:16", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/10"))
+	add("ColorSchemeToggle/active segment", "default", "colorscheme.go:87", text, on("aria-pressed:text-white", "aria-pressed:bg-primary-600"), on("aria-pressed:text-white", "dark:aria-pressed:bg-primary-600"))
+	add("ColorSchemeToggle/active segment", "hover", "colorscheme.go:87", text, on("aria-pressed:text-white", "aria-pressed:hover:bg-primary-700"), on("aria-pressed:text-white", "dark:aria-pressed:hover:bg-primary-500"))
+
 	// Badge, Alert (title and body) and Toast per tone.
 	for _, t := range tones {
 		add("Badge/"+t.name, "text on tint", "badge.go:"+t.line, text, on(t.lfg, t.lbg), on(t.dfg, t.dbg))

@@ -11,6 +11,7 @@ type options struct {
 	icon     htemel.PhrasingContent
 	trailing htemel.PhrasingContent
 	loading  string
+	class    string // extra classes appended by components that wrap Button or IconButton
 }
 
 func collect(opts []Option) options {
@@ -38,3 +39,7 @@ func WithTrailingIcon(icon htemel.PhrasingContent) Option {
 // button is in flight, the signal is true, the button is disabled and a spinner replaces its
 // icon. signal is a camelCase signal name, such as "saving".
 func WithLoading(signal string) Option { return func(o *options) { o.loading = signal } }
+
+// withClass appends classes to the element of Button and IconButton; for components in this
+// package that restyle a button (callers chain Class on the result instead, which replaces).
+func withClass(class string) Option { return func(o *options) { o.class = class } }

@@ -66,7 +66,7 @@ func Button(v Variant, label string, opts ...Option) *html.ButtonElement {
 	}
 	b := html.Button().
 		Type(html.ButtonTypeButton).
-		Class(Classes(buttonBase, pick(buttonVariants, v, Primary), size))
+		Class(Classes(buttonBase, pick(buttonVariants, v, Primary), size, o.class))
 	b.Children(leadingIcon(o.icon, o.loading))
 	b.Text(label)
 	if o.trailing != nil {
@@ -83,7 +83,7 @@ func IconButton(v Variant, icon htemel.PhrasingContent, label string, opts ...Op
 	o := collect(opts)
 	b := html.Button().
 		Type(html.ButtonTypeButton).
-		Class(Classes(buttonBase, pick(buttonVariants, v, Primary), pick(iconButtonSizes, o.size, Md))).
+		Class(Classes(buttonBase, pick(buttonVariants, v, Primary), pick(iconButtonSizes, o.size, Md), o.class)).
 		Aria("label", label).
 		Title(label)
 	b.Children(leadingIcon(icon, o.loading))

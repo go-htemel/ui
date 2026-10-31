@@ -1,0 +1,11 @@
+<script nonce="r4nd0m">(function () {
+  var root = document.documentElement;
+  var query = matchMedia('(prefers-color-scheme: dark)');
+  function apply() {
+    var stored = null;
+    try { stored = localStorage.getItem('color-scheme'); } catch (e) {}
+    root.classList.toggle('dark', stored === 'dark' || (stored !== 'light' && query.matches));
+  }
+  apply();
+  query.addEventListener('change', apply);
+})();</script>
