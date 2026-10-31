@@ -25,10 +25,10 @@
 //
 // # Interactivity
 //
-// Open/close state lives in Datastar signals named by the caller: Dialog, Dropdown, Disclosure,
-// Tabs and Accordion take the signal name as their first argument and declare it with
-// __ifmissing so the server can preset it. Disclosure, Tabs and Accordion are driven by data-show,
-// data-class and data-attr. Dialog and Dropdown are native overlays, a modal <dialog> and a
+// Open/close state lives in Datastar signals named by the caller: Dialog, Drawer, Dropdown,
+// Disclosure, Tabs and Accordion take the signal name as their first argument and declare it with
+// __ifmissing so the server can preset it. Tabs are driven by data-show, data-class and data-attr;
+// Disclosure and Accordion bind aria-expanded and their panels follow it in CSS. Dialog, Drawer and Dropdown are native overlays, modal <dialog>s and a
 // popover: the browser shows and hides them, and the signal mirrors their state both ways (an
 // effect calls showModal, close, showPopover or hidePopover, and the close and toggle events
 // write the signal back). Open, Close and Toggle return the matching expressions, and Opens is

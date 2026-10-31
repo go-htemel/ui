@@ -1,5 +1,16 @@
 # Accessibility scan: component-level violations
 
+> **Status: resolved.** Everything below is fixed; `task a11y` now reports 0 WCAG violations and
+> no best-practice findings in light and dark, including the open dialog, drawer, bottom sheet,
+> dropdown and mobile navbar drawer, and the Go contrast test passes with no failing rows.
+> 1: solids with white text use the 700 step (`bg-primary-700`, Danger `bg-danger-600` in both
+> schemes), links and active tabs `text-primary-700`, the Stat delta `text-success-700`.
+> 2: a disabled previous/next item is a `<span aria-disabled>` with sr-only text. 3: `Pagination`
+> and `PaginationSignal` take an optional label, `BreadcrumbsLabel` and `StepsLabel` name their
+> landmark, and the showcase uses distinct names. 4: `Field` labels the control inside an
+> `InputGroup` (`InputGroupElement.Control`, `ui.CompositeControl`); the showcase workaround is
+> gone. The findings are kept below for the record.
+
 Source: `task a11y` (axe-core 4.11, WCAG 2.1 A/AA + best-practice, Chromium, 13 pages x light/dark
 plus open dialog, open dropdown, switched tab, expanded disclosure/accordion, open mobile navbar).
 Everything below comes from a component in the package root or `assets/ui.css`; the showcase-only
