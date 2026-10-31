@@ -33,7 +33,7 @@ func init() {
 
 // The prose colors live in assets/ui.css as --ui-prose-* variables on .ui-prose (light), with
 // the dark values in the @variant dark block below them. proseVars lists them in stylesheet order
-// with the lines of both declarations (field-border is a token that already has a dark value).
+// with the lines of both declarations (control-border is a token that already has a dark value).
 type proseVar struct {
 	name        string
 	line, dline int    // lines of the light and dark declarations; dline 0: the token switches itself
@@ -41,19 +41,19 @@ type proseVar struct {
 }
 
 var proseVars = []proseVar{
-	{"body", 561, 580, "neutral-700", "neutral-300"},
-	{"headings", 562, 581, "neutral-900", "white"},
-	{"link", 563, 582, "primary-600", "primary-400"},
-	{"link-hover", 564, 583, "primary-700", "primary-300"},
-	{"muted", 565, 584, "neutral-600", "neutral-400"},
-	{"marker", 566, 585, "neutral-500", "neutral-400"},
-	{"code", 567, 586, "neutral-800", "neutral-200"},
-	{"code-bg", 568, 587, "neutral-100", "white/10"},
-	{"th", 569, 588, "neutral-900", "white"},
-	{"th-bg", 570, 589, "neutral-50", "white/5"},
-	{"rule", 571, 590, "neutral-200", "white/10"},
-	{"quote-border", 572, 0, "field-border", "field-border"},
-	{"check", 573, 591, "primary-600", "primary-500"},
+	{"body", 571, 590, "neutral-700", "neutral-300"},
+	{"headings", 572, 591, "neutral-900", "white"},
+	{"link", 573, 592, "primary-600", "primary-400"},
+	{"link-hover", 574, 593, "primary-700", "primary-300"},
+	{"muted", 575, 594, "neutral-600", "neutral-400"},
+	{"marker", 576, 595, "neutral-500", "neutral-400"},
+	{"code", 577, 596, "neutral-800", "neutral-200"},
+	{"code-bg", 578, 597, "neutral-100", "white/10"},
+	{"th", 579, 598, "neutral-900", "white"},
+	{"th-bg", 580, 599, "neutral-50", "white/5"},
+	{"rule", 581, 600, "neutral-200", "white/10"},
+	{"quote-border", 582, 0, "control-border", "control-border"},
+	{"check", 583, 601, "primary-600", "primary-500"},
 }
 
 func proseVarOf(name string) proseVar {
@@ -110,7 +110,7 @@ func proseRows() []spec {
 	ql := "border-" + proseVarOf("quote-border").light
 	m = append(m,
 		spec{component: "Prose", state: "blockquote bar on a card (SC 1.4.11)", src: src("quote-border"), kind: nonText, light: on(ql, "").over(cardL), dark: on(ql, "").over(cardD)},
-		spec{component: "Prose", state: "table header rule on a card (SC 1.4.11)", src: "assets/ui.css:822", kind: nonText, light: on(ql, hl).over(cardL), dark: on(ql, hd).over(cardD)},
+		spec{component: "Prose", state: "table header rule on a card (SC 1.4.11)", src: "assets/ui.css:832", kind: nonText, light: on(ql, hl).over(cardL), dark: on(ql, hd).over(cardD)},
 	)
 	kl, kd := bg("check")
 	m = append(m,

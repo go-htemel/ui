@@ -63,6 +63,7 @@ type spec struct {
 	component, state, src string
 	kind                  kind
 	exempt                bool // inactive controls: WCAG 1.4.3 exempts them; reported, never failing
+	info                  bool // measured and reported for information, never failing (see informational)
 	light, dark           side
 }
 
@@ -96,6 +97,14 @@ func matrix() []spec {
 	}
 	disabled := func(component, state, src string, light, dark side) {
 		m = append(m, spec{component: component, state: state, src: src, kind: text, exempt: true, light: light, dark: dark})
+	}
+	// informational rows are measured and reported but do not fail: the resting and hover outline
+	// of a text field. WCAG Understanding SC 1.4.11 ("Text input"): a text input identified by its
+	// label, its fill and its focus indicator does not need a 3:1 boundary; the focus outline does,
+	// and those rows stay enforced. Checkbox, Radio and Switch boundaries are the control itself
+	// and stay enforced too (control-border).
+	informational := func(component, state, src string, light, dark side) {
+		m = append(m, spec{component: component, state: state, src: src, kind: nonText, info: true, light: light, dark: dark})
 	}
 	const dis = "disabled:opacity-50" // buttonBase, button.go:10
 
@@ -162,16 +171,16 @@ func matrix() []spec {
 	// Input (form.go:29-34). Dark inputs are bg-white/5 over the page.
 	add("Input", "text", "form.go:33", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/5"))
 	add("Input", "placeholder", "form.go:33", text, on("placeholder:text-neutral-500", "bg-white"), on("dark:placeholder:text-neutral-400", "dark:bg-white/5"))
-	// outline-field-border is a token: --color-field-border under @theme (light) and under .dark
-	// (white at 35%), so the same class is measured against the light and the dark theme. The
-	// hover color is one notch darker (neutral-500) in light and brighter (white at 55%) in dark.
-	add("Input", "border (SC 1.4.11)", "form.go:29", nonText, on("outline-field-border", ""), on("outline-field-border", ""))
-	add("Input", "border against the field (SC 1.4.11)", "form.go:29", nonText, on("outline-field-border", "bg-white"), on("outline-field-border", "dark:bg-white/5"))
-	add("Input", "border on a card (SC 1.4.11)", "form.go:29", nonText, on("outline-field-border", "").over(cardL), on("outline-field-border", "").over(cardD))
-	add("Input", "border against the field on a card (SC 1.4.11)", "form.go:29", nonText, on("outline-field-border", "bg-white").over(cardL), on("outline-field-border", "dark:bg-white/5").over(cardD))
-	add("Input", "border, hover", "form.go:29", nonText, on("enabled:hover:outline-field-border-hover", ""), on("enabled:hover:outline-field-border-hover", ""))
-	add("Input", "border against the field, hover", "form.go:29", nonText, on("enabled:hover:outline-field-border-hover", "bg-white"), on("enabled:hover:outline-field-border-hover", "dark:bg-white/5"))
-	add("InputGroup", "affix border", "info.go:105", nonText, on("outline-field-border", "bg-neutral-50"), on("outline-field-border", "dark:bg-white/5"))
+	// outline-field-border is a token: --color-field-border under @theme (neutral-300) and under
+	// .dark (white at 15%), so the same class is measured against the light and the dark theme;
+	// hover is neutral-400 / white at 30%. Informational (see informational above).
+	informational("Input", "border (SC 1.4.11, informational)", "form.go:29", on("outline-field-border", ""), on("outline-field-border", ""))
+	informational("Input", "border against the field (informational)", "form.go:29", on("outline-field-border", "bg-white"), on("outline-field-border", "dark:bg-white/5"))
+	informational("Input", "border on a card (informational)", "form.go:29", on("outline-field-border", "").over(cardL), on("outline-field-border", "").over(cardD))
+	informational("Input", "border against the field on a card (informational)", "form.go:29", on("outline-field-border", "bg-white").over(cardL), on("outline-field-border", "dark:bg-white/5").over(cardD))
+	informational("Input", "border, hover (informational)", "form.go:29", on("enabled:hover:outline-field-border-hover", ""), on("enabled:hover:outline-field-border-hover", ""))
+	informational("Input", "border against the field, hover (informational)", "form.go:29", on("enabled:hover:outline-field-border-hover", "bg-white"), on("enabled:hover:outline-field-border-hover", "dark:bg-white/5"))
+	informational("InputGroup", "affix border (informational)", "info.go:105", on("outline-field-border", "bg-neutral-50"), on("outline-field-border", "dark:bg-white/5"))
 	add("Input", "focus outline", "form.go:30", nonText, on("focus:outline-primary-600", ""), on("dark:focus:outline-primary-500", ""))
 	add("Input", "invalid outline", "form.go:32", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
 	disabled("Input", "disabled text", "form.go:31", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
@@ -186,9 +195,9 @@ func matrix() []spec {
 
 	// Checkbox and Radio (form.go choiceBox, choiceMark), on the example card.
 	add("Checkbox/Radio", "label", "form.go:146", text, on("text-neutral-900", "").over(cardL), on("dark:text-white", "").over(cardD))
-	add("Checkbox/Radio", "unchecked border vs card (SC 1.4.11)", "form.go:152", nonText, on("border-field-border", "").over(cardL), on("border-field-border", "").over(cardD))
-	add("Checkbox/Radio", "unchecked border vs box fill (SC 1.4.11)", "form.go:152,form.go:157", nonText, on("border-field-border", "bg-white").over(cardL), on("border-field-border", "dark:bg-white/5").over(cardD))
-	add("Checkbox/Radio", "hover border", "form.go:153,form.go:157", nonText, on("not-checked:enabled:hover:border-field-border-hover", "bg-white").over(cardL), on("not-checked:enabled:hover:border-field-border-hover", "dark:bg-white/5").over(cardD))
+	add("Checkbox/Radio", "unchecked border vs card (SC 1.4.11)", "form.go:152", nonText, on("border-control-border", "").over(cardL), on("border-control-border", "").over(cardD))
+	add("Checkbox/Radio", "unchecked border vs box fill (SC 1.4.11)", "form.go:152,form.go:157", nonText, on("border-control-border", "bg-white").over(cardL), on("border-control-border", "dark:bg-white/5").over(cardD))
+	add("Checkbox/Radio", "hover border", "form.go:153,form.go:157", nonText, on("not-checked:enabled:hover:border-control-border-hover", "bg-white").over(cardL), on("not-checked:enabled:hover:border-control-border-hover", "dark:bg-white/5").over(cardD))
 	add("Checkbox/Radio", "checked fill vs card", "form.go:154", nonText, on("checked:bg-primary-600", "").over(cardL), on("dark:checked:bg-primary-500", "").over(cardD))
 	add("Checkbox", "check mark on fill", "form.go:154", nonText, on("text-white", "checked:bg-primary-600"), on("text-white", "dark:checked:bg-primary-500"))
 	add("Radio", "dot on fill", "form.go:154", nonText, on("bg-white", "checked:bg-primary-600"), on("bg-white", "dark:checked:bg-primary-500"))
@@ -196,11 +205,11 @@ func matrix() []spec {
 	disabled("Checkbox/Radio", "disabled label", "form.go:147", on("has-disabled:text-neutral-500", "").over(cardL), on("dark:has-disabled:text-neutral-400", "").over(cardD))
 
 	// Switch (form.go Switch): off track ring and knob ring, on track, knob on the on track. The
-	// track ring is field-border (3:1 against the card); the knob ring sits on the darker
-	// neutral-200 track, so it takes field-border-hover (field-border would be 2.5:1 there). In
+	// track ring is control-border (3:1 against the card); the knob ring sits on the darker
+	// neutral-200 track, so it takes control-border-hover (control-border would be 2.5:1 there). In
 	// dark the knob is a white disc on the white/10 track.
-	add("Switch", "off track ring vs card", "form.go:238", nonText, on("ring-field-border", "").over(cardL), on("ring-field-border", "").over(cardD))
-	add("Switch", "knob vs off track", "form.go:235", nonText, on("ring-field-border-hover", "bg-neutral-200").over(cardL), on("bg-white", "dark:bg-white/10").over(cardD))
+	add("Switch", "off track ring vs card", "form.go:238", nonText, on("ring-control-border", "").over(cardL), on("ring-control-border", "").over(cardD))
+	add("Switch", "knob vs off track", "form.go:235", nonText, on("ring-control-border-hover", "bg-neutral-200").over(cardL), on("bg-white", "dark:bg-white/10").over(cardD))
 	add("Switch", "on track vs card", "form.go:239", nonText, on("has-checked:bg-primary-600", "").over(cardL), on("dark:has-checked:bg-primary-500", "").over(cardD))
 	add("Switch", "knob vs on track", "form.go:239", nonText, on("bg-white", "has-checked:bg-primary-600"), on("bg-white", "dark:has-checked:bg-primary-500"))
 	add("Switch", "knob vs on track, hover", "form.go:240", nonText, on("bg-white", "has-checked:has-enabled:hover:bg-primary-700"), on("bg-white", "dark:has-checked:has-enabled:hover:bg-primary-400"))
@@ -456,6 +465,8 @@ func TestContrast(t *testing.T) {
 		case r.ok():
 		case r.spec.exempt:
 			t.Logf("exempt (disabled): %s", r)
+		case r.spec.info:
+			t.Logf("informational: %s", r)
 		default:
 			failed++
 			msg := r.String()
@@ -470,18 +481,20 @@ func TestContrast(t *testing.T) {
 
 func contrastReport(results []result) string {
 	var b strings.Builder
-	pass, fail, exempt := 0, 0, 0
+	pass, fail, exempt, info := 0, 0, 0, 0
 	for _, r := range results {
 		switch {
 		case r.ok():
 			pass++
 		case r.spec.exempt:
 			exempt++
+		case r.spec.info:
+			info++
 		default:
 			fail++
 		}
 	}
-	fmt.Fprintf(&b, "# Contrast report\n\nTailwind v4.1 palette resolved through ThemeCSS(). %d rows: %d pass, %d fail, %d disabled-exempt below minimum.\n\n", len(results), pass, fail, exempt)
+	fmt.Fprintf(&b, "# Contrast report\n\nTailwind v4.1 palette resolved through ThemeCSS(). %d rows: %d pass, %d fail, %d disabled-exempt and %d informational below minimum.\n\n", len(results), pass, fail, exempt, info)
 	b.WriteString("| Status | Component / state | Scheme | Kind | Foreground | Background | Ratio | Need | Suggested fix | Source |\n|---|---|---|---|---|---|---|---|---|---|\n")
 	for _, r := range results {
 		status := "pass"
@@ -489,6 +502,8 @@ func contrastReport(results []result) string {
 		case r.ok():
 		case r.spec.exempt:
 			status = "exempt"
+		case r.spec.info:
+			status = "info"
 		default:
 			status = "**FAIL**"
 		}
@@ -600,7 +615,7 @@ func TestContrastMatrixInSync(t *testing.T) {
 func TestContrastTokensResolve(t *testing.T) {
 	th := wcag.NewTheme(ui.ThemeCSS())
 	for tok, want := range map[string]string{
-		"neutral-500": "zinc-500", "field-border-hover": "zinc-500", "success-600": "green-600",
+		"neutral-500": "zinc-500", "field-border-hover": "zinc-400", "field-border": "zinc-300", "control-border-hover": "zinc-500", "success-600": "green-600",
 		"warning-500": "amber-500", "primary-400": "indigo-400", "primary-500": "indigo-500", "primary-600": "indigo-600", "primary-700": "indigo-700", "danger-500": "red-500", "info-600": "sky-600", "info-700": "sky-700",
 	} {
 		if got := th.Alias(tok); got != want {
@@ -620,14 +635,15 @@ func TestPrimaryAliasesIndigo(t *testing.T) {
 	}
 }
 
-// TestFieldBorderToken checks the field outline token against its stated bounds: in light it is
+// TestControlBorderToken checks the Checkbox / Radio / Switch boundary token against its stated
+// bounds (the softer field-border is informational, see matrix): in light it is
 // the lightest shade of its hue and chroma (steps of 0.5 L) that is 3.05:1 on both white and the
 // page background, so one step lighter would fall below the 3:1 of WCAG 1.4.11; the hover color
 // is darker; in dark both are translucent whites over the field, the card and the page.
 func TestFieldBorderToken(t *testing.T) {
-	m := regexp.MustCompile(`--color-field-border:\s*oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)\s*\)`).FindStringSubmatch(ui.ThemeCSS())
+	m := regexp.MustCompile(`--color-control-border:\s*oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)\s*\)`).FindStringSubmatch(ui.ThemeCSS())
 	if m == nil {
-		t.Fatal("--color-field-border is not an oklch() value in ThemeCSS")
+		t.Fatal("--color-control-border is not an oklch() value in ThemeCSS")
 	}
 	f := func(s string) float64 { v, _ := strconv.ParseFloat(s, 64); return v }
 	lch := wcag.OKLCH{L: f(m[1]), C: f(m[2]), H: f(m[3])}
@@ -637,21 +653,21 @@ func TestFieldBorderToken(t *testing.T) {
 	const want = 3.05
 	at := func(c wcag.OKLCH) float64 { return min(wcag.Contrast(c.RGB(), white), wcag.Contrast(c.RGB(), page)) }
 	if got := at(lch); got < want {
-		t.Errorf("field-border is %.2f:1 on the lighter of white and neutral-50, want %.2f:1", got, want)
+		t.Errorf("control-border is %.2f:1 on the lighter of white and neutral-50, want %.2f:1", got, want)
 	}
 	lighter := lch
 	lighter.L += 0.5
 	if got := at(lighter); got >= want {
-		t.Errorf("field-border is not the lightest: L+0.5 is still %.2f:1; lighten the token", got)
+		t.Errorf("control-border is not the lightest: L+0.5 is still %.2f:1; lighten the token", got)
 	}
-	hover, _ := th.ClassColor("outline-field-border-hover")
-	border, _ := th.ClassColor("outline-field-border")
+	hover, _ := th.ClassColor("outline-control-border-hover")
+	border, _ := th.ClassColor("outline-control-border")
 	if wcag.Contrast(hover, white) <= wcag.Contrast(border, white) {
-		t.Error("field-border-hover is not darker than field-border in light")
+		t.Error("control-border-hover is not darker than control-border in light")
 	}
 	dark := wcag.NewDarkTheme(ui.ThemeCSS())
-	db, _ := dark.ClassColor("outline-field-border")
-	dh, _ := dark.ClassColor("outline-field-border-hover")
+	db, _ := dark.ClassColor("outline-control-border")
+	dh, _ := dark.ClassColor("outline-control-border-hover")
 	if db.A >= dh.A || db.A <= 0 || dh.A >= 1 {
 		t.Errorf("dark alphas: border %.2f, hover %.2f; want 0 < border < hover < 1", db.A, dh.A)
 	}

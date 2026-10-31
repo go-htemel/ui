@@ -10,7 +10,7 @@ import (
 // That HTML carries no classes of its own, so the typography lives in ui.css as descendant
 // rules of .ui-prose rather than as utilities: a heading scale with balanced wrapping,
 // paragraphs at text-base/7, underlined primary links, nested bullet and number lists with
-// muted markers, blockquotes with a field-border bar, tables in the Table colors, rules, images
+// muted markers, blockquotes with a control-border bar, tables in the Table colors, rules, images
 // with the surface radius, inline code as a chip, <kbd>, GFM task-list checkboxes drawn like
 // Checkbox (read-only), footnotes and <mark>. Code blocks from the code package keep their own
 // look. Light and dark colors are --ui-prose-* variables on .ui-prose, so a scope can retheme

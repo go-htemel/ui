@@ -150,7 +150,8 @@ Components never name a palette color. They use semantic tokens, defined as CSS 
 | `--color-info-{50..950}` | `bg-info-50`, `text-info-700`, ... | `sky` | Info tone (sky, not blue, so it does not read as a second primary next to indigo) |
 | `--radius-control` | `rounded-control`, `rounded-l-control`, ... | `--radius-md` | buttons, button and input groups, inputs, menu items, nav links, pagination, tooltips, `Kbd` |
 | `--radius-surface` | `rounded-surface` | `--radius-md` | Card, Dialog, Dropdown panel, Alert, Toast, Stat, Table frame |
-| `--color-field-border`, `--color-field-border-hover` | `outline-field-border`, `border-field-border`, `ring-field-border`, ... | `oklch(65% 0.015 286)`, `neutral-500`; dark: white at 35% and 55% | outline of Input, Textarea, Select and InputGroup affixes, border of Checkbox and Radio, Switch track (see [Contrast](#contrast)) |
+| `--color-field-border`, `--color-field-border-hover` | `outline-field-border`, ... | `neutral-300`, `neutral-400`; dark: white at 15% and 30% | outline of Input, Textarea, Select, InputGroup affixes and the MarkdownEditor frame (see [Contrast](#contrast)) |
+| `--color-control-border`, `--color-control-border-hover` | `border-control-border`, `ring-control-border`, ... | `oklch(65% 0.015 286)`, `neutral-500`; dark: white at 35% and 55% | 3:1 boundary of Checkbox and Radio, the off Switch track (see [Contrast](#contrast)) |
 | `--font-sans` (Tailwind's own) | `font-sans` | Tailwind's sans stack | `ui.BodyClasses()` puts `font-sans` on `<body>`; `ui.FontCSS` sets it to Geist (see [Fonts](#fonts)) |
 
 The `Brand` tone (`ui.Badge(ui.Brand, "Team")`, also Alert, Toast and Progress) uses the
@@ -178,27 +179,35 @@ components render. The steps follow one convention:
   `dark:text-primary-400` (hover `300`) in dark.
 - Focus rings are `outline-primary-600` (`outline-neutral-500` on neutral controls) in light and
   `primary-500` in dark; placeholders are `neutral-500` / `dark:neutral-400`.
-- Field outlines (Input, Textarea, Select, InputGroup affixes, unchecked Checkbox and Radio, the
-  off Switch track) use `--color-field-border`, and darken on hover to `--color-field-border-hover`
-  (`neutral-500`, 4.8:1). WCAG 1.4.11 asks 3:1 for the boundary of a control, not more, so the
-  token is the lightest neutral-hued shade that clears it on both white and the page background:
-  `oklch(65% 0.015 286)`, `#8e8e98`, 3.24:1 on white and 3.11:1 on `neutral-50`. In dark it is
-  white at 35% (3.1:1 or more composited over the page, a card and the field), hover white at 55%.
-  The token flips with `.dark`, so components carry no `dark:` variant for it. Secondary and
-  file-input button rings, the Table frame and `Kbd` are decoration, not the boundary of an input,
-  and stay at their pale `neutral-300` / `neutral-950/5` ring.
+- Text-field outlines (Input, Textarea, Select, InputGroup affixes, the MarkdownEditor frame) use
+  `--color-field-border`, the soft Tailwind UI weight: `neutral-300` (white at 15% in dark),
+  darkening on hover to `--color-field-border-hover` (`neutral-400`, white at 30%). That resting
+  outline is about 1.5:1, and that is a deliberate reading of WCAG 1.4.11: its Understanding
+  document says a text input identified by its label, its fill and its focus indicator does not
+  need a 3:1 boundary. What does need 3:1 is the focused state, and every focus outline is a 2px
+  primary ring (`outline-primary-600`, dark `primary-500`) that the contrast test enforces. The
+  test still measures the resting and hover outlines and reports them as *informational* rows
+  (`CONTRAST_REPORT=report.md go test -run Contrast .`); they never fail.
+- Checkbox, Radio and the off Switch track always keep a 3:1 boundary, because there the box *is*
+  the control (the example WCAG itself gives). They use their own token, `--color-control-border`:
+  the lightest neutral-hued shade that clears 3:1 on both white and the page background,
+  `oklch(65% 0.015 286)`, `#8e8e98` (3.24:1 on white, 3.11:1 on `neutral-50`), hover `neutral-500`;
+  in dark white at 35% (hover 55%). Those rows are enforced.
+- Both tokens flip with `.dark`, so components carry no `dark:` variant for them. Secondary and
+  file-input button rings, the Table frame and `Kbd` are decoration and stay at their pale
+  `neutral-300` / `neutral-950/5` ring.
 
-  If you find the outlines too strong or too weak, override the tokens in your `@theme` (light)
-  and a `.dark` rule (dark). To get the pale Tailwind UI look, point them at a lighter step:
+  **Strict opt-in.** A team that wants 3:1 boundaries on every field points the field token at a
+  darker step (light in your `@theme`, dark in a `.dark` rule):
 
   ```css
-  @theme { --color-field-border: var(--color-neutral-300); }
+  @theme { --color-field-border: var(--color-neutral-500); --color-field-border-hover: var(--color-neutral-600); }
+  @layer base { .dark { --color-field-border: rgb(255 255 255 / 0.4); --color-field-border-hover: rgb(255 255 255 / 0.55); } }
   ```
 
-  That outline is about 1.5:1 on white, **below the 3:1 of WCAG 1.4.11**: people with low vision
-  may not see where a field starts. It is a deliberate trade of that criterion for looks, and
-  `go test -run Contrast .` fails on it. The values follow the zinc neutral; if you retheme
-  `neutral`, rerun the contrast test and adjust them.
+  (or reuse the checkbox value: `--color-field-border: var(--color-control-border)`). The values
+  follow the zinc neutral; if you retheme `neutral`, rerun the contrast test and adjust
+  `--color-control-border`.
 
 #### The default primary: indigo
 
@@ -614,7 +623,7 @@ ui.ProseLg(...).AddClass("max-w-prose")                            // 18px body:
 
 Headings (balanced wrapping, `scroll-margin-top` for anchors), paragraphs at `text-base/7`,
 underlined primary links with a focus outline, bullet and number lists with nested styles and
-muted markers, blockquotes with a `field-border` bar, tables in the `Table` colours, rules,
+muted markers, blockquotes with a `control-border` bar, tables in the `Table` colours, rules,
 images with `rounded-surface` and `max-width: 100%`, inline code as a chip (`neutral-100`,
 `white/10` in dark), `<kbd>`, `<mark>`, definition lists, figure captions, GFM task-list
 checkboxes drawn like `Checkbox` (read-only) and footnotes. Code blocks from the `code` package

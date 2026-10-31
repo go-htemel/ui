@@ -84,9 +84,9 @@ border
 border-0
 border-b
 border-b-2
+border-control-border
 border-danger-600
 border-dashed
-border-field-border
 border-info-600
 border-l
 border-l-4
@@ -407,7 +407,7 @@ mx-1
 mx-3
 mx-auto
 my-1
-not-checked:enabled:hover:border-field-border-hover
+not-checked:enabled:hover:border-control-border-hover
 not-focus-within:hover:outline-field-border-hover
 not-has-checked:has-enabled:hover:bg-neutral-300
 object-cover
@@ -470,9 +470,9 @@ relative
 resize-y
 ring-1
 ring-2
+ring-control-border
+ring-control-border-hover
 ring-danger-600/20
-ring-field-border
-ring-field-border-hover
 ring-info-600/20
 ring-inset
 ring-neutral-300

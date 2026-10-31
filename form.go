@@ -149,8 +149,8 @@ const choiceLabel = "inline-flex cursor-pointer items-center gap-x-3 text-sm/6 t
 // choiceBox is the drawn box of Checkbox and Radio: the native input with appearance-none, so it
 // keeps its semantics, focus and keyboard behaviour but none of the browser's rendering (no
 // accent-color halo on hover). The mark is a sibling drawn on top (see choiceMark).
-const choiceBox = "peer col-start-1 row-start-1 size-4 cursor-pointer appearance-none border border-field-border bg-white " +
-	"transition-colors duration-150 not-checked:enabled:hover:border-field-border-hover " +
+const choiceBox = "peer col-start-1 row-start-1 size-4 cursor-pointer appearance-none border border-control-border bg-white " +
+	"transition-colors duration-150 not-checked:enabled:hover:border-control-border-hover " +
 	"checked:border-primary-600 checked:bg-primary-600 " +
 	"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 " +
 	"disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-100 disabled:checked:border-neutral-300 disabled:checked:bg-neutral-300 " +
@@ -223,7 +223,7 @@ func RadioGroup(legend string, radios ...*html.LabelElement) *html.FieldsetEleme
 // label. attrs go on the <input>: Switch("Notifications", datastar.Bind("notify")).
 //
 // The input covers the whole track with appearance-none, so the track and knob are all that is
-// drawn. Off, the track has a field-border inset ring (3:1 against the card) and the knob a field-border-hover
+// drawn. Off, the track has a control-border inset ring (3:1 against the card) and the knob a control-border-hover
 // ring (3:1 against the track); on, the track fills with the primary color. Hover darkens the
 // track, keyboard focus outlines it, and a disabled switch is muted.
 func Switch(label string, attrs ...htemel.Attribute) *html.LabelElement {
@@ -232,10 +232,10 @@ func Switch(label string, attrs ...htemel.Attribute) *html.LabelElement {
 			Class(Classes("absolute inset-0 size-full cursor-pointer appearance-none rounded-full focus:outline-none disabled:cursor-not-allowed")).
 			Attrs(attrs...),
 		html.Span().Aria("hidden", "true").
-			Class(Classes("pointer-events-none size-5 rounded-full bg-white shadow-xs ring-1 ring-field-border-hover group-has-checked:ring-primary-600",
+			Class(Classes("pointer-events-none size-5 rounded-full bg-white shadow-xs ring-1 ring-control-border-hover group-has-checked:ring-primary-600",
 				"transition-transform duration-200 ease-out group-has-checked:translate-x-5 motion-reduce:transition-none",
 				"dark:ring-0 dark:group-has-checked:ring-0")),
-	).Class(Classes("group relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-neutral-200 p-0.5 ring-1 ring-field-border ring-inset",
+	).Class(Classes("group relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-neutral-200 p-0.5 ring-1 ring-control-border ring-inset",
 		"transition-colors duration-150 has-checked:bg-primary-600 has-checked:ring-primary-600",
 		"not-has-checked:has-enabled:hover:bg-neutral-300 has-checked:has-enabled:hover:bg-primary-700 has-checked:has-enabled:hover:ring-primary-700",
 		"has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary-600 has-disabled:opacity-50",

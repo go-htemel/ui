@@ -188,8 +188,10 @@ func mdeditorRows() []spec {
 	const surfL, surfD = "bg-white", "dark:bg-white/5"
 	add("text", "mdeditor.go:228,mdeditor.go:229", text, on("text-neutral-900", surfL).over(cardL), on("dark:text-white", surfD).over(cardD))
 	add("placeholder", "mdeditor.go:229", text, on("placeholder:text-neutral-500", surfL).over(cardL), on("dark:placeholder:text-neutral-400", surfD).over(cardD))
-	add("frame border vs card (SC 1.4.11)", "mdeditor.go:224", nonText, on("outline-field-border", "").over(cardL), on("outline-field-border", "").over(cardD))
-	add("frame border vs page (SC 1.4.11)", "mdeditor.go:224", nonText, on("outline-field-border", ""), on("outline-field-border", ""))
+	// The frame is a text field's outline: informational, like Input's (see matrix).
+	m = append(m,
+		spec{component: "MarkdownEditor", state: "frame border vs card (informational)", src: "mdeditor.go:224", kind: nonText, info: true, light: on("outline-field-border", "").over(cardL), dark: on("outline-field-border", "").over(cardD)},
+		spec{component: "MarkdownEditor", state: "frame border vs page (informational)", src: "mdeditor.go:224", kind: nonText, info: true, light: on("outline-field-border", ""), dark: on("outline-field-border", "")})
 	add("focus-within ring", "mdeditor.go:225,mdeditor.go:226", nonText, on("focus-within:outline-primary-600", "").over(cardL), on("dark:focus-within:outline-primary-500", "").over(cardD))
 	add("toolbar icon", "button.go:20", nonText, on("text-neutral-700", surfL).over(cardL), on("dark:text-neutral-300", surfD).over(cardD))
 	add("toolbar icon, hover", "mdeditor.go:230,button.go:20", nonText, on("hover:text-neutral-900", "hover:bg-neutral-100").over(cardL), on("dark:hover:text-white", "dark:hover:bg-white/10").over(cardD))
