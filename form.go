@@ -96,7 +96,7 @@ func Field(id, label string, control FormControl, opts ...FieldOption) *html.Div
 	}
 	if c.errorSignal != "" {
 		described = append(described, id+"-error-live")
-		htemel.Apply(control, datastar.Attr("aria-invalid", "!!$"+c.errorSignal))
+		htemel.Apply(control, datastar.Attr("aria-invalid", "$"+c.errorSignal+" ? 'true' : false"))
 		f.Attrs(initially(c.errorSignal, "''"))
 		f.Children(html.P().Id(id+"-error-live").Class(errClass).Style(hiddenUntilDatastar).
 			Attrs(datastar.Show("!!$"+c.errorSignal), datastar.Text("$"+c.errorSignal)))

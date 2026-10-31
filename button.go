@@ -129,6 +129,6 @@ func loadingAttrs(signal string) []htemel.Attribute {
 	return []htemel.Attribute{
 		datastar.Indicator(signal),
 		datastar.Attr("disabled", "$"+signal),
-		datastar.Attr("aria-busy", "$"+signal),
+		datastar.Attr("aria-busy", "$"+signal+" ? 'true' : false"),
 	}
 }

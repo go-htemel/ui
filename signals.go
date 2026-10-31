@@ -27,6 +27,11 @@ func Opens(signal string) htemel.Attribute {
 	return datastar.OnClick(Open(signal), datastar.Stop())
 }
 
+// closeOnEscape closes signal when Escape is pressed anywhere in the window.
+func closeOnEscape(signal string) htemel.Attribute {
+	return datastar.On("keydown", "evt.key === 'Escape' && ("+Close(signal)+")", datastar.Window())
+}
+
 // initially declares signal with value expr unless the page already has it.
 func initially(signal, expr string) htemel.Attribute {
 	return datastar.Signal(signal, expr, datastar.IfMissing())
@@ -44,4 +49,26 @@ func closeButton(label, expr string) *html.ButtonElement {
 			"hover:bg-black/5 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10")).
 		Aria("label", label).
 		Attrs(datastar.OnClick(expr))
+}
+
+// expanded binds aria-expanded to a boolean expression, with "false" as the server-rendered value.
+func expanded(expr string) []htemel.Attribute {
+	return []htemel.Attribute{
+		htemel.Attr("aria-expanded", "false"),
+		datastar.Attr("aria-expanded", "("+expr+") ? 'true' : 'false'"),
+	}
+}
+
+// domID turns a signal name or key into an id fragment: letters and digits are kept, anything
+// else becomes a hyphen.
+func domID(s string) string {
+	b := []byte(s)
+	for i, c := range b {
+		switch {
+		case 'a' <= c && c <= 'z', 'A' <= c && c <= 'Z', '0' <= c && c <= '9':
+		default:
+			b[i] = '-'
+		}
+	}
+	return string(b)
 }

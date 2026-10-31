@@ -51,7 +51,7 @@ func TestFieldDescribedBy(t *testing.T) {
 		`id="e"`,
 		`aria-describedby="e-help e-error e-error-live"`,
 		`aria-invalid="true"`,
-		`data-attr:aria-invalid="!!$err"`,
+		`data-attr:aria-invalid="$err ? &#39;true&#39; : false"`,
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %s in %s", want, out)
