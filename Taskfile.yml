@@ -21,6 +21,11 @@ tasks:
     cmds:
       - go test -race ./...
 
+  check-js:
+    desc: Syntax-check the embedded browser script (needs node)
+    cmds:
+      - node --check assets/ui.js
+
   lint:
     desc: Run golangci-lint if installed, otherwise go vet
     cmds:
