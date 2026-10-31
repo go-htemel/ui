@@ -54,8 +54,9 @@ details.ui-details[open]::details-content {
 // cssComment matches a CSS comment.
 var cssComment = regexp.MustCompile(`(?s)/\*.*?\*/`)
 
-// page wraps content in the showcase document: CDN assets, the sidebar and the toast region.
-func page(title, current string, content ...htemel.FlowContent) htemel.Node {
+// documentHead is the <head> every showcase document shares: CDN assets, the color scheme
+// bootstrap, the self-hosted fonts and ui.js.
+func documentHead(title string) *html.HeadElement {
 	head := html.Head(
 		html.Meta().Charset(html.CharsetUtf8),
 		html.Meta().Name("viewport").Content("width=device-width, initial-scale=1"),
@@ -75,10 +76,29 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 		html.Link().Rel("stylesheet").Href(fontAwesomeCSS),
 		ui.ScriptTag("/assets"),
 	)
+	return head
+}
+
+// bareDocument is a showcase document with nothing but body in it: the same head as every page
+// (color scheme bootstrap, fonts, Tailwind block, Datastar, ui.js), no sidebar and no toast
+// region. bodyClass is added to the base body classes. The framed phone previews of the Layouts
+// page and the admin demo embed such documents in an <iframe>, which is a real viewport.
+func bareDocument(title string, bodyClass string, body ...htemel.FlowContent) htemel.Node {
 	return htemel.Group(
 		htemel.Doctype(),
 		html.Html(
-			head,
+			documentHead(title),
+			html.Body(body...).Class(ui.Classes(ui.BodyClasses(), bodyClass)),
+		).Lang("en"),
+	)
+}
+
+// page wraps content in the showcase document: CDN assets, the sidebar and the toast region.
+func page(title, current string, content ...htemel.FlowContent) htemel.Node {
+	return htemel.Group(
+		htemel.Doctype(),
+		html.Html(
+			documentHead(title),
 			html.Body(
 				html.Div(
 					sidebar(current),

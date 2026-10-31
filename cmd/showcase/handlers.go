@@ -28,6 +28,9 @@ func routes() http.Handler {
 		}
 		renderPage(w, groupPage(g))
 	})
+	// Bare pages of the Layouts page's phone-width iframes; registered after the group route so
+	// the more specific pattern wins in chi.
+	r.Get("/components/layouts/frame/{name}", layoutFrame)
 	r.Get("/avatar.svg", avatarSVG)
 	r.Get("/placeholder.svg", placeholderSVG)
 	r.Mount("/assets", http.StripPrefix("/assets", ui.Assets()))
@@ -43,6 +46,20 @@ func routes() http.Handler {
 		r.Post("/markdown/preview", markdownPreview)
 	})
 	return r
+}
+
+// layoutFrame serves /components/layouts/frame/{appshell|split|settings}: one layout demo at full
+// size, for the iframes of the Layouts page.
+func layoutFrame(w http.ResponseWriter, r *http.Request) {
+	pages := map[string]func() htemel.Node{
+		"appshell": phoneShellPage, "split": phoneSplitPage, "settings": phoneSettingsPage,
+	}
+	fn, ok := pages[chi.URLParam(r, "name")]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	renderPage(w, fn())
 }
 
 func renderPage(w http.ResponseWriter, n htemel.Node) {

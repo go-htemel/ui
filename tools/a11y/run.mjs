@@ -2,7 +2,7 @@
 // (open dialog, drawer and bottom sheet, open dropdown, switched tab, expanded accordion, open
 // mobile nav drawer of the narrow navbar, the open customizable select picker, the color scheme
 // toggle switched to the other scheme, the server-rendered Markdown editor preview, the phone
-// shell's drawer, the narrow split's detail, the collapsed rail, edited tags, chosen files). Every page
+// shell's drawer (in its iframe's bare page), the narrow split's detail, the collapsed rail, edited tags, chosen files). Every page
 // must also load without console errors (requests to the blocked external CDNs excepted).
 //
 // Dark mode follows the .dark class on <html> (ui.css's @custom-variant), set by the inline
@@ -30,7 +30,12 @@ const CDN_DIR = process.env.A11Y_CDN_DIR || "";
 const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.indexOf("--json") + 1] : "";
 
 const PAGES = ["/", ...["buttons", "display", "layout", "feedback", "forms", "overlays", "disclosure",
-  "drag-and-drop", "data", "navigation", "status", "theming", "code", "markdown", "layouts", "content-inputs", "prose"].map((s) => `/components/${s}`)];
+  "drag-and-drop", "data", "navigation", "status", "theming", "code", "markdown", "layouts", "content-inputs", "prose"].map((s) => `/components/${s}`),
+  // The bare pages of the Layouts page's phone-width iframes, scanned at phone size.
+  ...["appshell", "split", "settings"].map((s) => `/components/layouts/frame/${s}`)];
+// Pages scanned in a viewport of their own (the frame pages are what an iframe of this size shows).
+const PAGE_VIEWPORT = { "/components/layouts/frame/": { width: 390, height: 760 } };
+const viewportFor = (path) => Object.entries(PAGE_VIEWPORT).find(([p]) => path.startsWith(p))?.[1];
 // A11Y_PAGES=forms,overlays limits the run to those pages (by the last path segment, "/" for the
 // home page) while iterating; task a11y always runs them all.
 if (process.env.A11Y_PAGES) {
@@ -176,42 +181,46 @@ const STATES = {
       },
     },
   ],
-  "/components/layouts": [
+  "/components/layouts/frame/appshell": [
     {
       // The phone-width shell hides its sidebar; the menu button opens it in the left Drawer,
       // which focuses itself (it holds links, no form control).
       name: "phone drawer open",
       async open(page) {
-        await page.locator('button[aria-controls="demoPhoneMenu-dialog"]').click();
-        await page.locator("#demoPhoneMenu-dialog[open]").waitFor({ timeout: 5000 });
+        await page.locator('button[aria-controls="phoneMenu-dialog"]').click();
+        await page.locator("#phoneMenu-dialog[open]").waitFor({ timeout: 5000 });
         const r = await page.evaluate(() => {
-          const d = document.getElementById("demoPhoneMenu-dialog");
+          const d = document.getElementById("phoneMenu-dialog");
           return { focused: document.activeElement === d, current: d.querySelector('a[aria-current="page"]')?.textContent };
         });
         if (!r.focused) throw new Error("the drawer did not take focus");
         if (!/Posts/.test(r.current || "")) throw new Error(`the drawer copy has no current link (${r.current})`);
       },
-      async close(page) { await page.keyboard.press("Escape"); await page.locator("#demoPhoneMenu-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#phoneMenu-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
     },
+  ],
+  "/components/layouts/frame/split": [
     {
-      // In the 375px split, choosing a note shows only the detail and focuses it; Back returns.
+      // In the 390px split, choosing a note shows only the detail and focuses it; Back returns.
       name: "split detail (narrow)",
       async open(page) {
-        await page.locator("#phoneSplit-list button", { hasText: "Talk outline" }).click();
-        await page.locator("#phoneSplit-list").waitFor({ state: "hidden", timeout: 5000 });
-        await page.locator("#phoneSplit-detail h2", { hasText: "Talk outline" }).waitFor({ timeout: 5000 });
+        await page.locator("#split-list button", { hasText: "Talk outline" }).click();
+        await page.locator("#split-list").waitFor({ state: "hidden", timeout: 5000 });
+        await page.locator("#split-detail h2", { hasText: "Talk outline" }).waitFor({ timeout: 5000 });
         await page.waitForTimeout(100);
         const focus = await page.evaluate(() => document.activeElement.id);
-        if (focus !== "phoneSplit-detail") throw new Error(`focus is on #${focus}, want the detail pane`);
+        if (focus !== "split-detail") throw new Error(`focus is on #${focus}, want the detail pane`);
       },
       async close(page) {
-        await page.locator("#phoneSplit-detail button", { hasText: "Back" }).filter({ visible: true }).click();
-        await page.locator("#phoneSplit-list").waitFor({ timeout: 5000 });
+        await page.locator("#split-detail button", { hasText: "Back" }).filter({ visible: true }).click();
+        await page.locator("#split-list").waitFor({ timeout: 5000 });
         await page.waitForTimeout(100);
         const focus = await page.evaluate(() => document.activeElement.id);
-        if (focus !== "phoneSplit-list") throw new Error(`Back left focus on #${focus}, want the list pane`);
+        if (focus !== "split-list") throw new Error(`Back left focus on #${focus}, want the list pane`);
       },
     },
+  ],
+  "/components/layouts": [
     {
       // The collapsible shell's rail button: a 4rem rail, labels visually hidden but still the
       // links' names, the state in localStorage; close expands it again.
@@ -540,19 +549,19 @@ const CHECKS = {
   "/components/layouts": [
     {
       // Container queries, not the viewport: in the ~930px frames the sidebar is beside the
-      // content, in the 375px frames it is hidden behind the menu button; the wide split shows
-      // both panes, the narrow one only the list; the page never scrolls sideways.
+      // content and the split shows both panes; the phone previews are three titled, lazy 390x760
+      // iframes (real viewports: a modal dialog's top layer would escape a framed div); the page
+      // never scrolls sideways and the iframes' own <main>s do not count against the page's one.
       name: "layouts follow their container",
       async run(page) {
         const r = await page.evaluate(() => {
           const vis = (el) => !!el && el.checkVisibility();
           const w = (id) => document.getElementById(id)?.getBoundingClientRect().width || 0;
           return {
-            wideSidebar: w("demoShell-sidebar"), phoneSidebar: vis(document.getElementById("demoPhone-sidebar")),
-            phoneMenu: vis(document.querySelector('button[aria-controls="demoPhoneMenu-dialog"]')),
+            wideSidebar: w("demoShell-sidebar"),
             wideMenu: vis(document.querySelector('button[aria-controls="demoShellMenu-dialog"]')),
             split: [vis(document.getElementById("split-list")), vis(document.getElementById("split-detail"))],
-            phoneSplit: [vis(document.getElementById("phoneSplit-list")), vis(document.getElementById("phoneSplit-detail"))],
+            frames: [...document.querySelectorAll("iframe")].map((f) => ({ title: f.title, loading: f.loading, src: f.getAttribute("src"), w: Math.round(f.getBoundingClientRect().width), h: Math.round(f.getBoundingClientRect().height) })),
             scroll: document.documentElement.scrollWidth - document.documentElement.clientWidth,
             mains: document.querySelectorAll("main").length,
           };
@@ -560,11 +569,63 @@ const CHECKS = {
         const f = [];
         if (Math.round(r.wideSidebar) !== 256) f.push(`wide shell sidebar is ${r.wideSidebar}px, want 256`);
         if (r.wideMenu) f.push("the wide shell shows the menu button");
-        if (r.phoneSidebar || !r.phoneMenu) f.push(`phone shell: sidebar visible ${r.phoneSidebar}, menu button visible ${r.phoneMenu}`);
         if (!r.split[0] || !r.split[1]) f.push(`wide split panes visible: ${r.split}`);
-        if (!r.phoneSplit[0] || r.phoneSplit[1]) f.push(`narrow split panes visible: ${r.phoneSplit}, want list only`);
+        if (r.frames.length !== 3) f.push(`${r.frames.length} phone iframes, want 3`);
+        for (const fr of r.frames) {
+          if (!fr.title) f.push(`iframe ${fr.src} has no title`);
+          if (fr.loading !== "lazy") f.push(`iframe ${fr.src} is loading=${fr.loading}, want lazy`);
+          if (fr.w !== 390 || fr.h !== 760) f.push(`iframe ${fr.src} is ${fr.w}x${fr.h}, want 390x760`);
+        }
         if (r.scroll > 0) f.push(`the page scrolls sideways by ${r.scroll}px`);
         if (r.mains !== 1) f.push(`${r.mains} <main> elements (embedded shells must not add one)`);
+        return f;
+      },
+    },
+    {
+      // The point of the iframes: open the menu inside the phone-width shell and the modal
+      // Drawer stays within the iframe's viewport instead of covering the page.
+      name: "phone menu drawer stays inside its iframe",
+      async run(page) {
+        const f = [];
+        const handle = page.locator('iframe[title^="Phone-width app shell"]');
+        await handle.scrollIntoViewIfNeeded();
+        const frame = await (await handle.elementHandle()).contentFrame();
+        await frame.waitForLoadState("load");
+        await frame.locator('button[aria-controls="phoneMenu-dialog"]').click();
+        await frame.locator("#phoneMenu-dialog[open]").waitFor({ timeout: 5000 });
+        await page.waitForTimeout(350);
+        const r = await frame.evaluate(() => {
+          const b = document.getElementById("phoneMenu-dialog").getBoundingClientRect();
+          return { l: b.left, t: b.top, r: b.right, b: b.bottom, vw: innerWidth, vh: innerHeight };
+        });
+        if (r.l < -0.5 || r.t < -0.5 || r.r > r.vw + 0.5 || r.b > r.vh + 0.5) f.push(`the drawer (${r.l},${r.t})-(${r.r},${r.b}) is outside the ${r.vw}x${r.vh} iframe viewport`);
+        const outer = await page.evaluate(() => ({ vw: innerWidth, vh: innerHeight, open: document.querySelectorAll("dialog[open]").length }));
+        if (r.r - r.l >= outer.vw - 1) f.push(`the drawer is as wide as the page (${r.r - r.l}px)`);
+        if (outer.open !== 0) f.push(`${outer.open} dialog(s) open in the page itself`);
+        await page.keyboard.press("Escape");
+        await frame.locator("#phoneMenu-dialog").waitFor({ state: "hidden", timeout: 5000 });
+        return f;
+      },
+    },
+  ],
+  "/components/layouts/frame/settings": [
+    {
+      // Narrow: a labelled Select of the sections replaces the nav; choosing one navigates.
+      name: "settings section select",
+      async run(page) {
+        const f = [];
+        const sel = page.getByLabel("Section", { exact: true });
+        if ((await sel.count()) !== 1 || !(await sel.isVisible())) f.push("the narrow settings layout has no visible Section select");
+        const nav = await page.evaluate(() => document.querySelector("nav ul")?.checkVisibility());
+        if (nav) f.push("the vertical nav is visible next to the select");
+        const options = await sel.locator("option").allTextContents();
+        if (options.join() !== "Profile,Notifications,Billing,Danger zone") f.push(`options ${options}`);
+        if ((await sel.inputValue()) !== "#profile") f.push(`selected ${await sel.inputValue()}, want #profile`);
+        await sel.selectOption("#billing");
+        await page.waitForFunction(() => location.hash === "#billing", null, { timeout: 5000 }).catch(() => f.push("choosing Billing did not navigate"));
+        await page.evaluate(() => history.replaceState(null, "", location.pathname));
+        const scroll = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        if (scroll > 0) f.push(`the page scrolls sideways by ${scroll}px`);
         return f;
       },
     },
@@ -753,9 +814,8 @@ async function waitForStyles(page, scheme, url) {
     .waitForFunction(
       () => {
         const bg = getComputedStyle(document.body).backgroundColor;
-        const main = document.querySelector("main");
-        return bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && main &&
-          getComputedStyle(main).flexGrow === "1" && document.styleSheets.length > 0;
+        return bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && document.querySelector("main") &&
+          document.styleSheets.length > 0;
       },
       null,
       { timeout: 20000 },
@@ -887,6 +947,8 @@ try {
       page.on("requestfailed", (r) => {
         if (!/^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com)\//.test(r.url())) consoleErrors.push(`request failed: ${r.url()}`);
       });
+      const vp = viewportFor(path);
+      if (vp) await page.setViewportSize(vp);
       const resp = await page.goto(url, { waitUntil: "load" });
       if (!resp || !resp.ok()) throw new Error(`${url}: HTTP ${resp && resp.status()}`);
       await page.emulateMedia({ colorScheme: scheme });

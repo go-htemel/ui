@@ -53,6 +53,19 @@ func ex(title string, fn func() htemel.FlowContent) Example {
 	return Example{Title: title, Source: src, Node: fn}
 }
 
+// withSnippets returns e with the Go source of the named top-level functions of examples_*.go
+// shown after its own: for an example whose real code lives in a helper (the page of an iframe).
+func (e Example) withSnippets(names ...string) Example {
+	for _, n := range names {
+		src, ok := sources[n]
+		if !ok {
+			panic("showcase: no source for snippet " + n)
+		}
+		e.Snippets = append(e.Snippets, Snippet{Lang: "go", Title: n, Src: src})
+	}
+	return e
+}
+
 func mustParseSources(fsys fs.FS) map[string]string {
 	out, err := parseSources(fsys)
 	if err != nil {

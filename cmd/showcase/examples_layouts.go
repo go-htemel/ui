@@ -128,13 +128,30 @@ func appShellTopbar() htemel.FlowContent {
 }
 
 func appShellPhone() htemel.FlowContent {
-	// The same shell in a 375px container: the sidebar is hidden and the menu button opens it in
-	// a Drawer (a modal dialog, so it covers the viewport, not just the frame).
-	return framed("375px", "600px", ui.AppShell(
-		ui.WithShellID("demoPhone"),
-		ui.WithEmbedded("Phone shell preview"),
+	// A native modal <dialog> (the Drawer the menu opens) lives in the top layer of its document,
+	// so inside a framed() div it would cover the whole page, not the frame. The narrow previews
+	// are therefore real viewports: an <iframe> of a bare page that renders only the shell (see
+	// phoneShellPage). A 390px viewport is below the 48rem breakpoint, so the sidebar is hidden
+	// and the menu button opens it in the drawer, inside the iframe.
+	return phoneFrame("appshell", "Phone-width app shell with a menu drawer")
+}
+
+// phoneFrame embeds the bare layout page /components/layouts/frame/<name> in a 390x760 iframe
+// drawn like a phone: a real viewport, so container queries, dialogs and the top layer behave as
+// on a phone.
+func phoneFrame(name, title string) htemel.FlowContent {
+	return html.Div(
+		html.Iframe().Src("/components/layouts/frame/" + name).Title(title).Loading(html.LoadingLazy).
+			Class("block h-[760px] w-[390px] max-w-full border-0 bg-white dark:bg-neutral-950"),
+	).Class("w-fit max-w-full overflow-hidden rounded-surface ring-1 ring-neutral-950/10 dark:ring-white/10")
+}
+
+// phoneShellPage is the page of the phone-width app shell iframe.
+func phoneShellPage() htemel.Node {
+	return bareDocument("Phone-width app shell", "h-dvh", ui.AppShell(
+		ui.WithShellID("phone"),
 		ui.WithBrand(demoBrand()),
-		ui.WithSidebar(demoShellNav("demoPhone", "Phone shell navigation")),
+		ui.WithSidebar(demoShellNav("phone", "Phone shell navigation")),
 		ui.WithSidebarFooter(demoUser()),
 		ui.WithContent(demoPostsPage()),
 	))
@@ -173,37 +190,57 @@ func notesPanes(signal string) (list *html.UlElement, detail *html.DivElement) {
 }
 
 func splitLayoutNotes() htemel.FlowContent {
-	// Wide: the list and the note side by side; drag the list's corner to resize it. Narrow (the
-	// 375px frame): one pane at a time, a note opens the detail, Back returns to the list.
+	// Wide: the list and the note side by side; drag the list's corner to resize it. Narrow: one
+	// pane at a time, a note opens the detail, Back returns to the list. The narrow form is the
+	// second preview, a real 390px viewport (see appShellPhone and phoneSplitPage).
 	wideList, wideNote := notesPanes("split")
-	phoneList, phoneNote := notesPanes("phoneSplit")
 	return html.Div(
 		framed("100%", "360px", ui.SplitLayout(wideList, wideNote, ui.WithResizable(), ui.WithPaneLabels("Notes", "Note"))),
-		framed("375px", "360px", ui.SplitLayout(phoneList, phoneNote, ui.SplitSignal("phoneSplit"), ui.WithPaneLabels("Notes (phone)", "Note (phone)"))),
-	).Class("flex flex-col gap-6").Attrs(datastar.Signals(map[string]any{"splitNote": 0, "phoneSplitNote": 0}))
+		phoneFrame("split", "Phone-width notes split"),
+	).Class("flex flex-col gap-6").Attrs(datastar.Signals(map[string]any{"splitNote": 0}))
+}
+
+// phoneSplitPage is the page of the narrow split iframe: the same panes, with the layout
+// filling the viewport. Its signals live in the frame's own document.
+func phoneSplitPage() htemel.Node {
+	list, detail := notesPanes("split")
+	return bareDocument("Phone-width notes split", "h-dvh", html.Main(
+		ui.SplitLayout(list, detail, ui.WithPaneLabels("Notes", "Note")),
+	).Class("h-full").Attrs(datastar.Signals(map[string]any{"splitNote": 0})))
+}
+
+// settingsNav is the sections of the settings demos.
+func settingsNav() []ui.NavItem {
+	return []ui.NavItem{
+		ui.NavLink("Profile", "#profile", true),
+		ui.NavLink("Notifications", "#notifications", false),
+		ui.NavLink("Billing", "#billing", false),
+		ui.NavLink("Danger zone", "#danger", false),
+	}
+}
+
+func settingsForm(id string) htemel.FlowContent {
+	return ui.Stack(ui.Md,
+		ui.SectionHeader("Profile"),
+		ui.Field(id+"Name", "Display name", ui.Input(html.InputTypeText, "name").Value("Ada Lovelace")),
+		ui.Field(id+"Bio", "Bio", ui.Textarea("bio", 3)),
+	)
 }
 
 func settingsLayout() htemel.FlowContent {
-	// A vertical nav beside the form from a 36rem container; a row of tabs above it below that.
-	nav := func() []ui.NavItem {
-		return []ui.NavItem{
-			ui.NavLink("Profile", "#profile", true),
-			ui.NavLink("Notifications", "#notifications", false),
-			ui.NavLink("Billing", "#billing", false),
-			ui.NavLink("Danger zone", "#danger", false),
-		}
-	}
-	form := func(id string) htemel.FlowContent {
-		return ui.Stack(ui.Md,
-			ui.SectionHeader("Profile"),
-			ui.Field(id+"Name", "Display name", ui.Input(html.InputTypeText, "name").Value("Ada Lovelace")),
-			ui.Field(id+"Bio", "Bio", ui.Textarea("bio", 3)),
-		)
-	}
+	// A vertical nav beside the form from a 36rem container; a section picker above it below
+	// that, shown in a real 390px viewport (see appShellPhone and phoneSettingsPage).
 	return html.Div(
-		framed("100%", "auto", html.Div(ui.SettingsLayout(nav(), form("settingsWide"))).Class("p-6")),
-		framed("375px", "auto", html.Div(ui.SettingsLayoutLabel("Settings (narrow)", nav(), form("settingsNarrow"))).Class("p-4")),
+		framed("100%", "auto", html.Div(ui.SettingsLayout(settingsNav(), settingsForm("settingsWide"))).Class("p-6")),
+		phoneFrame("settings", "Phone-width settings"),
 	).Class("flex flex-col gap-6")
+}
+
+// phoneSettingsPage is the page of the narrow settings iframe.
+func phoneSettingsPage() htemel.Node {
+	return bareDocument("Phone-width settings", "", html.Main(
+		ui.SettingsLayout(settingsNav(), settingsForm("settingsNarrow")),
+	).Class("p-4"))
 }
 
 func stackedLayout() htemel.FlowContent {

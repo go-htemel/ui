@@ -199,7 +199,12 @@ func TestExamplesHaveSource(t *testing.T) {
 			t.Errorf("group %s has no examples", g.Slug)
 		}
 		for _, e := range g.Examples {
-			if !strings.HasPrefix(e.Source, "func ") || !strings.Contains(e.Source, "ui.") && !strings.Contains(e.Source, "code.") && !strings.Contains(e.Source, "markdown.") {
+			// An example whose layout lives in a helper (the page of an iframe) shows it as a snippet.
+			all := e.Source
+			for _, sn := range e.Snippets {
+				all += "\n" + sn.Src
+			}
+			if !strings.HasPrefix(e.Source, "func ") || !strings.Contains(all, "ui.") && !strings.Contains(all, "code.") && !strings.Contains(all, "markdown.") {
 				t.Errorf("%s / %s: unexpected source %q", g.Slug, e.Title, e.Source)
 			}
 		}
