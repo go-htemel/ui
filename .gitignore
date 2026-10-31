@@ -1,0 +1,11 @@
+# Binaries
+/showcase
+/bin/
+*.test
+*.out
+
+# Editors and local tooling
+.idea/
+.vscode/
+.claude/
+scratch/
