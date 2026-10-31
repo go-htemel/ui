@@ -11,9 +11,9 @@ import (
 func progressBars() htemel.FlowContent {
 	return ui.Stack(ui.Md,
 		ui.Progress(25, 100, ui.ProgressLabel("Storage used")),
-		ui.Progress(60, 100, ui.ProgressTone(ui.Info), ui.ProgressSize(ui.Sm)),
-		ui.Progress(100, 100, ui.ProgressTone(ui.Success), ui.ProgressSize(ui.Lg)),
-		ui.Progress(9, 10, ui.ProgressTone(ui.Danger)),
+		ui.Progress(60, 100, ui.ProgressLabel("Sync progress"), ui.ProgressTone(ui.Info), ui.ProgressSize(ui.Sm)),
+		ui.Progress(100, 100, ui.ProgressLabel("Backup complete"), ui.ProgressTone(ui.Success), ui.ProgressSize(ui.Lg)),
+		ui.Progress(9, 10, ui.ProgressLabel("Error budget used"), ui.ProgressTone(ui.Danger)),
 	)
 }
 
@@ -53,10 +53,10 @@ func tooltips() htemel.FlowContent {
 func inputGroups() htemel.FlowContent {
 	return ui.Stack(ui.Md,
 		ui.Field("site", "Website",
-			ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site"), htemel.Text(".com"))),
+			ui.InputGroup(htemel.Text("https://"), ui.Input(html.InputTypeText, "site").Aria("label", "Website"), htemel.Text(".com"))),
 		ui.Field("price", "Price",
-			ui.InputGroup(htemel.Text("$"), ui.Input(html.InputTypeText, "price"), htemel.Text("USD"))),
+			ui.InputGroup(htemel.Text("$"), ui.Input(html.InputTypeText, "price").Aria("label", "Price"), htemel.Text("USD"))),
 		ui.Field("search", "Search",
-			ui.InputGroup(ui.IconSearch(), ui.Input(html.InputTypeSearch, "search"), nil)),
+			ui.InputGroup(ui.IconSearch(), ui.Input(html.InputTypeSearch, "search").Aria("label", "Search"), nil)),
 	)
 }
