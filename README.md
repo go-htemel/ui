@@ -45,7 +45,7 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | --- | --- | --- |
 | Buttons | `Button`, `IconButton`, `ButtonGroup`; variants, sizes, icon slots, `WithLoading` (data-indicator) | ready |
 | Display | `Badge`, `Avatar`, `AvatarInitials`, `Kbd`, `Divider`, `DividerLabel` | ready |
-| Icons | `Icon` (Font Awesome), `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconGripVertical`, `IconSpinner` | ready |
+| Icons | `Icon` (Font Awesome), `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconCopy`, `IconGripVertical`, `IconSpinner` | ready |
 | Layout | `Stack`, `Inline`, `Container`, `Card` | ready |
 | Feedback | `Alert`, `AlertDismissible`, `ToastRegion`, `Toast` | ready |
 | Forms | `Field` (`HelpText`, `ErrorText`, `ErrorSignal`), `Input` (text-like, number, search, date/time, file, color, range), `Textarea`, `Select`/`Choice` (customizable picker where supported), `Checkbox`, `Radio`/`RadioGroup`, `Switch` (all drawn with tokens) | ready |

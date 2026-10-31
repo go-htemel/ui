@@ -55,7 +55,7 @@ func init() {
 		golden{"icons-svg", htemel.Group(
 			ui.IconCheck(), ui.IconX(), ui.IconChevronDown(), ui.IconSearch(), ui.IconPlus(),
 			ui.IconTrash(), ui.IconPencil(), ui.IconGripVertical(), ui.IconSpinner(),
-			ui.IconSun(), ui.IconMoon(), ui.IconMonitor())},
+			ui.IconSun(), ui.IconMoon(), ui.IconMonitor(), ui.IconCopy())},
 		golden{"avatar", ui.Avatar("/ada.png", "Ada Lovelace", ui.WithSize(ui.Lg))},
 		golden{"avatar-initials", ui.AvatarInitials("AL", "Ada Lovelace", ui.WithSize(ui.Sm))},
 		golden{"card", ui.Card(

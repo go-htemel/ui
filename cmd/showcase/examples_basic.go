@@ -94,7 +94,7 @@ func icons() htemel.FlowContent {
 	return ui.Stack(ui.Md,
 		ui.Inline(ui.Md,
 			ui.IconCheck(), ui.IconX(), ui.IconChevronDown(), ui.IconSearch(),
-			ui.IconPlus(), ui.IconTrash(), ui.IconPencil(), ui.IconGripVertical(), ui.IconSpinner(),
+			ui.IconPlus(), ui.IconTrash(), ui.IconPencil(), ui.IconCopy(), ui.IconGripVertical(), ui.IconSpinner(),
 		).Class("flex flex-wrap items-center gap-4 text-neutral-700 dark:text-neutral-300"),
 		ui.Inline(ui.Md,
 			ui.Icon("fa-solid fa-house"), ui.Icon("fa-solid fa-gear"), ui.Icon("fa-regular fa-bell"),

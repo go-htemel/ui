@@ -32,6 +32,11 @@ func stroked(d string) *svg.SvgElement {
 // IconCheck is a check mark.
 func IconCheck() *svg.SvgElement { return stroked("M5 12.5l4.5 4.5L19 7.5") }
 
+// IconCopy is two overlapping sheets, for copy-to-clipboard buttons.
+func IconCopy() *svg.SvgElement {
+	return stroked("M9 8h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3")
+}
+
 // IconX is a cross, for close and remove buttons.
 func IconX() *svg.SvgElement { return stroked("M6 6l12 12M18 6L6 18") }
 
