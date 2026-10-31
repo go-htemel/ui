@@ -161,7 +161,7 @@ func linkButton(primary bool, label, href string, icon htemel.PhrasingContent) *
 // adminNotFound is the 404 page: an EmptyState in the shell, so the visitor keeps the nav.
 func adminNotFound() htemel.Node {
 	return adminPage("Page not found", "", false, "",
-		adminBody(ui.EmptyState(ui.IconSearch(), "Page not found",
+		adminBody(html.H1().Class("sr-only").Text("Page not found"), ui.EmptyState(ui.IconSearch(), "Page not found",
 			"This page does not exist in the demo, or it was moved.",
 			html.Div(linkButton(true, "Go to the dashboard", "/admin", ui.IconHome()))).AddClass("py-24")))
 }

@@ -31,6 +31,9 @@ const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.inde
 
 const PAGES = ["/", ...["buttons", "display", "layout", "feedback", "forms", "overlays", "disclosure",
   "drag-and-drop", "data", "navigation", "status", "theming", "code", "markdown", "layouts", "content-inputs", "prose"].map((s) => `/components/${s}`),
+  // The Admin demo: full-page routes (A11Y_PAGES=admin selects them). /admin/nope is the 404 page.
+  "/admin", "/admin/posts", "/admin/posts/new", "/admin/posts/1/edit", "/admin/notes", "/admin/settings", "/admin/settings/writing",
+  "/admin/settings/appearance", "/admin/media", "/admin/nope",
   // The bare pages of the Layouts page's phone-width iframes, scanned at phone size.
   ...["appshell", "split", "settings"].map((s) => `/components/layouts/frame/${s}`)];
 // Pages scanned in a viewport of their own (the frame pages are what an iframe of this size shows).
@@ -40,7 +43,7 @@ const viewportFor = (path) => Object.entries(PAGE_VIEWPORT).find(([p]) => path.s
 // home page) while iterating; task a11y always runs them all.
 if (process.env.A11Y_PAGES) {
   const only = process.env.A11Y_PAGES.split(",").map((p) => p.trim());
-  PAGES.splice(0, PAGES.length, ...PAGES.filter((p) => only.includes(p === "/" ? "/" : p.split("/").pop())));
+  PAGES.splice(0, PAGES.length, ...PAGES.filter((p) => only.includes(p === "/" ? "/" : p.split("/").pop()) || only.includes("admin") && p.startsWith("/admin")));
 }
 const SCHEMES = ["light", "dark"];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"];
@@ -49,6 +52,157 @@ const WCAG = /^wcag\d+a{1,3}$/;
 // Interactive states, keyed by page. Each opens something, and returns a function that proves
 // the state really changed (so a broken Datastar cannot make the scan pass on the closed state).
 const STATES = {
+  // ---- the Admin demo (/admin): states ----
+  "/admin": [
+    {
+      // The account Dropdown in the sidebar footer (which AppShell renders twice, once in the
+      // drawer): it must open and stay open.
+      name: "user menu open",
+      async open(page) {
+        await page.locator("#userMenu-trigger").click();
+        await page.locator("#userMenu-menu:popover-open").waitFor({ timeout: 5000 });
+        await page.waitForTimeout(300);
+        if (!(await page.locator("#userMenu-menu:popover-open").isVisible())) throw new Error("the menu is not visible");
+      },
+      async close(page) { await page.keyboard.press("Escape"); },
+    },
+    {
+      // Phone width: the shell hides its sidebar; the menu button opens the nav in a Drawer.
+      name: "phone drawer open",
+      viewport: { width: 390, height: 760 },
+      async open(page) {
+        await page.locator('button[aria-controls="shellMenu-dialog"]').click();
+        await page.locator("#shellMenu-dialog[open]").waitFor({ timeout: 5000 });
+        const r = await page.evaluate(() => ({ current: document.querySelector('#shellMenu-dialog a[aria-current="page"]')?.textContent }));
+        if (!/Dashboard/.test(r.current || "")) throw new Error(`the drawer has no current Dashboard link (${r.current})`);
+      },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#shellMenu-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+  ],
+  "/admin/posts": [
+    {
+      name: "filter typed",
+      async open(page) {
+        await page.getByRole("searchbox", { name: "Search" }).fill("datastar");
+        await page.waitForFunction(() => document.getElementById("posts-count").textContent.includes("of 1 posts") || document.getElementById("posts-count").textContent.includes("of 2 posts"), null, { timeout: 5000 });
+      },
+      async close(page) { await page.getByRole("button", { name: "Reset", exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll("#posts-body tr").length === 10, null, { timeout: 5000 }); },
+    },
+    {
+      name: "row menu open",
+      async open(page) {
+        await page.locator("#posts-body tr").first().getByRole("button", { name: /^Actions for/ }).click();
+        await page.locator("#posts-body [popover]:popover-open").waitFor({ timeout: 5000 });
+        await page.waitForTimeout(300);
+      },
+      async close(page) { await page.keyboard.press("Escape"); },
+    },
+    {
+      name: "bulk bar visible",
+      async open(page) {
+        await page.locator("#posts-body tr").nth(1).locator("input[type=checkbox]").check();
+        await page.locator("#posts-body tr").nth(2).locator("input[type=checkbox]").check();
+        await page.getByRole("region", { name: "Bulk actions" }).waitFor({ timeout: 5000 });
+        const t = await page.getByRole("region", { name: "Bulk actions" }).innerText();
+        if (!/2 posts selected/.test(t)) throw new Error(`bulk bar says ${JSON.stringify(t)}`);
+      },
+      async close(page) { await page.getByRole("button", { name: "Clear selection" }).click(); await page.getByRole("region", { name: "Bulk actions" }).waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+    {
+      name: "delete dialog open",
+      async open(page) {
+        await page.locator("#posts-body tr").first().getByRole("button", { name: /^Actions for/ }).click();
+        await page.getByRole("menuitem", { name: "Delete" }).first().click();
+        await page.locator("#deleteOne-dialog[open]").waitFor({ timeout: 5000 });
+        const t = await page.locator("#deleteOne-dialog").innerText();
+        if (!/Container queries in practice/.test(t)) throw new Error(`dialog text ${JSON.stringify(t)}`);
+      },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#deleteOne-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+    {
+      name: "empty state",
+      async open(page) {
+        await page.getByRole("searchbox", { name: "Search" }).fill("zzzz");
+        await page.getByText("No posts match").waitFor({ timeout: 5000 });
+      },
+      async close(page) { await page.getByRole("button", { name: "Clear filters" }).click(); await page.waitForFunction(() => document.querySelectorAll("#posts-body tr").length === 10, null, { timeout: 5000 }); },
+    },
+  ],
+  "/admin/posts/1/edit": [
+    {
+      // Save with an empty title: the server answers with errors.title, the field turns invalid
+      // and takes focus.
+      name: "validation error shown",
+      async open(page) {
+        await page.locator("#post-title").fill("");
+        await page.getByRole("button", { name: "Save", exact: true }).click();
+        await page.locator("#post-title[aria-invalid=true]").waitFor({ timeout: 5000 });
+        await page.getByText("Enter a title.").waitFor({ timeout: 5000 });
+      },
+    },
+    {
+      name: "preview drawer open",
+      async open(page) {
+        await page.getByRole("button", { name: "Preview", exact: true }).click();
+        await page.locator("#postPreview-dialog[open]").waitFor({ timeout: 5000 });
+        await page.locator("#post-preview-body h1").waitFor({ timeout: 5000 });
+      },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#postPreview-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+    {
+      name: "delete dialog open",
+      async open(page) {
+        await page.getByRole("button", { name: "Delete post" }).click();
+        await page.locator("#deletePost-dialog[open]").waitFor({ timeout: 5000 });
+      },
+      async close(page) { await page.keyboard.press("Escape"); await page.locator("#deletePost-dialog").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+  ],
+  "/admin/notes": [
+    {
+      name: "editing a note",
+      async open(page) {
+        await page.getByRole("button", { name: "Edit", exact: true }).click();
+        await page.locator("#note-title").waitFor({ state: "visible", timeout: 5000 });
+        await page.waitForTimeout(500);
+      },
+      async close(page) { await page.getByRole("button", { name: "Cancel" }).click(); await page.locator("#note-title").waitFor({ state: "hidden", timeout: 5000 }); },
+    },
+    {
+      // A narrow frame (the shell hides its sidebar and the content is below 42rem): one pane at
+      // a time, driven by the split signal; choosing a note shows only the detail and focuses it.
+      name: "notes detail (narrow)",
+      viewport: { width: 600, height: 800 },
+      async open(page) {
+        // Earlier checks opened a note, which set the split signal to detail: start afresh.
+        await page.reload({ waitUntil: "load" });
+        const list = page.locator("#split-list");
+        await list.waitFor({ state: "visible", timeout: 5000 });
+        await page.locator("#notes-list button", { hasText: "Groceries" }).click();
+        await list.waitFor({ state: "hidden", timeout: 5000 });
+        await page.locator("#note-detail h2", { hasText: "Groceries" }).first().waitFor({ timeout: 5000 });
+        await page.waitForTimeout(150);
+        const focus = await page.evaluate(() => document.activeElement.id);
+        if (focus !== "split-detail") throw new Error(`focus is on #${focus}, want the detail pane`);
+      },
+      async close(page) {
+        await page.locator("#split-detail button", { hasText: "Back" }).filter({ visible: true }).click();
+        await page.locator("#split-list").waitFor({ timeout: 5000 });
+      },
+    },
+  ],
+  "/admin/settings": [
+    {
+      // Narrow: the section picker replaces the side nav.
+      name: "settings narrow (section select)",
+      viewport: { width: 500, height: 800 },
+      async open(page) {
+        const sel = page.getByLabel("Section", { exact: true });
+        await sel.waitFor({ state: "visible", timeout: 5000 });
+        if ((await sel.inputValue()) !== "/admin/settings") throw new Error(`selected ${await sel.inputValue()}`);
+      },
+    },
+  ],
   "/components/overlays": [
     {
       name: "dialog open",
@@ -302,6 +456,215 @@ const STATES = {
 // Behaviour checks beyond axe, keyed by page. Each returns a list of failure messages; any
 // failure fails the run (exit 1) like a WCAG violation.
 const CHECKS = {
+  // ---- the Admin demo (/admin): behaviour ----
+  "/admin": [
+    {
+      // AppShell's rail state persists across routes: collapse it here, open Posts, it is still
+      // collapsed (localStorage), and the current page is marked.
+      name: "rail state persists across routes",
+      async run(page) {
+        const f = [];
+        const rail = () => page.evaluate(() => Math.round(document.getElementById("shell-sidebar").getBoundingClientRect().width));
+        await page.locator('#shell-sidebar button[aria-controls="shell-sidebar"]').click();
+        await page.waitForFunction(() => document.getElementById("shell-sidebar").getBoundingClientRect().width < 80, null, { timeout: 5000 });
+        await page.getByRole("link", { name: /^Posts/ }).first().click();
+        await page.waitForURL("**/admin/posts");
+        await page.waitForFunction(() => document.querySelector("main") && document.getElementById("shell-sidebar"), null, { timeout: 10000 });
+        await page.waitForTimeout(300);
+        if ((await rail()) >= 80) f.push(`the sidebar is ${await rail()}px wide on /admin/posts, want the 64px rail`);
+        const current = await page.evaluate(() => [...document.querySelectorAll('#shell-sidebar a[aria-current="page"]')].map((a) => a.title));
+        if (current.join() !== "Posts") f.push(`current nav item on /admin/posts: ${current}`);
+        await page.locator('#shell-sidebar button[aria-controls="shell-sidebar"]').click();
+        await page.waitForFunction(() => document.getElementById("shell-sidebar").getBoundingClientRect().width > 200, null, { timeout: 5000 });
+        await page.goto(page.url().replace("/admin/posts", "/admin"), { waitUntil: "load" });
+        return f;
+      },
+    },
+  ],
+  "/admin/posts": [
+    {
+      // Sorting runs on the server and patches the body: the order changes, aria-sort follows,
+      // a second click reverses it.
+      name: "sorting changes the order",
+      async run(page) {
+        const f = [];
+        const first = () => page.locator("#posts-body tr").first().locator("a").first().textContent();
+        const before = await first();
+        await page.getByRole("button", { name: "Title" }).click();
+        await page.waitForFunction((b) => document.querySelector("#posts-body tr a")?.textContent !== b, before, { timeout: 5000 });
+        if ((await first()) !== "A tour of the new AppShell") f.push(`title ascending starts with ${await first()}`);
+        if ((await page.locator("th", { hasText: "Title" }).getAttribute("aria-sort")) !== "ascending") f.push("the Title header is not aria-sort=ascending");
+        await page.getByRole("button", { name: "Title" }).click();
+        await page.waitForFunction(() => document.querySelector("#posts-body tr a")?.textContent === "Writing a CMS in Go", null, { timeout: 5000 }).catch(() => f.push("title descending does not start with Writing a CMS in Go"));
+        await page.getByRole("button", { name: "Updated" }).click();
+        await page.getByRole("button", { name: "Updated" }).click();
+        await page.waitForFunction((b) => document.querySelector("#posts-body tr a")?.textContent === b, before, { timeout: 5000 }).catch(() => f.push("updated descending did not restore the default order"));
+        return f;
+      },
+    },
+    {
+      name: "pagination shows page 2",
+      async run(page) {
+        const f = [];
+        const first = await page.locator("#posts-body tr a").first().textContent();
+        await page.getByRole("button", { name: "Page 2" }).click();
+        await page.waitForFunction(() => document.getElementById("posts-count").textContent.startsWith("Showing 11–20 of 30"), null, { timeout: 5000 }).catch(() => f.push("the count does not read Showing 11–20 of 30 posts"));
+        if ((await page.locator("#posts-body tr a").first().textContent()) === first) f.push("page 2 shows the same first row");
+        if ((await page.locator("#posts-pager [aria-current=page]").textContent()).trim() !== "2") f.push("the pager does not mark page 2 current");
+        await page.getByRole("button", { name: "Page 1" }).click();
+        await page.waitForFunction((b) => document.querySelector("#posts-body tr a")?.textContent === b, first, { timeout: 5000 });
+        return f;
+      },
+    },
+    {
+      // The search is server-side and patches only the body: the input keeps focus and its text
+      // while the table changes under it.
+      name: "filtering keeps focus in the search field",
+      async run(page) {
+        const f = [];
+        const box = page.getByRole("searchbox", { name: "Search" });
+        await box.click();
+        await page.keyboard.type("data", { delay: 40 });
+        await page.waitForFunction(() => /^Showing 1–\d of \d posts$/.test(document.getElementById("posts-count").textContent), null, { timeout: 5000 });
+        await page.keyboard.type("star", { delay: 40 });
+        await page.waitForFunction(() => document.querySelectorAll("#posts-body tr").length < 5, null, { timeout: 5000 });
+        const r = await page.evaluate(() => ({ focus: document.activeElement.getAttribute("aria-label"), value: document.activeElement.value }));
+        if (r.focus !== "Search" || r.value !== "datastar") f.push(`after typing, focus is on ${r.focus} with value ${r.value}`);
+        const stray = await page.evaluate(() => [...document.querySelectorAll("#posts-body tr")].filter((tr) => !/datastar/i.test(tr.textContent)).length);
+        if (stray) f.push(`${stray} rows do not match the search`);
+        await page.getByRole("button", { name: "Reset", exact: true }).click();
+        await page.waitForFunction(() => document.querySelectorAll("#posts-body tr").length === 10 && document.querySelector('input[type=search]').value === "", null, { timeout: 5000 }).catch(() => f.push("Reset did not restore the list"));
+        return f;
+      },
+    },
+    {
+      // The select-all checkbox ticks the ten rows of the page and shows the bulk bar.
+      name: "bulk select",
+      async run(page) {
+        const f = [];
+        await page.getByRole("checkbox", { name: "Select all posts on this page" }).check();
+        await page.waitForFunction(() => /10 posts selected/.test(document.querySelector('[aria-label="Bulk actions"]')?.textContent || ""), null, { timeout: 5000 }).catch(() => f.push("select-all did not select ten posts"));
+        const n = await page.locator("#posts-body input:checked").count();
+        if (n !== 10) f.push(`${n} row checkboxes ticked, want 10`);
+        await page.getByRole("button", { name: "Page 2" }).click();
+        await page.waitForFunction(() => document.getElementById("posts-count").textContent.startsWith("Showing 11"), null, { timeout: 5000 });
+        if (await page.getByRole("checkbox", { name: "Select all posts on this page" }).isChecked()) f.push("select-all stays checked on page 2");
+        await page.getByRole("button", { name: "Clear selection" }).click();
+        await page.getByRole("region", { name: "Bulk actions" }).waitFor({ state: "hidden", timeout: 5000 }).catch(() => f.push("the bulk bar stays after Clear selection"));
+        await page.getByRole("button", { name: "Page 1" }).click();
+        await page.waitForFunction(() => document.getElementById("posts-count").textContent.startsWith("Showing 1–"), null, { timeout: 5000 });
+        return f;
+      },
+    },
+    {
+      // Delete through the row menu and the confirm Dialog: the row goes, the count drops, focus
+      // lands on the count line (the row that had it is gone) and a toast is shown. The store is
+      // reset afterwards.
+      name: "delete from the row menu",
+      async run(page) {
+        const f = [];
+        await page.locator("#posts-body tr").first().getByRole("button", { name: /^Actions for/ }).click();
+        await page.getByRole("menuitem", { name: "Delete" }).first().click();
+        await page.locator("#deleteOne-dialog[open]").waitFor({ timeout: 5000 });
+        const focus = await page.evaluate(() => document.activeElement.textContent.trim());
+        if (focus !== "Cancel") f.push(`the dialog opened with focus on "${focus}", want Cancel`);
+        await page.locator("#deleteOne-dialog").getByRole("button", { name: "Delete", exact: true }).click();
+        await page.waitForFunction(() => document.getElementById("posts-count").textContent.includes("of 29 posts"), null, { timeout: 5000 }).catch(() => f.push("the count did not drop to 29"));
+        await page.waitForTimeout(150);
+        const id = await page.evaluate(() => document.activeElement.id);
+        if (id !== "posts-count") f.push(`after deleting, focus is on #${id}, want #posts-count`);
+        if (!(await page.locator("#toasts").innerText()).includes("Post deleted")) f.push("no Post deleted toast");
+        await page.request.post(BASE + "/admin/reset", { headers: { "Datastar-Request": "true" } });
+        return f;
+      },
+    },
+  ],
+  "/admin/posts/new": [
+    {
+      name: "slug follows the title",
+      async run(page) {
+        const f = [];
+        await page.locator("#post-title").fill("Hello, Wörld! Ça va?");
+        await page.waitForTimeout(150);
+        const slug = await page.locator("#post-slug").inputValue();
+        if (slug !== "hello-world-ca-va") f.push(`slug is ${slug}, want hello-world-ca-va`);
+        return f;
+      },
+    },
+  ],
+  "/admin/posts/1/edit": [
+    {
+      // The split preview is rendered by the server on load; editing the body updates it.
+      name: "editor preview follows the text",
+      async run(page) {
+        const f = [];
+        await page.locator("#body-preview h1").first().waitFor({ timeout: 5000 }).catch(() => f.push("no server-rendered preview on load"));
+        await page.locator("#post-body").fill("# Changed heading\n\nSome *text*.");
+        await page.waitForFunction(() => document.querySelector("#body-preview h1")?.textContent === "Changed heading", null, { timeout: 5000 }).catch(() => f.push("the preview did not follow the textarea"));
+        await page.locator("#post-body").fill("");
+        return f;
+      },
+    },
+    {
+      // Save posts the signals: a toast appears and the header's "Saved" line is patched. The
+      // store is reset afterwards.
+      name: "saving shows a toast",
+      async run(page) {
+        const f = [];
+        await page.locator("#post-title").fill("Container queries in practice, revised");
+        await page.getByRole("button", { name: "Save", exact: true }).click();
+        await page.locator("#toasts").getByText("Post saved").waitFor({ timeout: 5000 }).catch(() => f.push("no Post saved toast"));
+        const saved = await page.locator("#post-saved").innerText();
+        if (!/^Saved just now/.test(saved)) f.push(`the header says ${JSON.stringify(saved)}`);
+        if ((await page.locator("#post-title").getAttribute("aria-invalid")) === "true") f.push("title is invalid after a good save");
+        await page.request.post(BASE + "/admin/reset", { headers: { "Datastar-Request": "true" } });
+        return f;
+      },
+    },
+  ],
+  "/admin/notes": [
+    {
+      // The list searches on the server; a note opens in the detail pane; Edit swaps in the
+      // editor, Save stores it (a toast) and swaps the rendered note back. Reset afterwards.
+      name: "notes search, open and edit",
+      async run(page) {
+        const f = [];
+        await page.getByRole("searchbox", { name: "Search" }).fill("sourdough");
+        await page.waitForFunction(() => document.querySelectorAll("#notes-list li").length === 1, null, { timeout: 5000 }).catch(() => f.push("the note search did not narrow the list"));
+        await page.locator("#notes-list button").first().click();
+        await page.locator("#note-detail h2", { hasText: "Groceries" }).first().waitFor({ timeout: 5000 }).catch(() => f.push("the note did not open"));
+        const current = await page.locator('#notes-list button[aria-current="true"]').count();
+        if (current !== 1) f.push(`${current} notes are aria-current`);
+        await page.getByRole("button", { name: "Edit", exact: true }).click();
+        await page.locator("#note-title").waitFor({ state: "visible", timeout: 5000 });
+        await page.waitForTimeout(100);
+        if ((await page.evaluate(() => document.activeElement.id)) !== "note-title") f.push("Edit did not focus the title");
+        await page.locator("#note-title").fill("Groceries (edited)");
+        await page.getByRole("button", { name: "Save", exact: true }).click();
+        await page.locator("#toasts").getByText("Note saved").waitFor({ timeout: 5000 }).catch(() => f.push("no Note saved toast"));
+        await page.locator("#note-detail h2", { hasText: "Groceries (edited)" }).first().waitFor({ timeout: 5000 }).catch(() => f.push("the detail kept the old title"));
+        if (await page.locator("#note-title").isVisible()) f.push("the editor stays open after Save");
+        await page.request.post(BASE + "/admin/reset", { headers: { "Datastar-Request": "true" } });
+        return f;
+      },
+    },
+  ],
+  "/admin/settings/appearance": [
+    {
+      // The data-theme switch retheme the page and is remembered across routes.
+      name: "theme switch",
+      async run(page) {
+        const f = [];
+        await page.locator("#set-theme").selectOption("editorial");
+        await page.waitForFunction(() => document.documentElement.dataset.theme === "editorial", null, { timeout: 5000 }).catch(() => f.push("data-theme was not applied"));
+        await page.goto(BASE + "/admin/settings/writing", { waitUntil: "load" });
+        await page.waitForFunction(() => document.documentElement.dataset.theme === "editorial", null, { timeout: 5000 }).catch(() => f.push("data-theme was not remembered on the next page"));
+        await page.evaluate(() => { localStorage.removeItem("admin-theme"); delete document.documentElement.dataset.theme; });
+        await page.goto(BASE + "/admin/settings/appearance", { waitUntil: "load" });
+        return f;
+      },
+    },
+  ],
   "/components/code": [
     {
       // Line numbers are generated content: selecting the whole code and reading the selection
@@ -950,10 +1313,12 @@ try {
       const vp = viewportFor(path);
       if (vp) await page.setViewportSize(vp);
       const resp = await page.goto(url, { waitUntil: "load" });
-      if (!resp || !resp.ok()) throw new Error(`${url}: HTTP ${resp && resp.status()}`);
+      const want = path === "/admin/nope" ? 404 : 200;
+      if (!resp || resp.status() !== want) throw new Error(`${url}: HTTP ${resp && resp.status()}, want ${want}`);
       await page.emulateMedia({ colorScheme: scheme });
       await waitForStyles(page, scheme, url);
-      for (const m of consoleErrors.filter((t) => !/ERR_BLOCKED_BY_CLIENT|ERR_FAILED|ERR_NAME_NOT_RESOLVED|ERR_TUNNEL|ERR_PROXY/.test(t))) {
+      // The 404 page's own response is logged by the browser as a failed resource load.
+      for (const m of consoleErrors.filter((t) => !/ERR_BLOCKED_BY_CLIENT|ERR_FAILED|ERR_NAME_NOT_RESOLVED|ERR_TUNNEL|ERR_PROXY/.test(t) && !(want === 404 && /status of 404/.test(t)))) {
         checkFailures.push(`${path} (${scheme}) [console]: ${m}`);
       }
       process.stdout.write(`checked ${scheme.padEnd(5)} ${path} [console errors]: ${consoleErrors.length ? consoleErrors.length + " (see failures if any are not external)" : "ok"}\n`);

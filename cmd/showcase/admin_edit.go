@@ -300,7 +300,7 @@ func editorPage(r *http.Request, p adminPost) htemel.Node {
 		"publishAt": p.PublishAt, "author": p.Author, "comments": p.Comments, "tags": p.Tags, "cover": "",
 		"errors": postErrors{}, "postPreview": false, "saving": false, "previewing": false,
 	}
-	form := html.Form(html.Div(left, side).Class("grid items-start gap-6 @3xl:grid-cols-[minmax(0,1fr)_20rem]")).
+	form := html.Form(html.H2().Class("sr-only").Text("Post details"), html.Div(left, side).Class("grid items-start gap-6 @3xl:grid-cols-[minmax(0,1fr)_20rem]")).
 		Id("post-form").BoolAttr("novalidate", true).
 		Attrs(datastar.Signals(signals),
 			datastar.OnSubmit(afterRequest(datastar.Post(postURL), "document.querySelector('#post-form [aria-invalid=true]')?.focus()"), datastar.Prevent()))
