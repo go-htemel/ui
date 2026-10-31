@@ -88,9 +88,9 @@ cursor-pointer
 dark:*:bg-neutral-800
 dark:*:even:bg-white/5
 dark:accent-primary-500
-dark:aria-[current=page]:bg-primary-700
-dark:aria-[current=page]:hover:bg-primary-600
-dark:aria-[current=page]:ring-primary-700
+dark:aria-[current=page]:bg-primary-600
+dark:aria-[current=page]:hover:bg-primary-500
+dark:aria-[current=page]:ring-primary-600
 dark:aria-[current=page]:text-white
 dark:aria-invalid:outline-danger-400
 dark:backdrop:bg-neutral-950/70
@@ -106,7 +106,7 @@ dark:bg-neutral-800
 dark:bg-neutral-900
 dark:bg-neutral-950
 dark:bg-primary-500
-dark:bg-primary-700
+dark:bg-primary-600
 dark:bg-success-500
 dark:bg-success-500/10
 dark:bg-warning-400/10
@@ -129,8 +129,8 @@ dark:focus:outline-primary-500
 dark:has-checked:bg-primary-500
 dark:has-focus-visible:outline-primary-500
 dark:hover:bg-danger-600
+dark:hover:bg-primary-500
 dark:hover:bg-primary-500/10
-dark:hover:bg-primary-600
 dark:hover:bg-white/10
 dark:hover:bg-white/20
 dark:hover:bg-white/5

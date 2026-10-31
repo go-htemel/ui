@@ -12,8 +12,8 @@ const pageItemClass = "inline-flex min-w-9 items-center justify-center gap-x-1 r
 	"text-neutral-700 ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 " +
 	"focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 aria-[current=page]:bg-primary-600 aria-[current=page]:text-white aria-[current=page]:ring-primary-600 " +
 	"aria-[current=page]:hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 " +
-	"dark:text-neutral-300 dark:ring-white/10 dark:hover:bg-white/5 dark:aria-[current=page]:bg-primary-700 dark:aria-[current=page]:hover:bg-primary-600 " +
-	"dark:aria-[current=page]:text-white dark:aria-[current=page]:ring-primary-700"
+	"dark:text-neutral-300 dark:ring-white/10 dark:hover:bg-white/5 dark:aria-[current=page]:bg-primary-600 dark:aria-[current=page]:hover:bg-primary-500 " +
+	"dark:aria-[current=page]:text-white dark:aria-[current=page]:ring-primary-600"
 
 const pageGapClass = "inline-flex min-w-9 items-center justify-center px-1 py-1.5 text-sm text-neutral-500 dark:text-neutral-400"
 

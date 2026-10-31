@@ -12,7 +12,7 @@ const buttonBase = "inline-flex items-center justify-center gap-x-1.5 rounded-co
 
 var buttonVariants = map[Variant]string{
 	Primary: "bg-primary-600 text-white shadow-xs hover:bg-primary-700 focus-visible:outline-primary-600 " +
-		"dark:bg-primary-700 dark:hover:bg-primary-600 dark:focus-visible:outline-primary-500",
+		"dark:bg-primary-600 dark:hover:bg-primary-500 dark:focus-visible:outline-primary-500",
 	Secondary: "bg-white text-neutral-900 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 focus-visible:outline-neutral-500 " +
 		"dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/10 dark:hover:bg-white/20",
 	Outline: "ring-1 ring-inset ring-primary-600 text-primary-600 hover:bg-primary-50 hover:text-primary-700 focus-visible:outline-primary-600 " +
