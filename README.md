@@ -74,9 +74,17 @@ inside an `AppShell`'s content). They never set an outer max-width: use `Contain
 | --- | --- | --- | --- |
 | `AppShell` | top bar with a menu button; the sidebar opens in a left `Drawer` | `@3xl` (48rem) | a 16rem sidebar plus a 32rem content column, the narrowest that still fits a table or a form beside it |
 | `SplitLayout` | one pane, chosen by `$split` (`"list"` / `"detail"`) | `@2xl` (42rem) | a 20rem list and a detail at least as wide |
-| `SettingsLayout` | the nav is a row of scrolling tabs above the content | `@xl` (36rem) | a 13rem vertical nav plus a usable form column |
+| `SettingsLayout` | the nav is a labelled `Select` of the sections above the content (navigates on change) | `@xl` (36rem) | a 13rem vertical nav plus a usable form column |
 | `PageHeader` | actions wrap under the title | `@xl` (36rem) | room for a title and two buttons on one line |
 | `StackedLayout` | side padding 1rem | `@xl` 1.5rem, `@5xl` 2rem | padding only; no switch |
+
+The showcase draws the wide previews of this section as `framed()` containers (container queries
+work in any box) but the phone-width ones as 390x760 `<iframe>`s of bare pages
+(`/components/layouts/frame/{appshell,split,settings}`). A narrow `AppShell` opens its sidebar in a
+native modal `<dialog>`, and a modal dialog lives in the top layer of its *document*: inside a
+fixed-size div it would cover the whole viewport, not the preview. An iframe is a real viewport, so
+the drawer, its backdrop and the focus trap behave there as they do on a phone. (Your own previews
+of a layout that opens a `Drawer` or `Dialog` want the same.)
 
 ```go
 func adminPage(content ...htemel.FlowContent) htemel.Node {

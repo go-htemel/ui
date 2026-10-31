@@ -2,7 +2,9 @@ package ui
 
 import (
 	"github.com/go-htemel/htemel"
+	"github.com/go-htemel/htemel/datastar"
 	"github.com/go-htemel/htemel/html"
+	"strings"
 )
 
 // PageHeaderOption configures PageHeader.
@@ -179,17 +181,20 @@ func StackedLayout(header htemel.FlowContent, content ...htemel.FlowContent) *ht
 	return html.Div(band, body).Class(Classes("@container flex min-h-full flex-col"))
 }
 
-// settingsLinkClass is tabLinkClass in a narrow container and a NavLink-like vertical item from
-// @xl.
-const settingsLinkClass = tabLinkClass + " @xl:rounded-control @xl:border-b-0 @xl:px-3 @xl:py-2 @xl:text-neutral-600 " +
-	"@xl:hover:bg-neutral-100 @xl:hover:text-neutral-900 @xl:aria-[current=page]:bg-neutral-100 @xl:aria-[current=page]:text-primary-700 " +
-	"@xl:dark:text-neutral-400 @xl:dark:hover:bg-white/5 @xl:dark:hover:text-white @xl:dark:aria-[current=page]:bg-white/10 @xl:dark:aria-[current=page]:text-white"
+// settingsLinkClass is the vertical link of SettingsLayout's nav, shown from @xl.
+const settingsLinkClass = "block rounded-control px-3 py-2 text-sm font-medium text-neutral-600 transition-colors duration-150 " +
+	"hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 " +
+	"aria-[current=page]:bg-neutral-100 aria-[current=page]:text-primary-700 " +
+	"dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:outline-primary-500 " +
+	"dark:aria-[current=page]:bg-white/10 dark:aria-[current=page]:text-white"
 
 // SettingsLayout returns a settings page: a secondary navigation beside the content. The root is
 // a CSS container: from the @xl container width (36rem) the nav is a vertical list of links
-// (13rem) left of the content; below it the same links are a row of tabs that scrolls sideways
-// above the content. The current page is the NavLink marked active (aria-current="page"); links
-// keep their icons and badges. The nav is a <nav aria-label="Settings">.
+// (13rem) left of the content; below it the nav is a labelled Select of the sections above the
+// content (a row of tabs would clip its last items on a phone and show a scrollbar), which
+// navigates to the chosen link's href on change. The current page is the NavLink marked active
+// (aria-current="page", and the selected option); the links keep their icons and badges. The nav
+// is a <nav aria-label="Settings">.
 //
 //	ui.SettingsLayout([]ui.NavItem{
 //		ui.NavLink("Profile", "/settings/profile", true),
@@ -202,13 +207,26 @@ func SettingsLayout(nav []NavItem, content ...htemel.FlowContent) *html.DivEleme
 // SettingsLayoutLabel is SettingsLayout with label as the name of its <nav> landmark instead of
 // "Settings", for a page with two of them (or one inside another settings area).
 func SettingsLayoutLabel(label string, nav []NavItem, content ...htemel.FlowContent) *html.DivElement {
-	ul := html.Ul().Class(Classes("-mb-px flex gap-x-6 overflow-x-auto @xl:mb-0 @xl:flex-col @xl:gap-x-0 @xl:gap-y-1 @xl:overflow-visible"))
+	name := navLabel([]string{label}, "Settings")
+	ul := html.Ul().Class(Classes("hidden flex-col gap-y-1 @xl:flex"))
+	options := make([]html.SelectChild, 0, len(nav))
 	for _, it := range nav {
-		ul.Children(html.Li(it.linkClass(settingsLinkClass)).Class("shrink-0"))
+		ul.Children(html.Li(it.linkClass(settingsLinkClass)))
+		options = append(options, Choice(it.href, it.label).Selected(it.active))
 	}
+	selectID := strings.ToLower(domID(name)) + "-section"
+	picker := Select("section", options...).
+		Attrs(datastar.On("change", "window.location.href = evt.target.value"))
+	picker.SetAttr("id", selectID)
 	return html.Div(
 		html.Div(
-			html.Nav(ul).Aria("label", navLabel([]string{label}, "Settings")).Class(Classes("min-w-0 border-b border-neutral-200 @xl:border-b-0 dark:border-white/10")),
+			html.Nav(
+				html.Div(
+					html.Label().For(selectID).Class("sr-only").Text("Section"),
+					picker,
+				).Class("@xl:hidden"),
+				ul,
+			).Aria("label", name).Class("min-w-0"),
 			html.Div(content...).Class("min-w-0"),
 		).Class(Classes("grid grid-cols-1 gap-6 @xl:grid-cols-[13rem_minmax(0,1fr)] @xl:gap-10")),
 	).Class(Classes("@container"))
