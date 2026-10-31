@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+### WCAG AA contrast with the default tokens
+
+The default primary stays sky; the components now use the steps of each family that reach WCAG
+2.1 AA (4.5:1 text, 3:1 non-text) in light and dark, measured by the new contrast test and an
+axe-core scan of the showcase. Rendered class names change:
+
+| Where | Before | After |
+| --- | --- | --- |
+| Primary button, current page, completed step (white text) | `bg-primary-600 hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-500` | `bg-primary-700 hover:bg-primary-800` in both schemes |
+| Danger button | `hover:bg-danger-500 dark:bg-danger-500 dark:hover:bg-danger-400` | `bg-danger-600 hover:bg-danger-700` in both schemes |
+| Link button, active tab, current step number | `text-primary-600` (Link hover `primary-500`) | `text-primary-700` (hover `800`); dark stays `primary-400` |
+| Focus rings | `outline-primary-600`; Secondary/Ghost `outline-neutral-400` | `outline-primary-700 dark:outline-primary-500`; `outline-neutral-500` |
+| Input and InputGroup affix border | `outline-neutral-300 dark:outline-white/10` | `outline-neutral-500 dark:outline-white/35` |
+| Placeholder | `placeholder:text-neutral-400 dark:placeholder:text-neutral-500` | `placeholder:text-neutral-500 dark:placeholder:text-neutral-400` |
+| Toast accent border | `border-{tone}-500` (Neutral `400`) | `border-{tone}-600 dark:border-{tone}-500` (Neutral `500`) |
+| Close button (Alert, Toast, Dialog) | `opacity-60 hover:opacity-100` | full opacity; Toast and Dialog `text-neutral-500 dark:text-neutral-400` |
+| Alert body | `opacity-90` | full opacity, the tone color |
+| Stat positive delta | `text-success-600` | `text-success-700` |
+| Progress fills | `bg-{info,success,warning,danger}-500` | `bg-info-600`, `bg-success-700`, `bg-warning-700`, `bg-danger-600`, each `dark:bg-*-500` |
+| DropZone outline, MoveHere border | `primary-500` | `primary-600` |
+
+If you retheme with another light hue (cyan, amber, lime, yellow), the 700 step is what keeps
+white text readable; rerun `go test -run Contrast .` against your aliases (see README, Contrast).
+
 ### Design tokens replace themes (breaking)
 
 Components are now styled with Tailwind v4 design tokens, CSS variables you override in your own

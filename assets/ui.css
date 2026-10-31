@@ -27,6 +27,13 @@
  * full 50-950 scale so your own markup can use any step.
  *
  * Fonts: the components use font-sans, i.e. Tailwind's own --font-sans; set it in your @theme.
+ *
+ * Contrast: the defaults meet WCAG 2.1 AA in light and dark, and the module's contrast test
+ * (go test -run Contrast) measures every pair the components use. Solids with white text use the
+ * 700 step (bg-primary-700, hover 800; Danger 600, hover 700), links text-primary-700 in light.
+ * Light hues -- sky (the default), cyan, amber, lime, yellow -- need that 700 step to reach 4.5:1
+ * against white. The test guards these defaults only: if you alias other palettes, rerun it
+ * against them (see the README, "Contrast").
  */
 
 @theme {

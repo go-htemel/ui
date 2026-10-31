@@ -52,7 +52,7 @@ func Dialog(signal, title string, children ...htemel.FlowContent) *html.DialogEl
 	panel := html.Div(
 		html.Div(
 			html.H2().Id(titleID).Class(Classes("text-base font-semibold text-neutral-900 dark:text-white")).Text(title),
-			closeButton("Close", Close(signal)),
+			closeButton("Close", Close(signal)).AddClass(Classes("text-neutral-500 dark:text-neutral-400")),
 		).Class(Classes("flex items-start justify-between gap-x-4")),
 		html.Div(children...).Id(domID(signal)+"-body").Class(Classes("mt-3 text-sm text-neutral-600 dark:text-neutral-300")),
 	).Class("p-6").

@@ -39,11 +39,11 @@ func ToastRegion() *html.DivElement {
 }
 
 var toneAccent = map[Tone]string{
-	Neutral: "border-neutral-400 dark:border-neutral-500",
-	Info:    "border-info-500",
-	Success: "border-success-500",
-	Warning: "border-warning-500",
-	Danger:  "border-danger-500",
+	Neutral: "border-neutral-500",
+	Info:    "border-info-600 dark:border-info-500",
+	Success: "border-success-600 dark:border-success-500",
+	Warning: "border-warning-600 dark:border-warning-500",
+	Danger:  "border-danger-600 dark:border-danger-500",
 }
 
 // Toast returns a notification card for the ToastRegion. id names it in the $toasts signal and

@@ -43,17 +43,15 @@ func (k kind) String() string { return [...]string{"text", "large text", "non-te
 
 // side is one color scheme of a row.
 type side struct {
-	fg, bg  string   // color utilities; bg "" means the foreground sits directly on the backdrop
-	under   string   // backdrop utility; "" means the page background of the scheme
-	group   float64  // opacity of the whole element (bg and fg fade toward the backdrop), 0 = 1
-	fgAlpha float64  // opacity of the foreground only (fades toward the element's bg), 0 = 1
-	also    []string // other classes of the row that must exist in the goldens
+	fg, bg string   // color utilities; bg "" means the foreground sits directly on the backdrop
+	under  string   // backdrop utility; "" means the page background of the scheme
+	group  float64  // opacity of the whole element (bg and fg fade toward the backdrop), 0 = 1
+	also   []string // other classes of the row that must exist in the goldens
 }
 
 func on(fg, bg string) side       { return side{fg: fg, bg: bg} }
 func (s side) over(u string) side { s.under = u; return s }
 func (s side) grp(a float64) side { s.group = a; return s }
-func (s side) fga(a float64) side { s.fgAlpha = a; return s }
 func (s side) with(c ...string) side {
 	s.also = append(s.also, c...)
 	return s
@@ -78,13 +76,14 @@ type tone struct {
 	name, line, lfg, lbg, dfg, dbg, lborder, dborder string
 }
 
-// tones is toneSoft (badge.go:7-11) and toneAccent (toast.go:41-47).
+// tones is toneSoft (badge.go:7-11) and toneAccent (toast.go:41-47): accent borders are one step
+// darker in light (white toast) than in dark (neutral-800 toast).
 var tones = []tone{
-	{"Neutral", "7", "text-neutral-700", "bg-neutral-100", "dark:text-neutral-300", "dark:bg-neutral-400/10", "border-neutral-400", "dark:border-neutral-500"},
-	{"Info", "8", "text-info-700", "bg-info-50", "dark:text-info-300", "dark:bg-info-400/10", "border-info-500", "border-info-500"},
-	{"Success", "9", "text-success-700", "bg-success-50", "dark:text-success-300", "dark:bg-success-500/10", "border-success-500", "border-success-500"},
-	{"Warning", "10", "text-warning-800", "bg-warning-50", "dark:text-warning-300", "dark:bg-warning-400/10", "border-warning-500", "border-warning-500"},
-	{"Danger", "11", "text-danger-700", "bg-danger-50", "dark:text-danger-300", "dark:bg-danger-400/10", "border-danger-500", "border-danger-500"},
+	{"Neutral", "7", "text-neutral-700", "bg-neutral-100", "dark:text-neutral-300", "dark:bg-neutral-400/10", "border-neutral-500", "border-neutral-500"},
+	{"Info", "8", "text-info-700", "bg-info-50", "dark:text-info-300", "dark:bg-info-400/10", "border-info-600", "dark:border-info-500"},
+	{"Success", "9", "text-success-700", "bg-success-50", "dark:text-success-300", "dark:bg-success-500/10", "border-success-600", "dark:border-success-500"},
+	{"Warning", "10", "text-warning-800", "bg-warning-50", "dark:text-warning-300", "dark:bg-warning-400/10", "border-warning-600", "dark:border-warning-500"},
+	{"Danger", "11", "text-danger-700", "bg-danger-50", "dark:text-danger-300", "dark:bg-danger-400/10", "border-danger-600", "dark:border-danger-500"},
 }
 
 func matrix() []spec {
@@ -98,59 +97,63 @@ func matrix() []spec {
 	const dis = "disabled:opacity-50" // buttonBase, button.go:10
 
 	// Button (button.go:14-25 buttonVariants). Text is text-sm/text-xs semibold: normal text.
-	add("Button/Primary", "default", "button.go:14", text, on("text-white", "bg-primary-600"), on("text-white", "dark:bg-primary-600"))
-	add("Button/Primary", "hover", "button.go:14", text, on("text-white", "hover:bg-primary-700"), on("text-white", "dark:hover:bg-primary-500"))
-	add("Button/Primary", "focus-visible outline", "button.go:14", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
-	disabled("Button/Primary", "disabled", "button.go:14", on("text-white", "bg-primary-600").grp(0.5).with(dis), on("text-white", "dark:bg-primary-600").grp(0.5).with(dis))
+	// Solid surfaces with white text use the 700 step (hover 800) in both schemes: light hues such
+	// as sky only reach 4.5:1 against white there.
+	add("Button/Primary", "default", "button.go:14", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
+	add("Button/Primary", "hover", "button.go:14", text, on("text-white", "hover:bg-primary-800"), on("text-white", "hover:bg-primary-800"))
+	add("Button/Primary", "focus-visible outline", "button.go:14", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
+	add("Button/Primary", "focus-visible outline on a card", "button.go:14", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over("dark:bg-neutral-800"))
+	disabled("Button/Primary", "disabled", "button.go:14", on("text-white", "bg-primary-700").grp(0.5).with(dis), on("text-white", "bg-primary-700").grp(0.5).with(dis))
 
 	add("Button/Secondary", "default", "button.go:16", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/10"))
 	add("Button/Secondary", "hover", "button.go:16", text, on("text-neutral-900", "hover:bg-neutral-50"), on("dark:text-white", "dark:hover:bg-white/20"))
-	add("Button/Secondary", "focus-visible outline", "button.go:16", nonText, on("focus-visible:outline-neutral-400", ""), on("focus-visible:outline-neutral-400", ""))
+	add("Button/Secondary", "focus-visible outline", "button.go:16", nonText, on("focus-visible:outline-neutral-500", ""), on("focus-visible:outline-neutral-500", ""))
 	disabled("Button/Secondary", "disabled", "button.go:16", on("text-neutral-900", "bg-white").grp(0.5).with(dis), on("dark:text-white", "dark:bg-white/10").grp(0.5).with(dis))
 
 	add("Button/Outline", "default", "button.go:18", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 	add("Button/Outline", "hover", "button.go:18", text, on("text-primary-700", "hover:bg-primary-50"), on("dark:text-primary-400", "dark:hover:bg-primary-500/10"))
-	add("Button/Outline", "ring (boundary)", "button.go:18", nonText, on("ring-primary-600", ""), on("dark:ring-primary-500", ""))
-	add("Button/Outline", "focus-visible outline", "button.go:18", nonText, on("focus-visible:outline-primary-600", ""), on("focus-visible:outline-primary-600", ""))
+	add("Button/Outline", "ring (boundary)", "button.go:18", nonText, on("ring-primary-700", ""), on("dark:ring-primary-500", ""))
+	add("Button/Outline", "focus-visible outline", "button.go:18", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
 	disabled("Button/Outline", "disabled", "button.go:18", on("text-primary-700", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
 
 	add("Button/Ghost", "default", "button.go:20", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
 	add("Button/Ghost", "hover", "button.go:20", text, on("text-neutral-700", "hover:bg-neutral-100"), on("dark:text-neutral-300", "dark:hover:bg-white/10"))
-	add("Button/Ghost", "focus-visible outline", "button.go:20", nonText, on("focus-visible:outline-neutral-400", ""), on("focus-visible:outline-neutral-400", ""))
+	add("Button/Ghost", "focus-visible outline", "button.go:20", nonText, on("focus-visible:outline-neutral-500", ""), on("focus-visible:outline-neutral-500", ""))
 	disabled("Button/Ghost", "disabled", "button.go:20", on("text-neutral-700", "").grp(0.5).with(dis), on("dark:text-neutral-300", "").grp(0.5).with(dis))
 
-	add("Button/Danger", "default", "button.go:22", text, on("text-white", "bg-danger-600"), on("text-white", "dark:bg-danger-500"))
-	add("Button/Danger", "hover", "button.go:22", text, on("text-white", "hover:bg-danger-500"), on("text-white", "dark:hover:bg-danger-400"))
+	add("Button/Danger", "default", "button.go:22", text, on("text-white", "bg-danger-600"), on("text-white", "bg-danger-600"))
+	add("Button/Danger", "hover", "button.go:22", text, on("text-white", "hover:bg-danger-700"), on("text-white", "hover:bg-danger-700"))
 	add("Button/Danger", "focus-visible outline", "button.go:22", nonText, on("focus-visible:outline-danger-600", ""), on("dark:focus-visible:outline-danger-500", ""))
-	disabled("Button/Danger", "disabled", "button.go:22", on("text-white", "bg-danger-600").grp(0.5).with(dis), on("text-white", "dark:bg-danger-500").grp(0.5).with(dis))
+	disabled("Button/Danger", "disabled", "button.go:22", on("text-white", "bg-danger-600").grp(0.5).with(dis), on("text-white", "bg-danger-600").grp(0.5).with(dis))
 
-	add("Button/Link", "default", "button.go:24", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
-	add("Button/Link", "hover", "button.go:24", text, on("hover:text-primary-500", ""), on("dark:hover:text-primary-300", ""))
-	add("Button/Link", "focus-visible outline", "button.go:24", nonText, on("focus-visible:outline-primary-600", ""), on("focus-visible:outline-primary-600", ""))
-	disabled("Button/Link", "disabled", "button.go:24", on("text-primary-600", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
+	add("Button/Link", "default", "button.go:24", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
+	add("Button/Link", "hover", "button.go:24", text, on("hover:text-primary-800", ""), on("dark:hover:text-primary-300", ""))
+	add("Button/Link", "focus-visible outline", "button.go:24", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
+	disabled("Button/Link", "disabled", "button.go:24", on("text-primary-700", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
 
 	// Badge, Alert (title and body) and Toast per tone.
 	for _, t := range tones {
 		add("Badge/"+t.name, "text on tint", "badge.go:"+t.line, text, on(t.lfg, t.lbg), on(t.dfg, t.dbg))
 		add("Alert/"+t.name, "title on tint", "badge.go:"+t.line, text, on(t.lfg, t.lbg), on(t.dfg, t.dbg))
-		// alert.go:33 renders the body in a div with opacity-90.
-		add("Alert/"+t.name, "body on tint (opacity-90)", "badge.go:"+t.line, text,
-			on(t.lfg, t.lbg).fga(0.9).with("opacity-90"), on(t.dfg, t.dbg).fga(0.9).with("opacity-90"))
+		// alert.go:33 renders the body at full opacity in the tone color (it used to be opacity-90,
+		// which took Success below 4.5:1).
+		add("Alert/"+t.name, "body on tint", "badge.go:"+t.line, text, on(t.lfg, t.lbg), on(t.dfg, t.dbg))
 		add("Toast/"+t.name, "accent border (toast.go:41)", "toast.go:"+strconv.Itoa(42+indexOf(t.name)), nonText,
 			on(t.lborder, "bg-white"), on(t.dborder, "dark:bg-neutral-800"))
 	}
 
-	// Toast (toast.go:62-73). The close button is closeButton (signals.go:45), opacity-60.
+	// Toast (toast.go:62-73). The close button is closeButton (signals.go:45), at full opacity.
 	add("Toast", "title", "toast.go:62", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-800"))
 	add("Toast", "message", "toast.go:65", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-800"))
-	add("Toast", "close icon (opacity-60)", "toast.go:69", nonText,
-		on("text-neutral-500", "bg-white").fga(0.6).with("opacity-60"), on("dark:text-neutral-400", "dark:bg-neutral-800").fga(0.6).with("opacity-60"))
+	add("Toast", "close icon", "toast.go:69", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-800"))
 
 	// Input (form.go:18-23). Dark inputs are bg-white/5 over the page.
 	add("Input", "text", "form.go:18", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/5"))
-	add("Input", "placeholder", "form.go:19", text, on("placeholder:text-neutral-400", "bg-white"), on("dark:placeholder:text-neutral-500", "dark:bg-white/5"))
-	add("Input", "border (SC 1.4.11)", "form.go:18", nonText, on("outline-neutral-300", ""), on("dark:outline-white/10", ""))
-	add("Input", "focus outline", "form.go:19", nonText, on("focus:outline-primary-600", ""), on("dark:focus:outline-primary-500", ""))
+	add("Input", "placeholder", "form.go:19", text, on("placeholder:text-neutral-500", "bg-white"), on("dark:placeholder:text-neutral-400", "dark:bg-white/5"))
+	add("Input", "border (SC 1.4.11)", "form.go:18", nonText, on("outline-neutral-500", ""), on("dark:outline-white/35", ""))
+	add("Input", "border against the field (SC 1.4.11)", "form.go:18", nonText, on("outline-neutral-500", "bg-white"), on("dark:outline-white/35", "dark:bg-white/5"))
+	add("InputGroup", "affix border", "info.go:104", nonText, on("outline-neutral-500", "bg-neutral-50"), on("dark:outline-white/35", "dark:bg-white/5"))
+	add("Input", "focus outline", "form.go:19", nonText, on("focus:outline-primary-700", ""), on("dark:focus:outline-primary-500", ""))
 	add("Input", "invalid outline", "form.go:21", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
 	disabled("Input", "disabled text", "form.go:20", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
 
@@ -165,29 +168,29 @@ func matrix() []spec {
 	add("Table", "striped body text", "table.go:94", text,
 		on("text-neutral-700", "*:even:bg-neutral-50").over(cardL).with("*:even:bg-neutral-50"),
 		on("dark:text-neutral-300", "dark:*:even:bg-white/5").over(cardD).with("dark:*:even:bg-white/5"))
-	add("Table", "sort button focus outline", "table.go:133", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("focus-visible:outline-primary-600", "").over(cardD))
+	add("Table", "sort button focus outline", "table.go:133", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	add("Table", "empty-state description", "table.go:155", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 
 	// Stat (info.go:50-65) on its white / neutral-900 card. The value is text-2xl semibold.
 	add("Stat", "value", "info.go:50", largeText, on("text-neutral-900", "").over(cardL), on("dark:text-white", "").over(cardD))
 	add("Stat", "label", "info.go:63", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 	add("Stat", "delta neutral", "info.go:53", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
-	add("Stat", "delta positive", "info.go:56", text, on("text-success-600", "").over(cardL), on("dark:text-success-400", "").over(cardD))
+	add("Stat", "delta positive", "info.go:56", text, on("text-success-700", "").over(cardL), on("dark:text-success-400", "").over(cardD))
 	add("Stat", "delta negative", "info.go:58", text, on("text-danger-600", "").over(cardL), on("dark:text-danger-400", "").over(cardD))
 	add("DescriptionList", "term", "info.go:95", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// Progress (progress.go:32-36, 51): fill against its track; Steps (progress.go:135-152) labels.
 	for _, p := range []struct{ name, line, l, d string }{
 		{"Neutral", "32", "bg-primary-600", "dark:bg-primary-500"},
-		{"Info", "33", "bg-info-500", "bg-info-500"},
-		{"Success", "34", "bg-success-500", "bg-success-500"},
-		{"Warning", "35", "bg-warning-500", "bg-warning-500"},
-		{"Danger", "36", "bg-danger-500", "bg-danger-500"},
+		{"Info", "33", "bg-info-600", "dark:bg-info-500"},
+		{"Success", "34", "bg-success-700", "dark:bg-success-500"},
+		{"Warning", "35", "bg-warning-700", "dark:bg-warning-500"},
+		{"Danger", "36", "bg-danger-600", "dark:bg-danger-500"},
 	} {
 		add("Progress/"+p.name, "fill on track", "progress.go:"+p.line, nonText, on(p.l, "bg-neutral-200"), on(p.d, "dark:bg-white/10"))
 	}
-	add("Steps", "completed number", "progress.go:135", text, on("text-white", "bg-primary-600"), on("text-white", "dark:bg-primary-500"))
-	add("Steps", "current number", "progress.go:139", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
+	add("Steps", "completed number", "progress.go:135", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
+	add("Steps", "current number", "progress.go:139", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 	add("Steps", "upcoming number", "progress.go:143", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Steps", "upcoming label", "progress.go:146", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Steps", "current label", "progress.go:148", text, on("text-neutral-900", ""), on("dark:text-white", ""))
@@ -198,14 +201,14 @@ func matrix() []spec {
 	// Nav (nav.go:22-24, 131), Breadcrumb (nav.go:170-178), Tabs, Pagination.
 	add("Nav link", "inactive", "nav.go:22", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 	add("Nav link", "active", "nav.go:23", text, on("text-neutral-900", "bg-neutral-100").over(cardL), on("dark:text-white", "dark:bg-white/10").over(cardD))
-	add("Nav link", "focus-visible outline", "nav.go:24", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("focus-visible:outline-primary-600", "").over(cardD))
+	add("Nav link", "focus-visible outline", "nav.go:24", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	add("Sidebar group", "heading", "nav.go:131", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Breadcrumb", "current", "nav.go:170", text, on("text-neutral-900", ""), on("dark:text-white", ""))
 	add("Breadcrumb", "link", "nav.go:177", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Tabs", "active", "tabs.go:23", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
+	add("Tabs", "active", "tabs.go:23", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
-	add("Pagination", "current page", "pagination.go:13", text, on("aria-[current=page]:text-white", "aria-[current=page]:bg-primary-600"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-primary-600"))
+	add("Pagination", "current page", "pagination.go:13", text, on("aria-[current=page]:text-white", "aria-[current=page]:bg-primary-700"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-primary-700"))
 	add("Pagination", "gap", "pagination.go:18", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// Kbd (badge.go:25-26), Avatar initials (avatar.go:31-32), Divider label (layout.go:44).
@@ -214,12 +217,16 @@ func matrix() []spec {
 	add("Divider", "label", "layout.go:44", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// DropZone highlight (dnd.go:78) and MoveHere (dnd.go:106-107).
-	add("DropZone", "data-over outline", "dnd.go:78", nonText, on("data-over:outline-primary-500", ""), on("data-over:outline-primary-500", ""))
-	add("MoveHere", "dashed border", "dnd.go:106", nonText, on("border-primary-500", ""), on("border-primary-500", ""))
+	add("DropZone", "data-over outline", "dnd.go:78", nonText, on("data-over:outline-primary-600", ""), on("data-over:outline-primary-600", ""))
+	add("MoveHere", "dashed border", "dnd.go:106", nonText, on("border-primary-600", ""), on("border-primary-600", ""))
 	add("MoveHere", "text", "dnd.go:106", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 
+	// Dialog (dialog.go:55-58) on its white / neutral-900 panel.
+	add("Dialog", "close icon", "dialog.go:55", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
+	add("Dialog", "body text", "dialog.go:57", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+
 	// Other focus rings that sit on the page background.
-	add("Disclosure", "focus-visible outline", "disclosure.go:65", nonText, on("focus-visible:outline-primary-600", ""), on("focus-visible:outline-primary-600", ""))
+	add("Disclosure", "focus-visible outline", "disclosure.go:65", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
 	return m
 }
 
@@ -286,9 +293,6 @@ func measure(th *wcag.Theme, scheme string, s side) (fg, bg wcag.RGBA, err error
 	f, err := th.ClassColor(s.fg)
 	if err != nil {
 		return fg, bg, err
-	}
-	if s.fgAlpha != 0 {
-		f = f.WithAlpha(s.fgAlpha)
 	}
 	fg = f.Over(bg)
 	if s.group != 0 {

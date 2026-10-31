@@ -62,7 +62,7 @@ func disclosureParts(id, title, open, toggle string, children []htemel.FlowConte
 	).Type(html.ButtonTypeButton).
 		Id(buttonID).
 		Class(Classes("flex w-full cursor-pointer items-center justify-between gap-x-4 py-3 text-left text-sm font-semibold",
-			"text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-white")).
+			"text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500 dark:text-white")).
 		Aria("controls", panelID).
 		Attrs(expanded(open)...).
 		Attrs(datastar.OnClick(toggle))

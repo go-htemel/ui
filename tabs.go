@@ -19,8 +19,8 @@ func Tab(key, label string, panel ...htemel.FlowContent) TabItem {
 }
 
 const (
-	tabBase     = "-mb-px cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-primary-600"
-	tabActive   = "border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400"
+	tabBase     = "-mb-px cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500"
+	tabActive   = "border-primary-700 text-primary-700 dark:border-primary-400 dark:text-primary-400"
 	tabInactive = "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:text-neutral-400 dark:hover:border-white/20 dark:hover:text-neutral-200"
 )
 
@@ -72,7 +72,7 @@ func Tabs(signal string, tabs ...TabItem) *html.DivElement {
 			Id(id+"-panel").
 			Aria("labelledby", id+"-tab").
 			Tabindex(0).
-			Class("pt-4 focus-visible:outline-2 focus-visible:outline-primary-600").
+			Class("pt-4 focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500").
 			Attrs(datastar.Show(selected))
 		if i > 0 {
 			panel.Style(hiddenUntilDatastar)

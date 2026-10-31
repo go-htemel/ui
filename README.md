@@ -124,7 +124,7 @@ Components never name a palette color. They use semantic tokens, defined as CSS 
 
 | Token | Utilities | Default | Used for |
 | --- | --- | --- | --- |
-| `--color-primary-{50..950}` | `bg-primary-600`, `text-primary-700`, `outline-primary-600`, ... | `sky` | primary buttons, links, focus rings, selected and active states, drop targets |
+| `--color-primary-{50..950}` | `bg-primary-700`, `text-primary-700`, `outline-primary-700`, ... | `sky` | primary buttons, links, focus rings, selected and active states, drop targets |
 | `--color-neutral-{50..950}` | `bg-neutral-50`, `text-neutral-500`, `ring-neutral-950/5`, ... | `zinc` | surfaces, text, borders, dividers, the page background |
 | `--color-success-{50..950}` | `bg-success-50`, `text-success-700`, ... | `green` | Success tone (Badge, Alert, Toast, Progress), positive Stat deltas |
 | `--color-warning-{50..950}` | `bg-warning-50`, `text-warning-800`, ... | `amber` | Warning tone |
@@ -137,6 +137,27 @@ Components never name a palette color. They use semantic tokens, defined as CSS 
 Pills and avatars stay `rounded-full`. Each family defines the full 50–950 scale, so your own
 markup can use any step (`bg-primary-100`), and `ui.Classes(...)` joins class lists for your own
 components.
+
+### Contrast
+
+The shipped defaults meet WCAG 2.1 AA (4.5:1 for text, 3:1 for borders, focus rings and fills) in
+light and dark, and the Go contrast test (`go test -run Contrast .`) measures every pair the
+components render. The steps follow one convention:
+
+- Solid surfaces with white text (Primary button, current page, completed step) use
+  `bg-primary-700`, hover `bg-primary-800`, in both schemes; Danger uses `bg-danger-600`, hover
+  `bg-danger-700`. Links and active labels are `text-primary-700` (hover `800`) in light and
+  `dark:text-primary-400` in dark.
+- Focus rings are `outline-primary-700` (`outline-neutral-500` on neutral controls) in light and
+  `primary-500` in dark; input borders are `outline-neutral-500` / `dark:outline-white/35`;
+  placeholders `neutral-500` / `dark:neutral-400`.
+
+Light hues such as sky (the default), cyan, amber, lime and yellow only reach 4.5:1 against
+white text at the 700 step, which is why the solids use it; a darker hue (indigo, blue, violet)
+has room to spare. The test guards the shipped defaults only (the aliases in `assets/ui.css`).
+After retheming, run it against your palette: change those aliases in a checkout of this module
+and rerun it (`CONTRAST_REPORT=contrast.md go test -run 'Contrast$' .` writes the full table
+with a suggested step for every failing pair).
 
 ### Overriding tokens
 
@@ -155,7 +176,7 @@ Override in your `@theme` block, after the import, to change the default for the
 ```
 
 Alias the whole scale of a family you change: components use several steps (for example
-`bg-primary-600 hover:bg-primary-500 dark:bg-primary-500`). Any CSS color works as a value
+`bg-primary-700 hover:bg-primary-800 dark:text-primary-400`). Any CSS color works as a value
 (`oklch(...)`, hex), not only a Tailwind palette variable. The token families share their names
 with nothing in Tailwind's palette except `neutral`: `ui.theme.css` redefines Tailwind's `neutral`
 scale as the zinc alias, so `bg-neutral-*` in your own markup follows the token too.

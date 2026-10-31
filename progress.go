@@ -30,10 +30,10 @@ var progressHeights = map[Size]string{Xs: "h-1", Sm: "h-1.5", Md: "h-2.5", Lg: "
 
 var progressTones = map[Tone]string{
 	Neutral: "bg-primary-600 dark:bg-primary-500",
-	Info:    "bg-info-500",
-	Success: "bg-success-500",
-	Warning: "bg-warning-500",
-	Danger:  "bg-danger-500",
+	Info:    "bg-info-600 dark:bg-info-500",
+	Success: "bg-success-700 dark:bg-success-500",
+	Warning: "bg-warning-700 dark:bg-warning-500",
+	Danger:  "bg-danger-600 dark:bg-danger-500",
 }
 
 func progressBar(max int, opts []ProgressOption) (*html.DivElement, *html.DivElement) {
@@ -132,11 +132,11 @@ func Steps(current int, labels ...string) *html.NavElement {
 		case n < current:
 			state = " (completed)"
 			dot = html.Span(IconCheck().Class("size-4")).
-				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white dark:bg-primary-500"))
+				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-700 text-white"))
 		case n == current:
 			state = " (current)"
 			dot = html.Span().Text(strconv.Itoa(n)).
-				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-primary-600 ring-2 ring-primary-600",
+				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-primary-700 ring-2 ring-primary-700",
 					"dark:text-primary-400 dark:ring-primary-500"))
 		default:
 			dot = html.Span().Text(strconv.Itoa(n)).
@@ -157,7 +157,7 @@ func Steps(current int, labels ...string) *html.NavElement {
 		if n > 1 {
 			line := "bg-neutral-200 dark:bg-white/10"
 			if n <= current {
-				line = "bg-primary-600 dark:bg-primary-500"
+				line = "bg-primary-700 dark:bg-primary-500"
 			}
 			list.Children(html.Li().Aria("hidden", "true").Class(Classes("mx-3 h-px min-w-6 flex-1", line)))
 		}

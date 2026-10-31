@@ -21,7 +21,7 @@ func NavLink(label, href string, active bool) NavItem {
 const (
 	navLinkIdle   = "font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white"
 	navLinkActive = "bg-neutral-100 font-semibold text-neutral-900 dark:bg-white/10 dark:text-white"
-	navLinkBase   = "block rounded-control px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+	navLinkBase   = "block rounded-control px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500"
 )
 
 func (n NavItem) link() *html.AElement {
@@ -64,7 +64,7 @@ func NavbarSignal(signal string, brand htemel.FlowContent, items ...NavItem) *ht
 		IconX().Style(hiddenUntilDatastar).Attrs(datastar.Show(open)),
 	).Type(html.ButtonTypeButton).
 		Class(Classes("-mr-2 inline-flex cursor-pointer items-center justify-center rounded-control p-2 text-neutral-600 hover:bg-neutral-100",
-			"focus-visible:outline-2 focus-visible:outline-primary-600 md:hidden dark:text-neutral-300 dark:hover:bg-white/10")).
+			"focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500 md:hidden dark:text-neutral-300 dark:hover:bg-white/10")).
 		Aria("label", "Toggle menu").
 		Aria("controls", menuID).
 		Attrs(expanded(open)...).
@@ -128,7 +128,7 @@ func Sidebar(signal string, sections ...SidebarSection) *html.NavElement {
 				Attrs(datastar.Class("-rotate-90", "!"+open)),
 		).Type(html.ButtonTypeButton).
 			Class(Classes("flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-1.5 text-left text-xs font-semibold",
-				"tracking-wide text-neutral-500 uppercase hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-600",
+				"tracking-wide text-neutral-500 uppercase hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500",
 				"dark:text-neutral-400 dark:hover:text-white")).
 			Aria("controls", id).
 			Attrs(expanded(open)...).
@@ -174,7 +174,7 @@ func Breadcrumbs(items ...Crumb) *html.NavElement {
 			entry = s
 		default:
 			entry = html.A().Href(c.Href).Text(c.Label).
-				Class(Classes("text-neutral-500 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-600",
+				Class(Classes("text-neutral-500 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500",
 					"dark:text-neutral-400 dark:hover:text-white"))
 		}
 		li := html.Li(entry).Class("flex items-center gap-x-1.5")

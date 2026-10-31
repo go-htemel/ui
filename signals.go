@@ -42,8 +42,8 @@ const hiddenUntilDatastar = "display: none"
 func closeButton(label, expr string) *html.ButtonElement {
 	return html.Button(IconX().Class("size-4 shrink-0")).
 		Type(html.ButtonTypeButton).
-		Class(Classes("-m-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-control p-1 opacity-60",
-			"hover:bg-black/5 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10")).
+		Class(Classes("-m-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-control p-1",
+			"hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10")).
 		Aria("label", label).
 		Attrs(datastar.OnClick(expr))
 }

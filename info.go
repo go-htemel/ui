@@ -53,7 +53,7 @@ func Stat(label, value string, delta ...string) *html.DivElement {
 		tone := "text-neutral-500 dark:text-neutral-400"
 		switch {
 		case strings.HasPrefix(delta[0], "+"):
-			tone = "text-success-600 dark:text-success-400"
+			tone = "text-success-700 dark:text-success-400"
 		case strings.HasPrefix(delta[0], "-"), strings.HasPrefix(delta[0], "−"):
 			tone = "text-danger-600 dark:text-danger-400"
 		}
@@ -101,7 +101,7 @@ func DescriptionList(pairs ...DLItem) *html.DlElement {
 }
 
 const affixClass = "inline-flex shrink-0 items-center bg-neutral-50 px-3 text-sm text-neutral-500 outline-1 -outline-offset-1 " +
-	"outline-neutral-300 dark:bg-white/5 dark:text-neutral-400 dark:outline-white/10"
+	"outline-neutral-500 dark:bg-white/5 dark:text-neutral-400 dark:outline-white/35"
 
 // InputGroup joins a control with an affix before it, after it or both, such as a currency sign
 // or a domain suffix. prefix and suffix may be nil. The control is an Input, Select or any

@@ -30,7 +30,7 @@ func alertBox(t Tone, title string, children []htemel.FlowContent) *html.DivElem
 		html.P().Class("font-semibold").Text(title),
 	).Class(Classes("min-w-0 flex-1 space-y-1"))
 	if len(children) > 0 {
-		content.Children(html.Div(children...).Class("opacity-90"))
+		content.Children(html.Div(children...))
 	}
 	return html.Div(content).
 		Class(Classes("flex gap-x-3 rounded-surface p-4 text-sm ring-1 ring-inset", pick(toneSoft, t, Neutral))).
