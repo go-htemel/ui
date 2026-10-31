@@ -84,7 +84,12 @@ func PageHeader(title string, opts ...PageHeaderOption) *html.HeaderElement {
 		head.Children(html.P().Class(Classes(pageDescClass)).Text(c.description))
 	}
 	if len(c.meta) > 0 {
-		head.Children(html.Div(c.meta...).Class(Classes(pageMetaClass)))
+		// Each item is its own flex item, so the gap separates bare text nodes too.
+		meta := html.Div().Class(Classes(pageMetaClass))
+		for _, m := range c.meta {
+			meta.Children(html.Div(m).Class("flex items-center"))
+		}
+		head.Children(meta)
 	}
 	row := html.Div(head).Class(Classes("flex flex-col gap-4 @xl:flex-row @xl:items-start @xl:justify-between"))
 	if len(c.actions) > 0 {
@@ -191,13 +196,19 @@ const settingsLinkClass = tabLinkClass + " @xl:rounded-control @xl:border-b-0 @x
 //		ui.NavLink("Notifications", "/settings/notifications", false),
 //	}, profileForm)
 func SettingsLayout(nav []NavItem, content ...htemel.FlowContent) *html.DivElement {
+	return SettingsLayoutLabel("Settings", nav, content...)
+}
+
+// SettingsLayoutLabel is SettingsLayout with label as the name of its <nav> landmark instead of
+// "Settings", for a page with two of them (or one inside another settings area).
+func SettingsLayoutLabel(label string, nav []NavItem, content ...htemel.FlowContent) *html.DivElement {
 	ul := html.Ul().Class(Classes("-mb-px flex gap-x-6 overflow-x-auto @xl:mb-0 @xl:flex-col @xl:gap-x-0 @xl:gap-y-1 @xl:overflow-visible"))
 	for _, it := range nav {
 		ul.Children(html.Li(it.linkClass(settingsLinkClass)).Class("shrink-0"))
 	}
 	return html.Div(
 		html.Div(
-			html.Nav(ul).Aria("label", "Settings").Class(Classes("min-w-0 border-b border-neutral-200 @xl:border-b-0 dark:border-white/10")),
+			html.Nav(ul).Aria("label", navLabel([]string{label}, "Settings")).Class(Classes("min-w-0 border-b border-neutral-200 @xl:border-b-0 dark:border-white/10")),
 			html.Div(content...).Class("min-w-0"),
 		).Class(Classes("grid grid-cols-1 gap-6 @xl:grid-cols-[13rem_minmax(0,1fr)] @xl:gap-10")),
 	).Class(Classes("@container"))

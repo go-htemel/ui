@@ -900,3 +900,12 @@ ui-mdeditor {
 ui-mdeditor:not(:defined) .ui-mdeditor-toolbar {
   display: none;
 }
+
+/* TagInput: the text field's suggestions come from a <datalist>; Chromium marks such a field with
+   a dropdown arrow that reads as a select, so it is hidden (the suggestions still open as you
+   type, and with ArrowDown). */
+@layer base {
+  [data-ui-tag-input]::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
+}

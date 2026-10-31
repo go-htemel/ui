@@ -17,6 +17,7 @@ var (
 	_ htemel.FlowContent = ui.SplitLayout(nil, nil)
 	_ htemel.FlowContent = ui.SplitDetailHeader("x")
 	_ htemel.FlowContent = ui.SettingsLayout(nil)
+	_ htemel.FlowContent = ui.SettingsLayoutLabel("x", nil)
 	_ htemel.FlowContent = ui.StackedLayout(nil)
 	_ htemel.FlowContent = ui.StackedTabs("x")
 	_ htemel.FlowContent = ui.PageHeader("x")

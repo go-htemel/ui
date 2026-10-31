@@ -45,7 +45,7 @@ func init() {
 func TestTagInput(t *testing.T) {
 	got := render(t, ui.Field("tags", "Tags", ui.TagInput("tags", []string{"go", "a&b"}, ui.TagMax(3), ui.TagSignal("postTags")), ui.HelpText("h")))
 	wantAll(t, got,
-		`<ui-taginput class="flex`, `data-max="3" data-name="tags">`,
+		`<ui-taginput class="flex`, `data-ui-max="3" data-ui-name="tags">`,
 		`<ul role="list" aria-label="Selected tags" class="contents">`,
 		`data-ui-tag="go"`, `<input type="hidden" name="tags" value="go">`, `aria-label="Remove go"`,
 		`value="a&b"`,

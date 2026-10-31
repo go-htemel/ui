@@ -330,7 +330,7 @@
 // form value is always the chips on screen.
 //
 // Contract (light DOM, no shadow root, no dependencies):
-//   data-name, data-max                the field name; the tag limit (optional)
+//   data-ui-name, data-ui-max          the field name; the tag limit (optional)
 //   [data-ui-tag="go"]                 a chip, with a [data-ui-tag-remove] button and its hidden input
 //   [data-ui-tag-input]                the text field; Enter or "," adds, Backspace when empty removes
 //   template[data-ui-tag-template]     the chip cloned for new tags
@@ -367,14 +367,14 @@
     add(text) {
       const tag = String(text).trim().replace(/\s+/g, ' ');
       if (!tag) return false;
-      const max = +this.dataset.max || 0;
+      const max = +this.dataset.uiMax || 0;
       if (this.tags.some((t) => t.toLowerCase() === tag.toLowerCase())) return this._say(tag + ' is already added'), false;
       if (max && this.chips.length >= max) return this._say('Up to ' + max + ' tags'), false;
       const chip = this.querySelector('template[data-ui-tag-template]').content.firstElementChild.cloneNode(true);
       chip.setAttribute('data-ui-tag', tag);
       chip.querySelector('[data-ui-tag-text]').textContent = tag;
       chip.querySelector('[data-ui-tag-remove]').setAttribute('aria-label', 'Remove ' + tag);
-      Object.assign(chip.querySelector('input[type=hidden]'), { name: this.dataset.name, value: tag });
+      Object.assign(chip.querySelector('input[type=hidden]'), { name: this.dataset.uiName, value: tag });
       this.querySelector('[role=list]').appendChild(chip);
       this._changed('Added ' + tag);
       return true;
@@ -423,7 +423,7 @@
 
     _formdata(evt) {
       const v = this.field?.value.trim();
-      if (v && !this.tags.some((t) => t.toLowerCase() === v.toLowerCase())) evt.formData.append(this.dataset.name, v);
+      if (v && !this.tags.some((t) => t.toLowerCase() === v.toLowerCase())) evt.formData.append(this.dataset.uiName, v);
     }
 
     _changed(msg) {
@@ -535,7 +535,7 @@
       const b = evt.target.closest('[data-ui-file-remove]');
       if (!b || !this.contains(b)) return;
       const files = [...this.input.files];
-      const [gone] = files.splice(+b.closest('[data-index]').dataset.index, 1);
+      const [gone] = files.splice(+b.closest('[data-ui-index]').dataset.uiIndex, 1);
       this._set(files);
       if (gone) this._say('Removed ' + gone.name);
       this.input.focus();
@@ -546,7 +546,7 @@
       const list = this.querySelector('[data-ui-files]'), tpl = this.querySelector('template[data-ui-file-template]');
       list.replaceChildren(...files.map((f, i) => {
         const row = tpl.content.firstElementChild.cloneNode(true);
-        row.dataset.index = i;
+        row.dataset.uiIndex = i;
         row.querySelector('[data-ui-file-name]').textContent = f.name;
         row.querySelector('[data-ui-file-size]').textContent = this._size(f.size);
         const b = row.querySelector('[data-ui-file-remove]');

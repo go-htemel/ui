@@ -126,9 +126,9 @@ func TagInput(name string, tags []string, opts ...TagInputOption) *TagInputEleme
 		Class(Classes(tagField)).Attrs(htemel.Attr("data-ui-tag-input", ""))
 	control := &describedInput{InputElement: in, describedBy: id + "-tag-hint"}
 	control.SetAttr("aria-describedby", "")
-	attrs := map[string]any{"data-name": name, "class": Classes(tagFrame)}
+	attrs := map[string]any{"data-ui-name": name, "class": Classes(tagFrame)}
 	if c.max > 0 {
-		attrs["data-max"] = c.max
+		attrs["data-ui-max"] = c.max
 	}
 	children := []htemel.Node{
 		list, in,

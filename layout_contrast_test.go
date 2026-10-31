@@ -43,16 +43,16 @@ func layoutRows() []spec {
 		add("PageHeader", "meta on the "+bg.name, "layout_page.go:56", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
 		add("PageHeader", "back link on the "+bg.name, "layout_page.go:51,layout_page.go:53", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
 	}
-	add("SectionHeader", "title", "layout_page.go:118", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("SectionHeader", "title", "layout_page.go:123", text, on("text-neutral-900", ""), on("dark:text-white", ""))
 
 	// Link tabs (StackedTabs, SettingsLayout below @xl) on the white / neutral-900 header band.
-	add("StackedTabs", "tab", "layout_page.go:128,layout_page.go:131", text, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
-	add("StackedTabs", "current tab", "layout_page.go:130,layout_page.go:132", text, on("aria-[current=page]:text-primary-600", "bg-white"), on("dark:aria-[current=page]:text-primary-400", "dark:bg-neutral-900"))
-	add("StackedTabs", "current tab underline", "layout_page.go:130,layout_page.go:132", nonText, on("aria-[current=page]:border-primary-600", "bg-white"), on("dark:aria-[current=page]:border-primary-400", "dark:bg-neutral-900"))
-	add("SettingsLayout", "tab on the page", "layout_page.go:128,layout_page.go:131", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("SettingsLayout", "current tab on the page", "layout_page.go:130,layout_page.go:132", text, on("aria-[current=page]:text-primary-600", ""), on("dark:aria-[current=page]:text-primary-400", ""))
-	add("SettingsLayout", "vertical link (@xl)", "layout_page.go:179,layout_page.go:181", text, on("@xl:text-neutral-600", ""), on("@xl:dark:text-neutral-400", ""))
-	add("SettingsLayout", "current vertical link (@xl)", "layout_page.go:180,layout_page.go:181", text,
+	add("StackedTabs", "tab", "layout_page.go:133,layout_page.go:136", text, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
+	add("StackedTabs", "current tab", "layout_page.go:135,layout_page.go:137", text, on("aria-[current=page]:text-primary-600", "bg-white"), on("dark:aria-[current=page]:text-primary-400", "dark:bg-neutral-900"))
+	add("StackedTabs", "current tab underline", "layout_page.go:135,layout_page.go:137", nonText, on("aria-[current=page]:border-primary-600", "bg-white"), on("dark:aria-[current=page]:border-primary-400", "dark:bg-neutral-900"))
+	add("SettingsLayout", "tab on the page", "layout_page.go:133,layout_page.go:136", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("SettingsLayout", "current tab on the page", "layout_page.go:135,layout_page.go:137", text, on("aria-[current=page]:text-primary-600", ""), on("dark:aria-[current=page]:text-primary-400", ""))
+	add("SettingsLayout", "vertical link (@xl)", "layout_page.go:184,layout_page.go:186", text, on("@xl:text-neutral-600", ""), on("@xl:dark:text-neutral-400", ""))
+	add("SettingsLayout", "current vertical link (@xl)", "layout_page.go:185,layout_page.go:186", text,
 		on("@xl:aria-[current=page]:text-primary-700", "@xl:aria-[current=page]:bg-neutral-100"), on("@xl:dark:aria-[current=page]:text-white", "@xl:dark:aria-[current=page]:bg-white/10"))
 	add("SplitDetailHeader", "title", "layout_split.go:131", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-900"))
 

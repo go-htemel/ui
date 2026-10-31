@@ -82,9 +82,11 @@ func SlugField(name, fromSignal string) *html.InputElement {
 			htemel.Attr("spellcheck", "false"),
 			initially(name, "''"),
 			initially(touched, "false"),
+			// The input handler comes before data-bind: Datastar adds listeners in attribute order,
+			// so Touched is set before the typed value reaches the signal and wakes the effect.
+			datastar.OnInput("$"+touched+" = el.value !== ''"),
 			datastar.Bind(name),
 			datastar.Effect("if (!$"+touched+") $"+name+" = "+slugify("$"+fromSignal)),
-			datastar.OnInput("$"+touched+" = el.value !== ''"),
 		)
 }
 
