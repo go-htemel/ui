@@ -14,11 +14,13 @@
 *:rounded-none
 *:shadow-none
 *:size-8
+-count
 -m-1
 -mb-px
 -mr-2
 -mx-1
 -outline-offset-1
+-preview
 -rotate-90
 -space-x-px
 -translate-x-1/2
@@ -28,6 +30,9 @@
 @2xl:hidden
 @5xl:px-8
 @container
+@xl:border-l
+@xl:border-t-0
+@xl:grid-cols-2
 @xl:px-6
 absolute
 accent-primary-600
@@ -43,6 +48,9 @@ aria-[current=page]:hover:bg-primary-700
 aria-[current=page]:ring-primary-600
 aria-[current=page]:text-primary-700
 aria-[current=page]:text-white
+aria-controls
+aria-describedby
+aria-invalid
 aria-invalid:focus:outline-danger-600
 aria-invalid:outline-danger-500
 aria-pressed:bg-primary-600
@@ -67,11 +75,13 @@ bg-primary-50
 bg-primary-600
 bg-success-50
 bg-success-700
+bg-transparent
 bg-warning-50
 bg-warning-700
 bg-white
 block
 border
+border-0
 border-b
 border-b-2
 border-danger-600
@@ -94,6 +104,7 @@ border-warning-600
 border-y
 bottom-4
 bottom-full
+characters
 checked:bg-primary-600
 checked:border-primary-600
 col-start-1
@@ -153,6 +164,7 @@ dark:file:text-white
 dark:focus-visible:bg-white/5
 dark:focus-visible:outline-danger-500
 dark:focus-visible:outline-primary-500
+dark:focus-within:outline-primary-500
 dark:focus:outline-primary-500
 dark:group-has-checked:ring-0
 dark:has-checked:bg-primary-500
@@ -224,6 +236,7 @@ duration-150
 duration-200
 ease-out
 enabled:hover:outline-field-border-hover
+field-sizing-content
 file:bg-white
 file:border-0
 file:cursor-pointer
@@ -254,6 +267,10 @@ focus-visible:outline-neutral-500
 focus-visible:outline-none
 focus-visible:outline-offset-2
 focus-visible:outline-primary-600
+focus-visible:rounded-xs
+focus-within:-outline-offset-2
+focus-within:outline-2
+focus-within:outline-primary-600
 focus:-outline-offset-2
 focus:outline-2
 focus:outline-none
@@ -264,6 +281,7 @@ font-sans
 font-semibold
 forced-colors:appearance-auto
 forced-colors:hidden
+gap-0.5
 gap-1
 gap-2
 gap-3
@@ -297,6 +315,7 @@ h-14
 h-2.5
 h-3
 h-4
+h-5
 h-6
 h-9
 h-dvh
@@ -327,6 +346,7 @@ hover:text-neutral-700
 hover:text-neutral-900
 hover:text-primary-700
 hover:underline
+id
 indeterminate:bg-primary-600
 indeterminate:border-primary-600
 inline-block
@@ -335,6 +355,7 @@ inset-0
 inset-x-4
 invisible
 isolate
+italic
 items-baseline
 items-center
 items-end
@@ -350,6 +371,7 @@ line
 m-0
 m-auto
 max-h-96
+max-h-[70vh]
 max-h-[85dvh]
 max-h-[inherit]
 max-h-none
@@ -364,6 +386,7 @@ mb-2
 mb-3
 md
 min-h-0
+min-h-40
 min-w-0
 min-w-6
 min-w-9
@@ -380,10 +403,12 @@ mt-3
 mt-4
 mt-6
 mt-auto
+mx-1
 mx-3
 mx-auto
 my-1
 not-checked:enabled:hover:border-field-border-hover
+not-focus-within:hover:outline-field-border-hover
 not-has-checked:has-enabled:hover:bg-neutral-300
 object-cover
 opacity-0
@@ -442,6 +467,7 @@ py-3.5
 py-4
 py-5
 relative
+resize-y
 ring-1
 ring-2
 ring-danger-600/20
@@ -464,6 +490,7 @@ rounded-full
 rounded-surface
 rounded-t-surface
 row-start-1
+s
 scale-[.98]
 secondary
 self-center
@@ -485,6 +512,7 @@ size-6
 size-7
 size-8
 size-full
+sm
 sm:border-neutral-200
 sm:border-t
 sm:col-span-1
@@ -511,6 +539,8 @@ starting:open:scale-[.98]
 starting:open:translate-x-full
 starting:open:translate-y-full
 starting:translate-x-full
+t
+tabular-nums
 text-2xl/8
 text-[0.625rem]
 text-base
@@ -533,6 +563,7 @@ text-success-700
 text-warning-800
 text-white
 text-xs
+toasts
 tracking-wide
 transition-[grid-template-rows,visibility]
 transition-[opacity,scale,translate,display,overlay]
@@ -556,10 +587,14 @@ ui-code-titled
 ui-code-toolbar
 ui-code-wrap
 ui-control
+ui-mdeditor
+ui-mdeditor-toolbar
 ui-prose
 ui-prose-lg
 ui-prose-sm
 ui-select
+underline
+underline-offset-2
 underline-offset-4
 uppercase
 w-11
@@ -567,7 +602,9 @@ w-2/3
 w-56
 w-[calc(100%-2rem)]
 w-full
+w-px
 whitespace-nowrap
+word
 xs
 z-30
 z-50

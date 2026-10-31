@@ -295,6 +295,8 @@ func matrix() []spec {
 	m = append(m, codeRows()...)
 	// Prose (assets/ui.css, --ui-prose-*): see prose_test.go.
 	m = append(m, proseRows()...)
+	// MarkdownEditor (mdeditor.go): see mdeditor_test.go.
+	m = append(m, mdeditorRows()...)
 	return m
 }
 

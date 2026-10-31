@@ -879,3 +879,13 @@
     }
   }
 }
+
+/* MarkdownEditor: the <ui-mdeditor> element of ui.js does the toolbar's editing. It generates no
+   box, and until it is defined (no ui.js, or before it loads) the toolbar is hidden: the buttons
+   would do nothing. Unlayered, so it beats the toolbar's flex utility. */
+ui-mdeditor {
+  display: contents;
+}
+ui-mdeditor:not(:defined) .ui-mdeditor-toolbar {
+  display: none;
+}
