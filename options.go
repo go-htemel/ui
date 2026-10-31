@@ -11,6 +11,7 @@ type options struct {
 	icon     htemel.PhrasingContent
 	trailing htemel.PhrasingContent
 	loading  string
+	rail     bool
 	class    string // extra classes appended by components that wrap Button or IconButton
 }
 
@@ -43,3 +44,12 @@ func WithLoading(signal string) Option { return func(o *options) { o.loading = s
 // withClass appends classes to the element of Button and IconButton; for components in this
 // package that restyle a button (callers chain Class on the result instead, which replaces).
 func withClass(class string) Option { return func(o *options) { o.class = class } }
+
+// WithRailIcon makes a Button or LinkButton collapse to its leading icon in the rail of a
+// collapsed AppShell (SidebarCollapsible): the label and the trailing icon become visually hidden
+// (the label stays the accessible name), the content centres and the horizontal padding shrinks
+// so the button fits the 4rem rail. Outside a collapsed rail it changes nothing. Give the button
+// an icon (WithIcon), or nothing is left to show. Use it for the controls of WithSidebarFooter:
+//
+//	ui.Button(ui.Ghost, "Ada Lovelace", ui.WithIcon(avatar), ui.WithRailIcon())
+func WithRailIcon() Option { return func(o *options) { o.rail = true } }

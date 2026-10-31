@@ -12,10 +12,11 @@ var toneSoft = map[Tone]string{
 	Danger:  "bg-danger-50 text-danger-700 ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-300 dark:ring-danger-400/20",
 }
 
-// Badge returns a small pill, <span>, with label in tone t.
+// Badge returns a small pill, <span>, with label in tone t. The label never wraps
+// (whitespace-nowrap): a long one makes the pill wider, so keep labels to a word or two.
 func Badge(t Tone, label string) *html.SpanElement {
 	return html.Span().
-		Class(Classes("inline-flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset",
+		Class(Classes("inline-flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ring-1 ring-inset",
 			pick(toneSoft, t, Neutral))).
 		Text(label)
 }

@@ -1,10 +1,7 @@
 package ui
 
 import (
-	"strings"
-
 	"github.com/go-htemel/htemel"
-	"github.com/go-htemel/htemel/datastar"
 	"github.com/go-htemel/htemel/html"
 )
 
@@ -147,14 +144,19 @@ type StackedTabsElement struct {
 
 // StackedTabs returns a row of links drawn as tabs, for the sections of a record (Overview,
 // Comments, Revisions): unlike Tabs each one is a page, so the current one is the NavLink marked
-// active (aria-current="page"). label names the <nav> landmark. The row scrolls sideways when it
-// does not fit. Pass it among StackedLayout's content and it is drawn under the header.
+// active (aria-current="page"). label names the <nav> landmark. The nav is a CSS container: from
+// its @xl width (36rem) the links are a row of tabs; below it they are a labelled Select of the
+// sections that navigates on change (a row of tabs would clip its last items on a phone), as in
+// SettingsLayout. Items with NavItem.Signal switch a signal instead of navigating. Pass it among
+// StackedLayout's content and it is drawn under the header.
 func StackedTabs(label string, items ...NavItem) *StackedTabsElement {
-	ul := html.Ul().Class(Classes("-mb-px flex gap-x-6 overflow-x-auto"))
+	name := navLabel([]string{label}, "Sections")
+	ul := html.Ul().Class(Classes("-mb-px hidden gap-x-6 overflow-x-auto @xl:flex"))
 	for _, it := range items {
 		ul.Children(html.Li(it.linkClass(tabLinkClass)).Class("shrink-0"))
 	}
-	return &StackedTabsElement{html.Nav(ul).Aria("label", navLabel([]string{label}, "Sections"))}
+	return &StackedTabsElement{html.Nav(navSelect(name, items, "pb-3 @xl:hidden"), ul).
+		Aria("label", name).Class(Classes("@container"))}
 }
 
 // stackedPad is the side padding of StackedLayout's bands.
@@ -195,7 +197,8 @@ const settingsLinkClass = "block rounded-control px-3 py-2 text-sm font-medium t
 // content (a row of tabs would clip its last items on a phone and show a scrollbar), which
 // navigates to the chosen link's href on change. The current page is the NavLink marked active
 // (aria-current="page", and the selected option); the links keep their icons and badges. The nav
-// is a <nav aria-label="Settings">.
+// is a <nav aria-label="Settings">. Items with NavItem.Signal turn the nav into a switch for
+// panels on the page: links and the select set the signal instead of navigating.
 //
 //	ui.SettingsLayout([]ui.NavItem{
 //		ui.NavLink("Profile", "/settings/profile", true),
@@ -210,22 +213,13 @@ func SettingsLayout(nav []NavItem, content ...htemel.FlowContent) *html.DivEleme
 func SettingsLayoutLabel(label string, nav []NavItem, content ...htemel.FlowContent) *html.DivElement {
 	name := navLabel([]string{label}, "Settings")
 	ul := html.Ul().Class(Classes("hidden flex-col gap-y-1 @xl:flex"))
-	options := make([]html.SelectChild, 0, len(nav))
 	for _, it := range nav {
 		ul.Children(html.Li(it.linkClass(settingsLinkClass)))
-		options = append(options, Choice(it.href, it.label).Selected(it.active))
 	}
-	selectID := strings.ToLower(domID(name)) + "-section"
-	picker := Select("section", options...).
-		Attrs(datastar.On("change", "window.location.href = evt.target.value"))
-	picker.SetAttr("id", selectID)
 	return html.Div(
 		html.Div(
 			html.Nav(
-				html.Div(
-					html.Label().For(selectID).Class("sr-only").Text("Section"),
-					picker,
-				).Class("@xl:hidden"),
+				navSelect(name, nav, "@xl:hidden"),
 				ul,
 			).Aria("label", name).Class("min-w-0"),
 			html.Div(content...).Class("min-w-0"),

@@ -135,3 +135,12 @@ func SplitDetailHeaderSignal(signal, title string, actions ...htemel.FlowContent
 	}
 	return row
 }
+
+// SplitListItem returns a row of a SplitLayout's list: a SelectableItem (primary tint and left
+// bar while selectedExpr is true, aria-current="true") whose click is SplitSelect(signal,
+// action). The same treatment serves every selectable list, so do not hand-roll it.
+//
+//	ui.SplitListItem(ui.SplitLayoutSignal, "$noteId === 3", datastar.Get("/notes/3")+"; $noteId = 3", title, date)
+func SplitListItem(signal, selectedExpr, action string, children ...htemel.PhrasingContent) *html.ButtonElement {
+	return SelectableItem(selectedExpr, children...).Attrs(SplitSelect(signal, action))
+}

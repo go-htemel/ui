@@ -10,7 +10,15 @@ import (
 // CardSlot is one section of a Card, built by CardHeader, CardBody or CardFooter. It is not flow
 // content, so a slot cannot be placed outside a card.
 type CardSlot struct {
-	el *html.DivElement
+	el  *html.DivElement
+	hdr *cardHeader // set on a CardHeader, so HeadingLevel can rebuild its title
+}
+
+// cardHeader is what HeadingLevel needs to rebuild a header with another heading tag.
+type cardHeader struct {
+	title   string
+	actions []htemel.FlowContent
+	attrs   []htemel.Attribute
 }
 
 // Render implements htemel.Node.
@@ -19,7 +27,25 @@ func (s CardSlot) Render(w io.Writer) error { return s.el.Render(w) }
 // Attrs adds attributes, such as Datastar attributes, to the section's <div>.
 func (s CardSlot) Attrs(attrs ...htemel.Attribute) CardSlot {
 	s.el.Attrs(attrs...)
+	if s.hdr != nil {
+		s.hdr.attrs = append(s.hdr.attrs, attrs...)
+	}
 	return s
+}
+
+// HeadingLevel sets the heading level of a CardHeader's title, 1 to 6 (the default is 3, an
+// <h3>): use 2 for a card directly under the page's <h1>, so the outline has no gap. The same
+// name and meaning as WithHeadingLevel of PageHeader. It has no effect on CardBody and
+// CardFooter, which have no title.
+//
+//	ui.CardHeader("Publish").HeadingLevel(2)
+func (s CardSlot) HeadingLevel(level int) CardSlot {
+	if s.hdr == nil {
+		return s
+	}
+	el := cardHeaderElement(s.hdr.title, level, s.hdr.actions)
+	el.Attrs(s.hdr.attrs...)
+	return CardSlot{el: el, hdr: s.hdr}
 }
 
 // Card returns a bordered surface, <div>, whose sections are divided by rules.
@@ -39,16 +65,20 @@ func Card(slots ...CardSlot) *html.DivElement {
 	return c
 }
 
-// CardHeader returns the card's title row: title as an <h3>, and actions (buttons, badges) on
-// the right.
+// CardHeader returns the card's title row: title as an <h3> (HeadingLevel changes the level), and
+// actions (buttons, badges) on the right.
 func CardHeader(title string, actions ...htemel.FlowContent) CardSlot {
+	return CardSlot{el: cardHeaderElement(title, 3, actions), hdr: &cardHeader{title: title, actions: actions}}
+}
+
+func cardHeaderElement(title string, level int, actions []htemel.FlowContent) *html.DivElement {
 	el := html.Div(
-		html.H3().Class(Classes("text-base font-semibold text-neutral-900 dark:text-white")).Text(title),
+		heading(level, title, "text-base font-semibold text-neutral-900 dark:text-white"),
 	).Class(Classes("flex items-center justify-between gap-x-4 px-4 py-4 sm:px-6"))
 	if len(actions) > 0 {
 		el.Children(html.Div(actions...).Class(Classes("flex shrink-0 items-center gap-x-2")))
 	}
-	return CardSlot{el: el}
+	return el
 }
 
 // CardBody returns the card's main section.

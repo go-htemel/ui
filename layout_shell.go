@@ -63,8 +63,11 @@ func WithBrand(node htemel.FlowContent) AppShellOption {
 	return func(c *shellConfig) { c.brand = node }
 }
 
-// WithSidebarFooter fills the bottom of the sidebar: a user menu, a ColorSchemeToggle. It is
-// hidden in the collapsed rail.
+// WithSidebarFooter fills the bottom of the sidebar: a user menu, a ColorSchemeToggle. In the
+// collapsed rail the footer stays visible as a centred column in 4rem: ColorSchemeToggle stacks
+// its three buttons, and a Button given WithRailIcon shows only its icon (an avatar, say) with
+// its label visually hidden. Wrap other text that should disappear in the rail in
+// RailLabel. Without those the footer's content is shown as it is and may overflow the rail.
 func WithSidebarFooter(items ...htemel.FlowContent) AppShellOption {
 	return func(c *shellConfig) { c.footer = append(c.footer, items...) }
 }
@@ -82,7 +85,7 @@ func SidebarFixed() AppShellOption {
 }
 
 // SidebarCollapsible adds a button at the bottom of the sidebar that collapses it to a 4rem icon
-// rail: link labels, badges, section headings and the footer are hidden (labels stay the links'
+// rail: link labels, badges and section headings are hidden (labels stay the links'
 // accessible names; icon links carry a title tooltip, see NavItem.Icon) and expanded again. The
 // state is the boolean signal RailSignal (true = collapsed), remembered in localStorage under
 // AppShellRailKey + ":" + the shell id. The width switches instantly (see AppShell, Motion).
@@ -118,6 +121,13 @@ func WithShellID(id string) AppShellOption {
 // docs page showing the shell) stays valid. Pair it with WithShellID.
 func WithEmbedded(label string) AppShellOption {
 	return func(c *shellConfig) { c.embedded = label }
+}
+
+// RailLabel returns a <span> holding children that is visually hidden in the collapsed rail of an
+// AppShell but stays in the accessibility tree, like the labels of icon links: a user's name next
+// to an avatar in WithSidebarFooter.
+func RailLabel(children ...htemel.PhrasingContent) *html.SpanElement {
+	return html.Span(children...).Class(Classes(railLabel))
 }
 
 // AppShellRailKey prefixes the localStorage key of a collapsible shell's rail state.
@@ -228,7 +238,7 @@ func AppShell(opts ...AppShellOption) *AppShellElement {
 		parts = append(parts, body)
 		if len(c.footer) > 0 {
 			parts = append(parts, html.Div(c.footer...).Class(Classes("shrink-0 border-t border-neutral-200 px-3 py-3 dark:border-white/10",
-				cond(c.collapsible, "@3xl:in-data-ui-rail:hidden"))))
+				cond(c.collapsible, "@3xl:in-data-ui-rail:flex @3xl:in-data-ui-rail:flex-col @3xl:in-data-ui-rail:items-center @3xl:in-data-ui-rail:gap-y-2 @3xl:in-data-ui-rail:px-1.5"))))
 		}
 		if c.collapsible {
 			rail := sigp + "Rail"

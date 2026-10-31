@@ -164,7 +164,7 @@ func matrix() []spec {
 		// which took Success below 4.5:1).
 		add("Alert/"+t.name, "body on tint", "badge.go:"+t.line, text, on(t.lfg, t.lbg), on(t.dfg, t.dbg))
 		// The dismiss X of AlertDismissible (closeButton, signals.go:46) rings in primary on the tint.
-		add("Alert/"+t.name, "close focus-visible outline on tint", "signals.go:46", nonText, on("focus-visible:outline-primary-600", t.lbg), on("dark:focus-visible:outline-primary-500", t.dbg))
+		add("Alert/"+t.name, "close focus-visible outline on tint", "signals.go:62", nonText, on("focus-visible:outline-primary-600", t.lbg), on("dark:focus-visible:outline-primary-500", t.dbg))
 		add("Toast/"+t.name, "accent border (toast.go:41)", "toast.go:"+strconv.Itoa(42+indexOf(t.name)), nonText,
 			on(t.lborder, "bg-white"), on(t.dborder, "dark:bg-neutral-800"))
 	}
@@ -207,6 +207,9 @@ func matrix() []spec {
 	add("Checkbox/Radio", "hover border", "form.go:153,form.go:157", nonText, on("not-checked:enabled:hover:border-control-border-hover", "bg-white").over(cardL), on("not-checked:enabled:hover:border-control-border-hover", "dark:bg-white/5").over(cardD))
 	add("Checkbox/Radio", "checked fill vs card", "form.go:154", nonText, on("checked:bg-primary-600", "").over(cardL), on("dark:checked:bg-primary-500", "").over(cardD))
 	add("Checkbox", "check mark on fill", "form.go:154", nonText, on("text-white", "checked:bg-primary-600"), on("text-white", "dark:checked:bg-primary-500"))
+	// SelectAll leaves the box indeterminate (a dash) while some rows are ticked (form.go:190-191).
+	add("Checkbox", "indeterminate fill vs card (select-all)", "form.go:190,form.go:191", nonText, on("indeterminate:bg-primary-600", "").over(cardL), on("dark:indeterminate:bg-primary-500", "").over(cardD))
+	add("Checkbox", "indeterminate dash on fill (select-all)", "form.go:190,form.go:191", nonText, on("text-white", "indeterminate:bg-primary-600"), on("text-white", "dark:indeterminate:bg-primary-500"))
 	add("Radio", "dot on fill", "form.go:154", nonText, on("bg-white", "checked:bg-primary-600"), on("bg-white", "dark:checked:bg-primary-500"))
 	add("Checkbox/Radio", "focus-visible outline", "form.go:155", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	disabled("Checkbox/Radio", "disabled label", "form.go:147", on("has-disabled:text-neutral-500", "").over(cardL), on("dark:has-disabled:text-neutral-400", "").over(cardD))
@@ -235,13 +238,14 @@ func matrix() []spec {
 	add("Field", "error text", "form.go:127", text, on("text-danger-600", ""), on("dark:text-danger-400", ""))
 
 	// Table (table.go:94-99, 55, 66): header on neutral-50 / neutral-900, body on the white card.
-	add("Table", "header text", "table.go:99", text, on("text-neutral-600", "bg-neutral-50"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
-	add("Table", "body text", "table.go:94", text, on("text-neutral-700", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
-	add("Table", "striped body text", "table.go:94", text,
-		on("text-neutral-700", "*:even:bg-neutral-50").over(cardL).with("*:even:bg-neutral-50"),
-		on("dark:text-neutral-300", "dark:*:even:bg-white/5").over(cardD).with("dark:*:even:bg-white/5"))
-	add("Table", "sort button focus outline", "table.go:133", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
-	add("Table", "empty-state description", "table.go:155", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
+	add("Table", "header text", "table.go:90", text, on("text-neutral-600", "bg-neutral-50"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+	add("Table", "body text", "table.go:90", text, on("text-neutral-700", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+	// Striped rows are CSS (assets/ui.css .ui-table-striped): neutral-50, dark white at 5%, on the card.
+	add("Table", "striped body text", "table.go:85,assets/ui.css:919", text,
+		on("text-neutral-700", "bg-neutral-50").over(cardL),
+		on("dark:text-neutral-300", "dark:bg-white/5").over(cardD))
+	add("Table", "sort button focus outline", "table.go:124", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	add("Table", "empty-state description", "table.go:146", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 
 	// Stat (info.go:51-66) on its white / neutral-900 card. The value is text-2xl semibold.
 	add("Stat", "value", "info.go:51", largeText, on("text-neutral-900", "").over(cardL), on("dark:text-white", "").over(cardD))
@@ -272,13 +276,23 @@ func matrix() []spec {
 	add("Tooltip", "text", "info.go:37", text, on("text-white", "bg-neutral-900"), on("text-white", "dark:bg-neutral-700"))
 
 	// Nav (nav.go:34-39, 140), Breadcrumb (nav.go:260-195), Tabs, Pagination.
-	add("Nav link", "inactive", "nav.go:64", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
-	add("Nav link", "active (aria-current)", "nav.go:66", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100").over(cardL), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10").over(cardD))
-	add("Nav link", "active on the page background", "nav.go:66", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10"))
-	add("Nav link", "focus-visible outline", "nav.go:65", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
-	add("Sidebar group", "heading", "nav.go:210", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Breadcrumb", "current", "nav.go:260", text, on("text-neutral-900", ""), on("dark:text-white", ""))
-	add("Breadcrumb", "link", "nav.go:267", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Nav link", "inactive", "nav.go:108", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
+	add("Nav link", "active (aria-current)", "nav.go:110", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100").over(cardL), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10").over(cardD))
+	add("Nav link", "active on the page background", "nav.go:110", text, on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10"))
+	add("Nav link", "focus-visible outline", "nav.go:109", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	add("Sidebar group", "heading", "nav.go:271", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	add("Breadcrumb", "current", "nav.go:357", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("Breadcrumb", "link", "nav.go:271", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
+	// SelectableItem (selectable.go:12-15): the selected row is a primary tint with a left bar. The
+	// list sits on the card or the page; the tint is 50 / dark primary-500 at 10%.
+	add("SelectableItem", "title on the selected tint", "selectable.go:14", text, on("text-neutral-900", "aria-[current=true]:bg-primary-50").over(cardL), on("dark:text-white", "dark:aria-[current=true]:bg-primary-500/10").over(cardD))
+	add("SelectableItem", "detail on the selected tint", "selectable.go:14", text, on("text-neutral-600", "aria-[current=true]:bg-primary-50").over(cardL), on("dark:text-neutral-400", "dark:aria-[current=true]:bg-primary-500/10").over(cardD))
+	add("SelectableItem", "left bar vs the selected tint", "selectable.go:14", nonText, on("aria-[current=true]:border-primary-600", "aria-[current=true]:bg-primary-50").over(cardL), on("dark:aria-[current=true]:border-primary-400", "dark:aria-[current=true]:bg-primary-500/10").over(cardD))
+	add("SelectableItem", "title on hover", "selectable.go:13", text, on("text-neutral-900", "hover:bg-neutral-50").over(cardL), on("dark:text-white", "dark:hover:bg-white/5").over(cardD))
+	// BreadcrumbsCollapse: the ellipsis button (nav.go crumbMoreClass) and the list of hidden crumbs
+	// (crumbPanelClass, with the Dropdown's menuItemClass).
+	add("Breadcrumb", "ellipsis button", "nav.go:331", nonText, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
+	add("Breadcrumb", "hidden crumb in the list", "dropdown.go:122,nav.go:333", text, on("text-neutral-700", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-800"))
 	add("Tabs", "active", "tabs.go:23", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
@@ -287,7 +301,7 @@ func matrix() []spec {
 	add("Pagination", "gap", "pagination.go:18", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// Kbd (badge.go:25-26), Avatar initials (avatar.go:31-32), Divider label (layout.go:44).
-	add("Kbd", "text", "badge.go:26", text, on("text-neutral-600", "bg-neutral-50"), on("dark:text-neutral-300", "dark:bg-white/5"))
+	add("Kbd", "text", "badge.go:27", text, on("text-neutral-600", "bg-neutral-50"), on("dark:text-neutral-300", "dark:bg-white/5"))
 	add("Avatar", "initials", "avatar.go:31", text, on("text-white", "bg-neutral-600"), on("text-white", "dark:bg-neutral-500"))
 	add("Divider", "label", "layout.go:44", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 

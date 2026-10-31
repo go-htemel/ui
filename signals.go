@@ -29,6 +29,22 @@ func Opens(signal string) htemel.Attribute {
 	return datastar.OnClick(Open(signal), datastar.Stop())
 }
 
+// Then returns the expression that runs then once action, a Datastar backend action (datastar.Get,
+// Post, Put, Patch, Delete), has finished: the server's response has been read to its end and
+// every patch in it applied, so then can touch the new DOM, such as moving focus to a row or
+// field the response rendered.
+//
+//	datastar.OnSubmit(ui.Then(datastar.Post("/save"),
+//		"document.querySelector('#form [aria-invalid=true]')?.focus()"), datastar.Prevent())
+//
+// Datastar 1.0.4 evaluates attribute expressions as plain functions, not async ones, so there is
+// no await; but its backend actions return a promise (they are async functions that resolve
+// when the event stream closes), which is what Then chains on. then also runs when the request
+// fails or is cancelled (Datastar reports those as events, it does not reject), so test the DOM
+// rather than assume the response arrived. action must be one call; then may be several
+// statements.
+func Then(action, then string) string { return action + ".then(() => { " + then + " })" }
+
 // initially declares signal with value expr unless the page already has it.
 func initially(signal, expr string) htemel.Attribute {
 	return datastar.Signal(signal, expr, datastar.IfMissing())

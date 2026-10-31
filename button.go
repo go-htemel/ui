@@ -56,21 +56,17 @@ var iconButtonSizes = map[Size]string{
 //
 //	ui.Button(ui.Primary, "Save", ui.WithLoading("saving")).Attrs(datastar.OnClick(datastar.Post("/save")))
 //
-// Options: WithSize, WithIcon, WithTrailingIcon, WithLoading. Use .Type(html.ButtonTypeSubmit)
+// Options: WithSize, WithIcon, WithTrailingIcon, WithLoading, WithRailIcon. Use .Type(html.ButtonTypeSubmit)
 // for a submit button.
 func Button(v Variant, label string, opts ...Option) *html.ButtonElement {
 	o := collect(opts)
-	size := pick(buttonSizes, o.size, Md)
-	if v == Link {
-		size = pick(linkSizes, o.size, Md)
-	}
 	b := html.Button().
 		Type(html.ButtonTypeButton).
-		Class(Classes(buttonBase, pick(buttonVariants, v, Primary), size, o.class))
+		Class(textButtonClass(v, o))
 	b.Children(leadingIcon(o.icon, o.loading))
-	b.Text(label)
+	b.Children(buttonLabel(label, o))
 	if o.trailing != nil {
-		b.Children(o.trailing)
+		b.Children(buttonTrailing(o))
 	}
 	return b.Attrs(loadingAttrs(o.loading)...)
 }
@@ -83,11 +79,80 @@ func IconButton(v Variant, icon htemel.PhrasingContent, label string, opts ...Op
 	o := collect(opts)
 	b := html.Button().
 		Type(html.ButtonTypeButton).
-		Class(Classes(buttonBase, pick(buttonVariants, v, Primary), pick(iconButtonSizes, o.size, Md), o.class)).
+		Class(iconButtonClass(v, o)).
 		Aria("label", label).
 		Title(label)
 	b.Children(leadingIcon(icon, o.loading))
 	return b.Attrs(loadingAttrs(o.loading)...)
+}
+
+// LinkButton returns an <a href> drawn exactly like Button(v, label, opts...): for navigation
+// that should look like a button ("New post", "Back to the dashboard"). A link inside a
+// <button> is invalid HTML and a <button> cannot navigate, so use this rather than nesting.
+// There is no role="button": it is a link, announced and activated as one (Enter, not Space).
+//
+//	ui.LinkButton(ui.Primary, "New post", "/posts/new", ui.WithIcon(ui.IconPlus()))
+//
+// Options: WithSize, WithIcon, WithTrailingIcon, WithRailIcon. WithLoading does not apply to a link.
+func LinkButton(v Variant, label, href string, opts ...Option) *html.AElement {
+	o := collect(opts)
+	a := html.A().Href(href).Class(textButtonClass(v, o))
+	if o.icon != nil {
+		a.Children(o.icon)
+	}
+	a.Children(buttonLabel(label, o))
+	if o.trailing != nil {
+		a.Children(buttonTrailing(o))
+	}
+	return a
+}
+
+// IconLinkButton returns an <a href> drawn like IconButton(v, icon, label, opts...): a square
+// link holding only icon, named by label (aria-label and title).
+//
+// Options: WithSize.
+func IconLinkButton(v Variant, icon htemel.PhrasingContent, label, href string, opts ...Option) *html.AElement {
+	o := collect(opts)
+	return html.A(icon).Href(href).
+		Class(iconButtonClass(v, o)).
+		Aria("label", label).
+		Title(label)
+}
+
+// railLabel hides a label in the collapsed rail of an AppShell; the text stays the accessible name.
+const railLabel = "@3xl:in-data-ui-rail:sr-only"
+
+// buttonLabel is the label of a text button: a bare text node, or with WithRailIcon a <span>
+// that the collapsed rail hides visually.
+func buttonLabel(label string, o options) htemel.PhrasingContent {
+	if !o.rail {
+		return htemel.Text(label)
+	}
+	return html.Span().Class(Classes(railLabel)).Text(label)
+}
+
+// buttonTrailing is the trailing icon, hidden in the collapsed rail with WithRailIcon.
+func buttonTrailing(o options) htemel.PhrasingContent {
+	if !o.rail {
+		return o.trailing
+	}
+	return html.Span(o.trailing).Class(Classes("inline-flex @3xl:in-data-ui-rail:hidden"))
+}
+
+// textButtonClass is the class list of Button and LinkButton: the base, the variant and the
+// size (a Link variant keeps the text size but no padding), then extra classes.
+func textButtonClass(v Variant, o options) string {
+	size := pick(buttonSizes, o.size, Md)
+	if v == Link {
+		size = pick(linkSizes, o.size, Md)
+	}
+	return Classes(buttonBase, pick(buttonVariants, v, Primary), size, o.class,
+		cond(o.rail, "@3xl:in-data-ui-rail:justify-center @3xl:in-data-ui-rail:px-2"))
+}
+
+// iconButtonClass is the class list of IconButton and IconLinkButton.
+func iconButtonClass(v Variant, o options) string {
+	return Classes(buttonBase, pick(buttonVariants, v, Primary), pick(iconButtonSizes, o.size, Md), o.class)
 }
 
 // ButtonGroup joins buttons into one segmented control (role="group"). Pass Secondary or

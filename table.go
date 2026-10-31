@@ -36,9 +36,10 @@ func TableCaption(text string) TableOption { return func(c *tableConfig) { c.cap
 //		ui.Striped(),
 //	)
 //
-// Striped, Dense and StickyHeader add their classes to the head and body you pass, so they only
-// style rows that were built for this Table call. To update a table from the server, patch the
-// whole Table (give the frame an id with .Id) rather than just a body built without the options.
+// Striped, Dense and StickyHeader put a class on the table's frame (ui-table-striped,
+// ui-table-dense, ui-table-sticky; rules in assets/ui.css) that styles every row inside it, so
+// a <tbody> patched in from the server (TableBody(...).Id("rows")) keeps the stripes and the
+// padding without being built with the options. Table needs assets/ui.css for them.
 func Table(head *html.TheadElement, body *html.TbodyElement, opts ...TableOption) *html.DivElement {
 	var c tableConfig
 	for _, opt := range opts {
@@ -51,19 +52,9 @@ func Table(head *html.TheadElement, body *html.TbodyElement, opts ...TableOption
 		table.Children(html.Caption().Class("sr-only").Text(c.caption))
 	}
 	table.Children(head, body)
-	if c.striped {
-		body.AddClass(Classes("*:even:bg-neutral-50 dark:*:even:bg-white/5"))
-	}
-	if c.dense {
-		head.AddClass(Classes("*:*:py-2"))
-		body.AddClass(Classes("*:*:py-2"))
-	}
-	frame := "overflow-x-auto"
-	if c.sticky {
-		head.AddClass(Classes("*:*:sticky *:*:top-0 *:*:z-10"))
-		frame = "max-h-96 overflow-auto"
-	}
-	return html.Div(table).Class(Classes("rounded-surface bg-white ring-1 ring-neutral-950/5 dark:bg-neutral-900 dark:ring-white/10", frame))
+	return html.Div(table).Class(Classes("rounded-surface bg-white ring-1 ring-neutral-950/5 dark:bg-neutral-900 dark:ring-white/10",
+		cond(c.sticky, "max-h-96 overflow-auto"), cond(!c.sticky, "overflow-x-auto"),
+		cond(c.striped, "ui-table-striped"), cond(c.dense, "ui-table-dense"), cond(c.sticky, "ui-table-sticky")))
 }
 
 // TableHead returns the <thead> with one row of header cells (Th and SortableTh).

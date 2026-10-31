@@ -87,6 +87,11 @@ func ColorSchemeBootstrapSource() string { return colorSchemeScript }
 const colorSchemeSegment = "aria-pressed:bg-primary-600 aria-pressed:text-white aria-pressed:hover:bg-primary-700 " +
 	"dark:aria-pressed:bg-primary-600 dark:aria-pressed:hover:bg-primary-500"
 
+// colorSchemeRail restacks the group vertically in the collapsed rail of an AppShell.
+const colorSchemeRail = "@3xl:in-data-ui-rail:flex-col @3xl:in-data-ui-rail:space-x-0 @3xl:in-data-ui-rail:-space-y-px " +
+	"@3xl:in-data-ui-rail:*:first:rounded-t-control @3xl:in-data-ui-rail:*:first:rounded-bl-none " +
+	"@3xl:in-data-ui-rail:*:last:rounded-b-control @3xl:in-data-ui-rail:*:last:rounded-tr-none"
+
 // ColorSchemeToggle returns a segmented control with three buttons, System, Light and Dark, that
 // sets the color scheme and remembers it in localStorage[ColorSchemeKey]. It needs
 // ColorSchemeBootstrap on the page (the bootstrap applies the choice on every load) and Datastar.
@@ -120,11 +125,13 @@ func ColorSchemeToggle(opts ...ColorSchemeOption) *html.SpanElement {
 			datastar.OnClick(colorSchemeSet(mode)),
 		)
 	}
+	// In the 4rem rail of an AppShell the three buttons do not fit side by side: they stack, the
+	// first keeping the top corners and the last the bottom ones.
 	return ButtonGroup(
 		segment("system", "System", IconMonitor()),
 		segment("light", "Light", IconSun()),
 		segment("dark", "Dark", IconMoon()),
-	).Aria("label", "Color scheme").Attrs(
+	).Aria("label", "Color scheme").AddClass(Classes(colorSchemeRail)).Attrs(
 		initially("colorScheme", "'system'"),
 		datastar.Init("$colorScheme = ['light', 'dark'].includes(localStorage.getItem('"+ColorSchemeKey+"')) ? localStorage.getItem('"+ColorSchemeKey+"') : 'system'"),
 	)

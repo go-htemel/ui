@@ -909,3 +909,33 @@ ui-mdeditor:not(:defined) .ui-mdeditor-toolbar {
     display: none !important;
   }
 }
+
+/* Table: Striped, Dense and StickyHeader put a class on the table's frame, and these rules style
+   whatever rows are inside it, so a <tbody> patched in by the server keeps its look. Dense and
+   sticky sit in the utilities layer, where their descendant selector beats the cells' own
+   py-3.5 and the header's static position by specificity. */
+@layer components {
+  .ui-table-striped tbody > tr:nth-child(even) {
+    background-color: var(--color-neutral-50);
+    @variant dark {
+      background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    }
+  }
+}
+@layer utilities {
+  .ui-table-dense :where(th, td) {
+    padding-block: calc(var(--spacing) * 2);
+  }
+  .ui-table-sticky thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}
+
+/* BreadcrumbsCollapse: the ellipsis is a <summary>; Safari draws its own marker unless hidden. */
+@layer base {
+  summary.list-none::-webkit-details-marker {
+    display: none;
+  }
+}
