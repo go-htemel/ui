@@ -321,6 +321,8 @@ func matrix() []spec {
 	m = append(m, mdeditorRows()...)
 	// Layouts, NavItem states and content inputs: see layout_contrast_test.go.
 	m = append(m, layoutRows()...)
+	// TagInput and FileUpload: see inputs_content_test.go.
+	m = append(m, contentInputRows()...)
 	return m
 }
 

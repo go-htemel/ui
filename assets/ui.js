@@ -1,6 +1,7 @@
 // go-htemel/ui progressive enhancement. Optional: without this script every component still
 // works (native drag and drop for a mouse, the Pick up / Move here buttons for touch and keys;
-// a MarkdownEditor without its toolbar).
+// a MarkdownEditor without its toolbar; a TagInput that submits its server-rendered tags; a
+// FileUpload that is a plain file input).
 //
 // <ui-sortable> adds touch (and pen) dragging to the Draggable and DropZone components inside it.
 // Mouse pointers are left to the browser's native HTML5 drag and drop.
@@ -323,4 +324,261 @@
   }
 
   if (!customElements.get('ui-mdeditor')) customElements.define('ui-mdeditor', UIMDEditor);
+})();
+
+// <ui-taginput> edits the chips of TagInput. Each chip carries its hidden <input name>, so the
+// form value is always the chips on screen.
+//
+// Contract (light DOM, no shadow root, no dependencies):
+//   data-name, data-max                the field name; the tag limit (optional)
+//   [data-ui-tag="go"]                 a chip, with a [data-ui-tag-remove] button and its hidden input
+//   [data-ui-tag-input]                the text field; Enter or "," adds, Backspace when empty removes
+//   template[data-ui-tag-template]     the chip cloned for new tags
+//   [data-ui-tag-status]               polite live region for "Added go", "Removed go", refusals
+//   ui:tags                            on the element, bubbles, detail {tags} after every change
+//   add(text), remove(chip), tags      the same operations for scripts
+// Text left in the field when the form is submitted is appended to the form data as one more tag.
+(() => {
+  class UITagInput extends HTMLElement {
+    constructor() {
+      super();
+      for (const m of ['_key', '_input', '_click', '_formdata']) this[m] = this[m].bind(this);
+    }
+
+    connectedCallback() {
+      this.addEventListener('keydown', this._key);
+      this.addEventListener('input', this._input);
+      this.addEventListener('click', this._click);
+      this._form = this.closest('form');
+      this._form?.addEventListener('formdata', this._formdata);
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener('keydown', this._key);
+      this.removeEventListener('input', this._input);
+      this.removeEventListener('click', this._click);
+      this._form?.removeEventListener('formdata', this._formdata);
+    }
+
+    get field() { return this.querySelector('[data-ui-tag-input]'); }
+    get chips() { return [...this.querySelectorAll('[data-ui-tag]')]; }
+    get tags() { return this.chips.map((c) => c.getAttribute('data-ui-tag')); }
+
+    add(text) {
+      const tag = String(text).trim().replace(/\s+/g, ' ');
+      if (!tag) return false;
+      const max = +this.dataset.max || 0;
+      if (this.tags.some((t) => t.toLowerCase() === tag.toLowerCase())) return this._say(tag + ' is already added'), false;
+      if (max && this.chips.length >= max) return this._say('Up to ' + max + ' tags'), false;
+      const chip = this.querySelector('template[data-ui-tag-template]').content.firstElementChild.cloneNode(true);
+      chip.setAttribute('data-ui-tag', tag);
+      chip.querySelector('[data-ui-tag-text]').textContent = tag;
+      chip.querySelector('[data-ui-tag-remove]').setAttribute('aria-label', 'Remove ' + tag);
+      Object.assign(chip.querySelector('input[type=hidden]'), { name: this.dataset.name, value: tag });
+      this.querySelector('[role=list]').appendChild(chip);
+      this._changed('Added ' + tag);
+      return true;
+    }
+
+    remove(chip) {
+      const tag = chip.getAttribute('data-ui-tag');
+      chip.remove();
+      this._changed('Removed ' + tag);
+      this.field?.focus();
+    }
+
+    _key(evt) {
+      const f = this.field;
+      if (evt.target !== f || evt.isComposing) return;
+      if (evt.key === ',' || (evt.key === 'Enter' && f.value.trim())) {
+        evt.preventDefault();
+        if (this.add(f.value)) f.value = '';
+      } else if (evt.key === 'Backspace' && f.value === '' && this.chips.length) {
+        evt.preventDefault();
+        this.remove(this.chips[this.chips.length - 1]);
+      }
+    }
+
+    _input(evt) {
+      const f = this.field;
+      if (evt.target !== f) return;
+      if (f.value.includes(',')) {
+        const parts = f.value.split(',');
+        const rest = parts.pop();
+        parts.forEach((p) => this.add(p));
+        f.value = rest.trimStart();
+        return;
+      }
+      // Picking a <datalist> suggestion fires input without an inputType (or insertReplacementText).
+      const picked = !(evt instanceof InputEvent) || evt.inputType === 'insertReplacementText';
+      const list = f.list;
+      if (picked && list && [...list.options].some((o) => o.value === f.value) && this.add(f.value)) f.value = '';
+    }
+
+    _click(evt) {
+      const b = evt.target.closest('[data-ui-tag-remove]');
+      if (b && this.contains(b)) return this.remove(b.closest('[data-ui-tag]'));
+      if (evt.target === this) this.field?.focus();
+    }
+
+    _formdata(evt) {
+      const v = this.field?.value.trim();
+      if (v && !this.tags.some((t) => t.toLowerCase() === v.toLowerCase())) evt.formData.append(this.dataset.name, v);
+    }
+
+    _changed(msg) {
+      this._say(msg);
+      this.dispatchEvent(new CustomEvent('ui:tags', { bubbles: true, detail: { tags: this.tags } }));
+    }
+
+    _say(msg) {
+      const s = this.querySelector('[data-ui-tag-status]');
+      if (s) s.textContent = msg;
+    }
+  }
+
+  if (!customElements.get('ui-taginput')) customElements.define('ui-taginput', UITagInput);
+})();
+
+// <ui-fileupload> runs the drop area and the file list of FileUpload around a native file input
+// (which works without it).
+//
+// Contract (light DOM, no shadow root, no dependencies):
+//   input[type=file]                   the input; its FileList is the selection
+//   [data-ui-dropzone]                 accepts dropped files; gets data-over during a drag of files
+//   [data-ui-files]                    the list, rebuilt from template[data-ui-file-template] rows:
+//                                      [data-ui-file-name] [data-ui-file-size] [data-ui-file-preview]
+//                                      (an <img>, shown for images) [data-ui-file-icon] [data-ui-file-remove]
+//   [data-ui-file-status]              polite live region ("2 files selected", "Removed a.png")
+//   data-ui-upload (on the element)    each newly selected file dispatches
+//   ui:upload                          on the element, bubbles, detail {file, files}
+(() => {
+  class UIFileUpload extends HTMLElement {
+    constructor() {
+      super();
+      this._urls = [];
+      this._sent = new WeakSet();
+      for (const m of ['_change', '_drag', '_drop', '_click']) this[m] = this[m].bind(this);
+    }
+
+    connectedCallback() {
+      this.addEventListener('change', this._change);
+      this.addEventListener('click', this._click);
+      for (const t of ['dragenter', 'dragover', 'dragleave']) this.addEventListener(t, this._drag);
+      this.addEventListener('drop', this._drop);
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener('change', this._change);
+      this.removeEventListener('click', this._click);
+      for (const t of ['dragenter', 'dragover', 'dragleave']) this.removeEventListener(t, this._drag);
+      this.removeEventListener('drop', this._drop);
+      this._revoke();
+    }
+
+    get input() { return this.querySelector('input[type=file]'); }
+    get zone() { return this.querySelector('[data-ui-dropzone]'); }
+
+    _change(evt) {
+      if (evt.target !== this.input) return;
+      const files = [...this.input.files];
+      this._render(files);
+      if (!this.hasAttribute('data-ui-upload')) return;
+      for (const file of files) {
+        if (this._sent.has(file)) continue;
+        this._sent.add(file);
+        this.dispatchEvent(new CustomEvent('ui:upload', { bubbles: true, detail: { file, files } }));
+      }
+    }
+
+    _drag(evt) {
+      if (!evt.dataTransfer || ![...evt.dataTransfer.types].includes('Files')) return;
+      evt.preventDefault();
+      const z = this.zone;
+      if (evt.type === 'dragleave') {
+        if (!z.contains(evt.relatedTarget)) z.removeAttribute('data-over');
+        return;
+      }
+      z.setAttribute('data-over', '');
+      evt.dataTransfer.dropEffect = 'copy';
+    }
+
+    _drop(evt) {
+      const dropped = [...(evt.dataTransfer?.files || [])];
+      if (!dropped.length) return;
+      evt.preventDefault();
+      this.zone.removeAttribute('data-over');
+      const ok = dropped.filter((f) => this._accepts(f));
+      if (!ok.length) return this._say('That file type is not accepted');
+      this._set(this.input.multiple ? [...this.input.files, ...ok] : ok.slice(0, 1));
+    }
+
+    _accepts(file) {
+      const accept = this.input.accept;
+      if (!accept) return true;
+      const name = file.name.toLowerCase(), type = file.type.toLowerCase();
+      return accept.split(',').some((a) => {
+        a = a.trim().toLowerCase();
+        return a.startsWith('.') ? name.endsWith(a) : a.endsWith('/*') ? type.startsWith(a.slice(0, -1)) : type === a;
+      });
+    }
+
+    // _set replaces the selection and lets everyone (this element, Datastar, the app) see a change.
+    _set(files) {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      this.input.files = dt.files;
+      this.input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    _click(evt) {
+      const b = evt.target.closest('[data-ui-file-remove]');
+      if (!b || !this.contains(b)) return;
+      const files = [...this.input.files];
+      const [gone] = files.splice(+b.closest('[data-index]').dataset.index, 1);
+      this._set(files);
+      if (gone) this._say('Removed ' + gone.name);
+      this.input.focus();
+    }
+
+    _render(files) {
+      this._revoke();
+      const list = this.querySelector('[data-ui-files]'), tpl = this.querySelector('template[data-ui-file-template]');
+      list.replaceChildren(...files.map((f, i) => {
+        const row = tpl.content.firstElementChild.cloneNode(true);
+        row.dataset.index = i;
+        row.querySelector('[data-ui-file-name]').textContent = f.name;
+        row.querySelector('[data-ui-file-size]').textContent = this._size(f.size);
+        const b = row.querySelector('[data-ui-file-remove]');
+        b.setAttribute('aria-label', 'Remove ' + f.name);
+        b.title = 'Remove ' + f.name;
+        if (f.type.startsWith('image/')) {
+          const url = URL.createObjectURL(f);
+          this._urls.push(url);
+          const img = row.querySelector('[data-ui-file-preview]');
+          img.src = url;
+          img.hidden = false;
+          row.querySelector('[data-ui-file-icon]')?.remove();
+        }
+        return row;
+      }));
+      this._say(files.length === 1 ? '1 file selected' : files.length + ' files selected');
+    }
+
+    _size(n) {
+      return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
+    }
+
+    _revoke() {
+      this._urls.forEach((u) => URL.revokeObjectURL(u));
+      this._urls = [];
+    }
+
+    _say(msg) {
+      const s = this.querySelector('[data-ui-file-status]');
+      if (s) s.textContent = msg;
+    }
+  }
+
+  if (!customElements.get('ui-fileupload')) customElements.define('ui-fileupload', UIFileUpload);
 })();
