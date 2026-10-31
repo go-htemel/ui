@@ -48,12 +48,12 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Icons | `Icon` (Font Awesome), `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconGripVertical`, `IconSpinner` | ready |
 | Layout | `Stack`, `Inline`, `Container`, `Card` | ready |
 | Feedback | `Alert`, `AlertDismissible`, `ToastRegion`, `Toast` | ready |
-| Forms | `Field` (`HelpText`, `ErrorText`, `ErrorSignal`), `Input`, `Textarea`, `Select`/`Choice`, `Checkbox`, `Radio`/`RadioGroup`, `Switch` | ready |
+| Forms | `Field` (`HelpText`, `ErrorText`, `ErrorSignal`), `Input` (text-like, number, search, date/time, file, color, range), `Textarea`, `Select`/`Choice` (customizable picker where supported), `Checkbox`, `Radio`/`RadioGroup`, `Switch` (all drawn with tokens) | ready |
 | Overlays | `Dialog`/`DialogActions` (native `<dialog>`), `Drawer`/`DrawerActions` (slide-over `<dialog>`: left, right, bottom), `Dropdown` with `MenuItem`/`MenuLink`/`MenuDivider` (Popover API) | ready |
 | Navigation | `Tabs`/`Tab`, `Disclosure`, `Accordion`/`AccordionItem` | ready; no arrow keys yet |
 | Drag and drop | `Draggable`, `DropZone`, `DropInto`, `DragData` | ready; mouse only (HTML drag events) |
 | Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader`), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
-| Navigation | `Navbar`/`NavbarSignal` with `NavLink`, `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`BreadcrumbsLabel`/`Crumb`, `Steps`/`StepsLabel` | ready; no arrow keys yet |
+| Navigation | `Navbar`/`NavbarSignal` with `NavLink` (collapses by container width), `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`BreadcrumbsLabel`/`Crumb`, `Steps`/`StepsLabel` | ready; no arrow keys yet |
 | Progress | `Progress`, `ProgressSignal`, `Skeleton`, `Spinner` | ready |
 | Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` (labelled by `Field` through its inner control) | ready |
 | Planned | Command palette | — |
@@ -76,6 +76,18 @@ ui.Button(ui.Secondary, "Filters").Attrs(ui.Opens("filters"))
 ui.Drawer("filters", ui.DrawerRight, "Filters", form, ui.DrawerActions(cancel, apply))
 ```
 
+`Navbar` is a CSS container: it shows its links inline from the `@2xl` container size (42rem)
+and the menu button with a right `Drawer` below it, whatever the viewport. Tailwind's container
+`@md` (28rem) is too narrow for a brand and four links, hence `@2xl`, close to the old
+viewport `md` (48rem). `NavLink(...).Attrs(...)` adds attributes to a link; the highlight
+follows `aria-current="page"`, so binding it moves the active link client-side:
+
+```go
+ui.NavLink("Team", "/team", false).Attrs(
+	datastar.OnClick("$page = 'team'", datastar.Prevent()),
+	datastar.Attr("aria-current", "$page === 'team' ? 'page' : false"))
+```
+
 Toasts are pushed by the server into `ui.ToastRegion()` with datastar-go:
 
 ```go
@@ -87,7 +99,7 @@ sse.PatchElements(s, datastar.WithSelectorID(ui.ToastRegionID), datastar.WithMod
 ## Tailwind
 
 Tailwind v4 is required (the components use `shadow-xs`, `has-checked:`, `*:` variants and CSS
-theme variables). The components are styled with design tokens (see [Theming](#theming)), so your
+theme variables, container queries). The components are styled with design tokens (see [Theming](#theming)), so your
 build needs two files from the module: the token definitions and the list of classes the
 components use. Tailwind only generates classes it finds in your sources, and the ui sources sit
 in the Go module cache, so the class list stands in for them.
@@ -133,10 +145,14 @@ Components never name a palette color. They use semantic tokens, defined as CSS 
 | `--color-success-{50..950}` | `bg-success-50`, `text-success-700`, ... | `green` | Success tone (Badge, Alert, Toast, Progress), positive Stat deltas |
 | `--color-warning-{50..950}` | `bg-warning-50`, `text-warning-800`, ... | `amber` | Warning tone |
 | `--color-danger-{50..950}` | `bg-danger-600`, `outline-danger-500`, ... | `red` | Danger tone and button, invalid fields, error text, negative Stat deltas |
-| `--color-info-{50..950}` | `bg-info-50`, `text-info-700`, ... | `blue` | Info tone |
+| `--color-info-{50..950}` | `bg-info-50`, `text-info-700`, ... | `sky` | Info tone (sky, not blue, so it does not read as a second primary next to indigo) |
 | `--radius-control` | `rounded-control`, `rounded-l-control`, ... | `--radius-md` | buttons, button and input groups, inputs, menu items, nav links, pagination, tooltips, `Kbd` |
 | `--radius-surface` | `rounded-surface` | `--radius-md` | Card, Dialog, Dropdown panel, Alert, Toast, Stat, Table frame |
 | `--font-sans` (Tailwind's own) | `font-sans` | Tailwind's sans stack | `ui.BodyClasses()` puts `font-sans` on `<body>` |
+
+The `Brand` tone (`ui.Badge(ui.Brand, "Team")`, also Alert, Toast and Progress) uses the
+primary family's tints (`bg-primary-50 text-primary-700`, dark `bg-primary-400/10
+text-primary-300`), for labels that belong to your product rather than a status.
 
 Pills and avatars stay `rounded-full`. Each family defines the full 50–950 scale, so your own
 markup can use any step (`bg-primary-100`), and `ui.Classes(...)` joins class lists for your own
@@ -289,6 +305,42 @@ reverts to Tailwind's media-query default and neither the bootstrap nor the togg
 The reverse is the trap: with the class variant kept and no bootstrap, the page is always light
 unless your own code sets `.dark`.
 
+## Form controls
+
+`Checkbox`, `Radio` and `Switch` are drawn entirely with tokens: the real `<input>` keeps its
+semantics, keyboard and form behaviour but has `appearance-none`, and the box, the circle, the
+check, the indeterminate dash and the dot are drawn with utilities (`border-neutral-500`,
+`checked:bg-primary-600`, `peer-checked:` marks, `focus-visible:` outlines, muted `disabled:`
+states, `dark:` variants). There is no `accent-color`, so browsers draw no hover halo. In forced
+colors mode (Windows High Contrast) the native controls come back. Borders, fills, marks and the
+switch knob meet 3:1 (SC 1.4.11) in both schemes; the contrast test has a row for each.
+
+`Input`, `Textarea` and `Select` carry the class `ui-control` (and `Select` also `ui-select`).
+`ui.css` uses it for what utilities cannot reach, so keep `ui.theme.css` imported:
+
+- **Autofill.** Chrome and Safari paint autofilled fields yellow or blue with an `!important`
+  rule. An inset `box-shadow` in the field colour covers it and `-webkit-text-fill-color`
+  restores the text. The cover has to be opaque, so dark mode uses `neutral-800` (the field
+  itself is the translucent `bg-white/5`). Browsers cannot fake autofill for a test, so this is
+  verified by inspection and by checking the compiled CSS.
+- **Native inputs.** `number` has no spin buttons (arrow keys still step); the `search` clear
+  button is a cross in the text colour; the `date`/`time` picker icon keeps its native glyph,
+  which follows `color-scheme` (no invert filter needed); `file` gets a small Secondary-style
+  button (`file:` utilities); `color` is a field-height swatch; `range` is a bare slider in the
+  primary colour.
+- **Customizable select.** Where `appearance: base-select` is supported, the open picker is
+  styled like the Dropdown menu: tokens, `rounded-surface`, shadow and ring, padded options with
+  a primary highlight on hover and keyboard focus, a check mark (`::checkmark`) on the selected
+  option, and a 200ms fade with `@starting-style` (none under reduced motion). The library
+  chevron stays the icon (`::picker-icon` is hidden), so the closed select looks the same
+  everywhere. These rules are unlayered so `appearance: base-select` beats the `appearance-none`
+  utility.
+
+| Browser | Select picker |
+| --- | --- |
+| Chrome / Edge 135+ | customizable picker (`appearance: base-select`) |
+| Firefox, Safari (at the time of writing), older Chromium | native popup; the closed select is styled the same |
+
 ## Assets and progressive enhancement
 
 Everything works without JavaScript files of your own. The one exception is optional: `ui.js`, a
@@ -375,11 +427,14 @@ Datastar with:
 (the OS setting is emulated and picked up through the color scheme bootstrap; each scan also
 checks the `.dark` class and the painted background), at WCAG 2.1 A/AA. It also opens the interactive states first: the
 dialog, the drawer and the bottom sheet, the dropdown, a switched tab, an expanded disclosure
-and accordion, the mobile navbar's drawer, and the color scheme toggle switched to the other scheme (then restored via System). The report groups violations by rule with impact, count, selectors and pages, and the
+and accordion, the narrow navbar's drawer, the open customizable select picker (when the
+Chromium supports `base-select`), and the color scheme toggle switched to the other scheme (then restored via System). The report groups violations by rule with impact, count, selectors and pages, and the
 task exits non-zero on any WCAG violation. Behaviour checks run alongside and fail it
 too: the stored scheme is applied before first paint (no flash: `.dark` is on `<html>` at
 `domcontentloaded` when the choice differs from the OS), no tab list overflows vertically (the scrollbar a tab's negative margin used to cause), and
-a Dialog's opacity really transitions when it opens and closes. Rules tagged only `best-practice` are listed
+a Dialog's opacity really transitions when it opens and closes, the demo navbars switch
+layout by container width, a drop never flashes the Move here buttons, and no page logs a
+console error (failed loads of the blocked external CDNs excepted). Rules tagged only `best-practice` are listed
 separately and do not fail the run. The scan fails loudly, rather than passing, when Tailwind
 did not apply (the showcase loads Tailwind and Datastar from CDNs).
 
@@ -437,6 +492,8 @@ Newer features are used where available, with a fallback elsewhere:
 | --- | --- | --- | --- |
 | `<dialog closedby="any">` | closing a Dialog on a backdrop click | Chrome/Edge 134+, Firefox 141+; not Safari at the time of writing | a Datastar click-outside handler that only acts when `'closedBy' in HTMLDialogElement.prototype` is false |
 | CSS anchor positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`) | placing the Dropdown menu under its trigger and flipping it above near the bottom of the viewport | Chrome/Edge 125+ (`position-try-fallbacks` 128+), Safari 26+; Firefox not in a release at the time of writing | on `beforetoggle`, the menu's `top`/`right` are set from the trigger's bounding box; it does not follow the trigger on scroll or flip |
+| `appearance: base-select` | the customizable `Select` picker | Chrome/Edge 135+ | the native popup |
+| Container queries (`@container`, `@2xl:`) | `Navbar` switching between inline links and the drawer by its own width | Chrome/Edge 105+, Safari 16+, Firefox 110+ | none needed (baseline) |
 | `popover="hint"` | not used | Chrome/Edge 133+ only | `Tooltip` stays CSS only: a hint popover needs script to show on hover and focus, plus positioning, and only adds the top layer and Escape |
 
 ### Limits

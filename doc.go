@@ -20,7 +20,7 @@
 // # Variants, sizes and tones
 //
 // Variant (Primary, Secondary, Outline, Ghost, Danger, Link), Size (Xs to Xl) and Tone (Neutral,
-// Info, Success, Warning, Danger) are typed. Danger is untyped so it serves as both a Variant and
+// Brand, Info, Success, Warning, Danger) are typed; Brand is the primary color's tints. Danger is untyped so it serves as both a Variant and
 // a Tone. Options such as WithSize and WithIcon configure the components that read them.
 //
 // # Interactivity
@@ -67,7 +67,9 @@
 // text-neutral-500, ring-danger-600/20), the radii rounded-control and rounded-surface, and
 // Tailwind's own font-sans. ThemeCSS (also cmd/themecss, and /ui.css from Assets) holds the
 // default tokens as a Tailwind @theme block: an indigo primary,
-// zinc, green, amber, red and blue aliases, and md corners. Applications retheme by overriding those CSS variables, globally in their own
+// zinc, green, amber, red and sky aliases, and md corners, plus the rules for native control
+// parts (autofill, spin buttons, the customizable select picker) that Input, Textarea and
+// Select opt into with the ui-control and ui-select classes. Applications retheme by overriding those CSS variables, globally in their own
 // @theme or per scope under a selector such as [data-theme="indigo"]; no Go code changes and
 // nothing is rewritten at render time. Classes joins and normalizes class lists for your own
 // components. Tailwind only generates classes it finds in your sources, so add the safelist
