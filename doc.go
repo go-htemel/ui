@@ -45,14 +45,33 @@
 // Markdown into sanitised HTML in Prose) and patched by id, so this package has no Markdown
 // dependency.
 //
+// # Layouts
+//
+// AppShell (sidebar, top bar and <main>, with a SkipLink; SidebarFixed, SidebarCollapsible,
+// SidebarDark, TopbarOnly), SplitLayout (master/detail, SplitSelect, SplitDetailHeader),
+// SettingsLayout, StackedLayout with StackedTabs, PageHeader and SectionHeader frame admin and
+// content pages. Each layout's root is a CSS container and its breakpoints are container queries
+// (@3xl:, @2xl:, @xl:), so a layout switches on its own width, not the viewport's: it takes its
+// narrow form in a narrow column or preview frame, and layouts nest. NavLink items take an Icon,
+// a Badge and an Ancestor state.
+//
+// # Content inputs
+//
+// TagInput (chips that submit as repeated form values), FileUpload (a label-wrapped file input
+// with a drop area and a file list), DateInput, DateTimeInput and TimeInput, SlugField (follows a
+// title signal until edited) and FilterBar with FilterSearch and FilterReset are form controls
+// that Field labels.
+//
 // # Assets
 //
-// One optional embedded script, served by Assets and loaded with ScriptTag, defines two custom
-// elements: <ui-sortable>, which Sortable renders, adds touch dragging to Draggable and DropZone,
-// and <ui-mdeditor>, inside every MarkdownEditor, runs the toolbar buttons and the editing
-// shortcuts. Every component works without it (the PickUp and MoveHere buttons are the touch
-// fallback; the editor hides its toolbar and keeps the textarea), and it needs no inline script,
-// so a strict Content-Security-Policy allows it.
+// One optional embedded script, served by Assets and loaded with ScriptTag, defines four custom
+// elements: <ui-sortable>, which Sortable renders, adds touch dragging to Draggable and DropZone;
+// <ui-mdeditor>, inside every MarkdownEditor, runs the toolbar buttons and the editing
+// shortcuts; <ui-taginput> and <ui-fileupload> edit the tags of TagInput and the selection of
+// FileUpload. Every component works without it (the PickUp and MoveHere buttons are the touch
+// fallback; the editor hides its toolbar and keeps the textarea; TagInput submits its
+// server-rendered tags and FileUpload is a plain file input), and it needs no inline script, so
+// a strict Content-Security-Policy allows it.
 //
 // # Light and dark mode
 //

@@ -45,7 +45,7 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | --- | --- | --- |
 | Buttons | `Button`, `IconButton`, `ButtonGroup`; variants, sizes, icon slots, `WithLoading` (data-indicator) | ready |
 | Display | `Badge`, `Avatar`, `AvatarInitials`, `Kbd`, `Divider`, `DividerLabel` | ready |
-| Icons | `Icon` (Font Awesome), `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconCopy`, `IconGripVertical`, `IconSpinner`; for editors `IconBold`, `IconItalic`, `IconStrikethrough`, `IconHeading`, `IconQuote`, `IconCode`, `IconLink`, `IconImage`, `IconListBullet`, `IconListNumbered`, `IconListTask`, `IconTable` | ready |
+| Icons | `Icon` (Font Awesome), `IconHome`, `IconDocument`, `IconFile`, `IconFolder`, `IconUsers`, `IconSettings`, `IconSidebar`, `IconArrowLeft`, `IconUpload`, `IconMenu`, `IconChevronLeft`/`Right`, `IconEllipsis`, `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconCopy`, `IconGripVertical`, `IconSpinner`; for editors `IconBold`, `IconItalic`, `IconStrikethrough`, `IconHeading`, `IconQuote`, `IconCode`, `IconLink`, `IconImage`, `IconListBullet`, `IconListNumbered`, `IconListTask`, `IconTable` | ready |
 | Layout | `Stack`, `Inline`, `Container`, `Card` | ready |
 | Feedback | `Alert`, `AlertDismissible`, `ToastRegion`, `Toast` | ready |
 | Forms | `Field` (`HelpText`, `ErrorText`, `ErrorSignal`), `Input` (text-like, number, search, date/time, file, color, range), `Textarea`, `Select`/`Choice` (customizable picker where supported), `Checkbox`, `Radio`/`RadioGroup`, `Switch` (all drawn with tokens) | ready |
@@ -58,7 +58,131 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Code | `code.Block`, `code.Inline` (subpackage `ui/code`, server-side highlighting; see Code blocks) | ready |
 | Content | `MarkdownEditor`/`MarkdownPreview` (textarea, toolbar, server-rendered preview), `Prose`/`ProseSm`/`ProseLg`, `markdown.Render` (subpackage `ui/markdown`); see Markdown and Prose | ready; toolbar needs `ui.js` |
 | Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` (labelled by `Field` through its inner control) | ready |
+| Layouts | `AppShell` (`SidebarFixed`, `SidebarCollapsible`, `SidebarDark`, `TopbarOnly`), `SplitLayout` (`SplitSelect`, `SplitDetailHeader`), `SettingsLayout`, `StackedLayout`/`StackedTabs`, `PageHeader`, `SectionHeader`, `SkipLink`; `NavLink(...).Icon(...).Badge(...).Ancestor()`; all switch on their container's width (see Layouts) | ready; rail persistence uses localStorage |
+| Content inputs | `TagInput`, `FileUpload`, `DateInput`/`DateTimeInput`/`TimeInput`, `SlugField`, `FilterBar`/`FilterSearch`/`FilterReset` (see Content inputs) | ready; tag and file editing need `ui.js` |
 | Planned | Command palette | — |
+
+## Layouts
+
+Page frames for admin pages, a CMS, notes and journals. Every layout adapts to its **container**,
+not the viewport: its root is a Tailwind v4 CSS container (`@container`) and its breakpoints are
+container queries (`@3xl:`, `@2xl:`, `@xl:`). A layout in a narrow column, a preview frame or
+another layout's pane takes its narrow form on any screen, and layouts nest (a `SplitLayout`
+inside an `AppShell`'s content). They never set an outer max-width: use `Container` for that.
+
+| Layout | Narrow form | Wide form from | Why that width |
+| --- | --- | --- | --- |
+| `AppShell` | top bar with a menu button; the sidebar opens in a left `Drawer` | `@3xl` (48rem) | a 16rem sidebar plus a 32rem content column, the narrowest that still fits a table or a form beside it |
+| `SplitLayout` | one pane, chosen by `$split` (`"list"` / `"detail"`) | `@2xl` (42rem) | a 20rem list and a detail at least as wide |
+| `SettingsLayout` | the nav is a row of scrolling tabs above the content | `@xl` (36rem) | a 13rem vertical nav plus a usable form column |
+| `PageHeader` | actions wrap under the title | `@xl` (36rem) | room for a title and two buttons on one line |
+| `StackedLayout` | side padding 1rem | `@xl` 1.5rem, `@5xl` 2rem | padding only; no switch |
+
+```go
+func adminPage(content ...htemel.FlowContent) htemel.Node {
+	return html.Body(ui.AppShell(
+		ui.WithBrand(logo()),
+		ui.WithSidebar(ui.Sidebar("nav",
+			ui.SidebarGroup("content", "Content",
+				ui.NavLink("Posts", "/posts", true).Icon(ui.IconDocument()).Badge("12"),
+				ui.NavLink("Pages", "/pages", false).Icon(ui.IconFolder())))),
+		ui.WithSidebarFooter(ui.ColorSchemeToggle()),
+		ui.WithTopbar(search(), html.Div(userMenu()).Class("ml-auto")),
+		ui.WithContent(html.Div(ui.PageHeader("Posts", ui.WithActions(newPost())), table()).Class("p-6")),
+		ui.SidebarCollapsible(),
+	)).Class(ui.BodyClasses() + " h-dvh")
+}
+```
+
+**`AppShell(opts...)`** fills its parent's height (`h-dvh` on `<body>`); the sidebar and the
+content scroll on their own. Slots: `WithBrand`, `WithSidebar`, `WithSidebarFooter`, `WithTopbar`,
+`WithContent`. Variants (combinable where it makes sense): `SidebarFixed` (default),
+`SidebarCollapsible` (a button collapses the sidebar to a 4rem icon rail; the state is the
+`<id>Rail` signal, remembered in `localStorage["ui-shell-rail:<id>"]`), `SidebarDark` (the sidebar
+carries the `dark` class, so it renders its dark variant on a `neutral-900` surface in both
+schemes) and `TopbarOnly`. `WithShellID` names the ids and signals when a page has several;
+`WithEmbedded(label)` renders a preview without `<main>`/`<aside>` for pages that have their own.
+`MainID()`, `MenuSignal()` and `RailSignal()` return the names it used.
+
+- Landmarks: `<header>`, `<aside aria-label="Sidebar">`, one `<main id="main" tabindex="-1">`,
+  and a `SkipLink` to it first (visible on focus).
+- Narrow containers get the sidebar in a native modal `Drawer`. The drawer holds a second
+  rendering of the sidebar and footer; ids in it get a `-drawer` suffix (references follow), so
+  there are no duplicate ids, and the signals are shared.
+- The rail hides labels, badges, section headings and the footer *visually*; links keep their
+  names, icon links (`NavLink(...).Icon(...)`) carry a `title` tooltip, and the rail button says
+  "Collapse sidebar" / "Expand sidebar" with a bound `aria-expanded`.
+- Motion: the drawer slides like `Drawer`; the rail switches width **instantly**. Animating
+  `grid-template-columns` would lay the content column out again on every frame (a long post
+  rewraps every line), which is what the motion rules (opacity and transforms only, checked by
+  `TestMotionClasses`) exist to avoid; the icons sit at the same x in both states, so nothing
+  jumps.
+- Datastar Pro's `data-persist` would also work for the rail; the shell uses `localStorage`
+  directly so it works with the free bundle.
+
+**`SplitLayout(list, detail, opts...)`** is master/detail. Options: `WithListWidth` (Sm 16rem, Md
+20rem, Lg 24rem, Xl 28rem), `WithResizable` (CSS `resize-x` on the list, 14rem to 60% of the
+layout), `WithPaneLabels`, `SplitSignal`. Put `ui.SplitSelect(signal, action)` on each list item
+(it shows the detail, runs `action` such as `datastar.Get("/notes/3")` and, when narrow, focuses
+the detail pane) and `ui.SplitDetailHeader(title, actions...)` at the top of the detail (its Back
+button, shown only when narrow, returns to the list and focuses it).
+
+**`SettingsLayout(nav, content...)`** (`SettingsLayoutLabel` to rename the nav),
+**`StackedLayout(header, content...)`** with **`StackedTabs(label, items...)`** (link tabs for the
+sections of a record, moved into the header band), **`PageHeader(title, opts...)`** (`WithBackLink`,
+`WithBreadcrumbs`, `WithDescription`, `WithMeta`, `WithActions`, `WithHeadingLevel`) and
+**`SectionHeader(title, actions...)`** complete the family.
+
+`NavItem` gained three chainable states, all optional and backwards compatible (a plain
+`NavLink` renders exactly as before): `.Icon(svg)`, `.Badge("12")` and `.Ancestor()` (the parent of
+the current page: full-contrast label, no `aria-current`). The current page is still the
+`active` argument, `aria-current="page"`.
+
+## Content inputs
+
+Inputs for writing and publishing. All are `FormControl`s or `CompositeControl`s, so `Field`
+labels them and adds help and error text.
+
+| Input | Form value | Script |
+| --- | --- | --- |
+| `TagInput(name, tags, opts...)` | one hidden `<input name=name>` per chip: `tags=go&tags=css`, read with `r.Form["tags"]`; text left in the field is submitted as one more tag | `<ui-taginput>` adds and removes; without it the server-rendered tags still submit |
+| `FileUpload(name, opts...)` | the native `<input type="file">` (visually hidden, inside the browse `<label>`), so a multipart post sends the files | `<ui-fileupload>` adds drop, the file list, previews and removal |
+| `DateInput`, `DateTimeInput`, `TimeInput` | `YYYY-MM-DD`, `YYYY-MM-DDTHH:MM`, `HH:MM` | none |
+| `SlugField(name, fromSignal)` | the slug, bound to the signal `name` | none: a `data-effect` and an input handler |
+| `FilterBar`, `FilterSearch(signal, action)`, `FilterReset(signals...)` | signals sent with the request | none |
+
+- **TagInput**: Enter or a comma adds (a pasted "a, b, c" adds three), Backspace in the empty field
+  removes the last tag, duplicates (ignoring case) and tags over `TagMax(n)` are refused and
+  announced. `TagSuggestions(...)` fills a `<datalist>` (a picked suggestion is added at once),
+  `TagPlaceholder`, and `TagSignal("tags")` mirrors the list into an array signal (one way).
+  Each remove button is "Remove go"; a visually hidden hint describes the field; a polite live
+  region announces changes; focus returns to the field after a removal.
+- **FileUpload**: `FileMultiple`, `FileAccept("image/*")`, `FileHint("PNG or JPG, up to 5 MB")`,
+  `FileBrowseLabel`. `FileUploadAction(expr)` runs once per newly chosen file with
+  `evt.detail.file`: uploading and progress are the app's. Keep the progress in a signal and
+  show it with `ProgressSignal`:
+
+  ```go
+  ui.FileUpload("files", ui.FileMultiple(), ui.FileUploadAction(
+  	"const x = new XMLHttpRequest(); x.open('POST', '/upload'); "+
+  		"x.upload.onprogress = (e) => { $uploadPct = Math.round(100 * e.loaded / e.total) }; x.send(evt.detail.file)"))
+  ui.ProgressSignal("uploadPct", 100, ui.ProgressLabel("Upload"))
+  ```
+- **Date and time**: `DateMin`, `DateMax`, `DateStep`, `DateValue`; they return the
+  `*html.InputElement`, styled by the native-control rules of `ui.css`.
+- **SlugField**: follows `fromSignal` through a slugify expression (lowercase, accents removed,
+  hyphens) until the reader types in it (`$<name>Touched`); clearing it resumes. When editing a
+  saved post, preset `{"slug": p.Slug, "slugTouched": true}`.
+- **FilterBar** is a wrapping `role="search"` row; `FilterSearch` is a search input bound to a
+  signal that runs its action 300ms after the last keystroke (`FilterDebounce`); `FilterReset`
+  returns `"$q = ''; $team = ''"` to chain before the reload.
+
+### Custom element contracts (`ui.js`)
+
+| Element | Attributes it reads | Events it dispatches |
+| --- | --- | --- |
+| `<ui-taginput>` | `data-ui-name`, `data-ui-max`; children `[data-ui-tag]` (with `[data-ui-tag-remove]` and a hidden input), `[data-ui-tag-input]`, `template[data-ui-tag-template]`, `[data-ui-tag-status]` | `ui:tags` (bubbles) `{tags}` after every change; methods `add(text)`, `remove(chip)`, getter `tags` |
+| `<ui-fileupload>` | `data-ui-upload`; children `input[type=file]`, `[data-ui-dropzone]` (gets `data-over`), `[data-ui-files]`, `template[data-ui-file-template]`, `[data-ui-file-status]` | `ui:upload` (bubbles) `{file, files}` per newly selected file (with `data-ui-upload`); a `change` on the input whenever the selection changes |
 
 ## Interactivity
 
@@ -636,9 +760,10 @@ on the page (`Prose/...`).
 ## Assets and progressive enhancement
 
 Everything works without JavaScript files of your own. The one exception is optional: `ui.js`, a
-small embedded script (vanilla ES2020, no dependencies, about 330 lines) that defines two custom
-elements: `<ui-sortable>` for touch dragging and `<ui-mdeditor>` for the `MarkdownEditor` toolbar
-and shortcuts (see Markdown). Serve it with `ui.Assets()` and load it with
+small embedded script (vanilla ES2020, no dependencies, about 590 lines) that defines four custom
+elements: `<ui-sortable>` for touch dragging, `<ui-mdeditor>` for the `MarkdownEditor` toolbar
+and shortcuts (see Markdown), and `<ui-taginput>` and `<ui-fileupload>` for the content inputs
+(see Content inputs). Serve it with `ui.Assets()` and load it with
 `ui.ScriptTag()`:
 
 ```go
@@ -791,7 +916,7 @@ Newer features are used where available, with a fallback elsewhere:
 | `<dialog closedby="any">` | closing a Dialog on a backdrop click | Chrome/Edge 134+, Firefox 141+; not Safari at the time of writing | a Datastar click-outside handler that only acts when `'closedBy' in HTMLDialogElement.prototype` is false |
 | CSS anchor positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`) | placing the Dropdown menu under its trigger and flipping it above near the bottom of the viewport | Chrome/Edge 125+ (`position-try-fallbacks` 128+), Safari 26+; Firefox not in a release at the time of writing | on `beforetoggle`, the menu's `top`/`right` are set from the trigger's bounding box; it does not follow the trigger on scroll or flip |
 | `appearance: base-select` | the customizable `Select` picker | Chrome/Edge 135+ | the native popup |
-| Container queries (`@container`, `@2xl:`) | `Navbar` switching between inline links and the drawer by its own width | Chrome/Edge 105+, Safari 16+, Firefox 110+ | none needed (baseline) |
+| Container queries (`@container`, `@2xl:`, `@max-2xl:`, `cqw`) | `Navbar`, `AppShell`, `SplitLayout`, `SettingsLayout`, `PageHeader` and `StackedLayout` switching by their own width | Chrome/Edge 105+, Safari 16+, Firefox 110+ | none needed (baseline) |
 | `popover="hint"` | not used | Chrome/Edge 133+ only | `Tooltip` stays CSS only: a hint popover needs script to show on hover and focus, plus positioning, and only adds the top layer and Escape |
 
 ### Limits
