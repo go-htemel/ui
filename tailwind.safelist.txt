@@ -97,6 +97,7 @@ dark:aria-invalid:outline-danger-400
 dark:backdrop:bg-neutral-950/70
 dark:bg-danger-400/10
 dark:bg-danger-500
+dark:bg-danger-700
 dark:bg-info-400/10
 dark:bg-info-500
 dark:bg-neutral-400/10
@@ -127,6 +128,7 @@ dark:focus-visible:outline-primary-500
 dark:focus:outline-primary-500
 dark:has-checked:bg-primary-500
 dark:has-focus-visible:outline-primary-500
+dark:hover:bg-danger-800
 dark:hover:bg-primary-500/10
 dark:hover:bg-white/10
 dark:hover:bg-white/20
@@ -272,6 +274,7 @@ max-h-96
 max-h-[85dvh]
 max-h-[inherit]
 max-h-none
+max-w-2xl
 max-w-7xl
 max-w-lg
 max-w-md
@@ -280,6 +283,7 @@ max-w-sm
 max-w-xs
 mb-2
 mb-3
+md
 md:flex
 md:hidden
 min-h-0
@@ -460,5 +464,6 @@ w-56
 w-[calc(100%-2rem)]
 w-full
 whitespace-nowrap
+xs
 z-30
 z-50

@@ -19,8 +19,8 @@ const (
 // with margin: auto and cap its size; m-0 plus one auto margin and max-*-none undo that) and
 // gives the closed state its off-screen translate.
 var drawerSides = map[DrawerSide]string{
-	DrawerRight: "m-0 ml-auto h-dvh max-h-none w-full max-w-md border-l translate-x-full open:translate-x-0 starting:open:translate-x-full",
-	DrawerLeft:  "m-0 mr-auto h-dvh max-h-none w-full max-w-xs border-r -translate-x-full open:translate-x-0 starting:open:-translate-x-full",
+	DrawerRight: "m-0 ml-auto h-dvh max-h-none w-full border-l translate-x-full open:translate-x-0 starting:open:translate-x-full",
+	DrawerLeft:  "m-0 mr-auto h-dvh max-h-none w-full border-r -translate-x-full open:translate-x-0 starting:open:-translate-x-full",
 	DrawerBottom: "m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-surface border-t translate-y-full open:translate-y-0 " +
 		"starting:open:translate-y-full",
 }
@@ -56,7 +56,7 @@ func DrawerActions(children ...htemel.FlowContent) *DrawerActionsElement {
 //		),
 //	)
 //
-// DrawerRight and DrawerLeft are full height (max-w-md and max-w-xs wide, the full width on small
+// DrawerRight and DrawerLeft are full height (max-w-md and max-w-xs wide by default, see DrawerSized; the full width on small
 // screens); DrawerBottom is a sheet up to 85% of the viewport height. The drawer slides in from
 // its edge and the backdrop fades, in 200ms, and both reverse on close; with
 // prefers-reduced-motion it appears without the slide.
@@ -68,6 +68,29 @@ func DrawerActions(children ...htemel.FlowContent) *DrawerActionsElement {
 // X button), focus returns to the trigger on close, and <dialog aria-labelledby> names it after
 // the title. The scroll lock note of Dialog applies too.
 func Drawer(signal string, side DrawerSide, title string, children ...htemel.FlowContent) *html.DialogElement {
+	size := Md
+	if side == DrawerLeft {
+		size = Xs
+	}
+	return DrawerSized(signal, side, size, title, children...)
+}
+
+// drawerWidths is the panel width of a left or right Drawer by Size; the panel is always the
+// full width on screens narrower than that. DrawerBottom ignores it.
+var drawerWidths = map[Size]string{
+	Xs: "max-w-xs",
+	Sm: "max-w-sm",
+	Md: "max-w-md",
+	Lg: "max-w-lg",
+	Xl: "max-w-2xl",
+}
+
+// DrawerSized is Drawer with an explicit panel width for DrawerLeft and DrawerRight: Xs (20rem)
+// to Xl (42rem). Drawer uses Md on the right and Xs on the left. Chaining a max-w-* class onto a
+// Drawer instead is unreliable, because two max-w utilities would compete.
+//
+//	ui.DrawerSized("editor", ui.DrawerRight, ui.Xl, "Edit article", form)
+func DrawerSized(signal string, side DrawerSide, size Size, title string, children ...htemel.FlowContent) *html.DialogElement {
 	titleID := domID(signal) + "-title"
 	body := html.Div().Id(domID(signal) + "-body").
 		Class(Classes("min-h-0 flex-1 overflow-y-auto px-6 py-4 text-sm text-neutral-600 dark:text-neutral-300"))
@@ -87,5 +110,12 @@ func Drawer(signal string, side DrawerSide, title string, children ...htemel.Flo
 	panel.Children(footer...)
 	return modal(signal, titleID, panel,
 		Classes("bg-white p-0 shadow-xl border-neutral-200 dark:border-white/10 dark:bg-neutral-900",
-			pick(drawerSides, side, DrawerRight), overlayTransition, backdropMotion))
+			pick(drawerSides, side, DrawerRight), drawerWidth(side, size), overlayTransition, backdropMotion))
+}
+
+func drawerWidth(side DrawerSide, size Size) string {
+	if side == DrawerBottom {
+		return "max-w-none"
+	}
+	return pick(drawerWidths, size, Md)
 }

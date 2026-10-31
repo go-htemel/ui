@@ -121,10 +121,10 @@ func matrix() []spec {
 	add("Button/Ghost", "focus-visible outline", "button.go:20", nonText, on("focus-visible:outline-neutral-500", ""), on("focus-visible:outline-neutral-500", ""))
 	disabled("Button/Ghost", "disabled", "button.go:20", on("text-neutral-700", "").grp(0.5).with(dis), on("dark:text-neutral-300", "").grp(0.5).with(dis))
 
-	add("Button/Danger", "default", "button.go:22", text, on("text-white", "bg-danger-600"), on("text-white", "bg-danger-600"))
-	add("Button/Danger", "hover", "button.go:22", text, on("text-white", "hover:bg-danger-700"), on("text-white", "hover:bg-danger-700"))
+	add("Button/Danger", "default", "button.go:22", text, on("text-white", "bg-danger-600"), on("text-white", "dark:bg-danger-700"))
+	add("Button/Danger", "hover", "button.go:22", text, on("text-white", "hover:bg-danger-700"), on("text-white", "dark:hover:bg-danger-800"))
 	add("Button/Danger", "focus-visible outline", "button.go:22", nonText, on("focus-visible:outline-danger-600", ""), on("dark:focus-visible:outline-danger-500", ""))
-	disabled("Button/Danger", "disabled", "button.go:22", on("text-white", "bg-danger-600").grp(0.5).with(dis), on("text-white", "bg-danger-600").grp(0.5).with(dis))
+	disabled("Button/Danger", "disabled", "button.go:22", on("text-white", "bg-danger-600").grp(0.5).with(dis), on("text-white", "dark:bg-danger-700").grp(0.5).with(dis))
 
 	add("Button/Link", "default", "button.go:24", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
 	add("Button/Link", "hover", "button.go:24", text, on("hover:text-primary-800", ""), on("dark:hover:text-primary-300", ""))
@@ -224,7 +224,7 @@ func matrix() []spec {
 	// Dialog (dialog.go:54, dialogHeader at dialog.go:98) and Drawer on their white / neutral-900 panels.
 	add("Dialog", "close icon", "dialog.go:98", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
 	add("Dialog", "body text", "dialog.go:54", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
-	add("Drawer", "body text", "drawer.go:73", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
+	add("Drawer", "body text", "drawer.go:96", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 
 	// Other focus rings that sit on the page background.
 	add("Disclosure", "focus-visible outline", "disclosure.go:68", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))

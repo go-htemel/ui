@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `DrawerSized(signal, side, size, title, ...)` sets the panel width of left/right drawers (`Xs`…`Xl` → `max-w-xs`…`max-w-2xl`); `Drawer` keeps `Md` right / `Xs` left. Chaining a `max-w-*` class is unreliable because two utilities would compete.
+- Danger buttons use `danger-700` (hover `800`) in dark mode; pure `red-600` glowed on dark surfaces. Still 6:1 with white text.
 - `Select` returns `*SelectElement`: a grid wrapper with the library chevron over an `appearance-none` native select (the browser arrow was heavy and unthemed, especially in dark mode). `Attrs`/`SetAttr` still target the `<select>`, and `Field` labels it through `Control()`.
 
 ### Motion

@@ -20,7 +20,7 @@ var buttonVariants = map[Variant]string{
 	Ghost: "text-neutral-700 hover:bg-neutral-100 focus-visible:outline-neutral-500 " +
 		"dark:text-neutral-300 dark:hover:bg-white/10",
 	Danger: "bg-danger-600 text-white shadow-xs hover:bg-danger-700 focus-visible:outline-danger-600 " +
-		"dark:focus-visible:outline-danger-500",
+		"dark:bg-danger-700 dark:hover:bg-danger-800 dark:focus-visible:outline-danger-500",
 	Link: "text-primary-700 underline-offset-4 hover:text-primary-800 hover:underline focus-visible:outline-primary-700 " +
 		"dark:text-primary-400 dark:hover:text-primary-300 dark:focus-visible:outline-primary-500",
 }
