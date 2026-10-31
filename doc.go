@@ -30,7 +30,15 @@
 // __ifmissing so the server can preset it, and are driven by data-show, data-class and data-attr.
 // Open, Close and Toggle return the matching expressions, and Opens is the click handler for a
 // trigger outside the component. Toasts are appended to ToastRegion by the server (for example
-// with datastar-go) and hide themselves after a timeout.
+// with datastar-go) and hide themselves after a timeout, which pauses while the pointer or focus
+// is on the toast.
+//
+// # Accessibility
+//
+// Dialog, Dropdown, Tabs, Disclosure, Accordion, Draggable and Toast carry their ARIA roles and
+// states and handle the keys of the matching WAI-ARIA pattern with Datastar expressions only;
+// each component's documentation says what that does and does not cover (for example, a Dialog
+// traps Tab but cannot make the rest of the page inert).
 //
 // # Styling
 //

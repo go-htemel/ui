@@ -27,9 +27,16 @@ func Opens(signal string) htemel.Attribute {
 	return datastar.OnClick(Open(signal), datastar.Stop())
 }
 
-// closeOnEscape closes signal when Escape is pressed anywhere in the window.
-func closeOnEscape(signal string) htemel.Attribute {
-	return datastar.On("keydown", "evt.key === 'Escape' && ("+Close(signal)+")", datastar.Window())
+// focusableSelector matches the elements Tab can reach (hidden ones are filtered out at run time
+// with getClientRects). It uses double quotes so it can sit inside a single-quoted expression
+// string, and has no "$" that Datastar would rewrite.
+const focusableSelector = `a[href],button:not([disabled]),input:not([disabled]):not([type='hidden']),` +
+	`select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex='-1'])`
+
+// jsFocusables is a JavaScript expression listing the visible focusable descendants of the
+// element expression root, in document order.
+func jsFocusables(root string) string {
+	return `[...` + root + `.querySelectorAll("` + focusableSelector + `")].filter(x => x.getClientRects().length)`
 }
 
 // initially declares signal with value expr unless the page already has it.

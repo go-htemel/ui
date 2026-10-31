@@ -142,3 +142,25 @@ Datastar with:
 ## License
 
 MIT
+
+## Accessibility
+
+The interactive components follow the matching WAI-ARIA patterns using Datastar attributes and
+expressions only, with no JavaScript files. Each component's Go documentation lists exactly what
+it covers.
+
+| Component | Semantics | Keyboard and focus |
+| --- | --- | --- |
+| `Dialog` | `role="dialog"`, `aria-modal`, `aria-labelledby` the title | focus moves in on open and back to the trigger on close; Tab and Shift+Tab stay inside; Escape closes; page scroll is locked |
+| `Dropdown` | trigger `aria-haspopup`, `aria-controls`, bound `aria-expanded`; `role="menu"` and `menuitem` | ArrowDown/ArrowUp open from the trigger and move between items; Home/End; Escape returns focus to the trigger; Tab closes |
+| `Tabs` | `tablist`, `tab`, `tabpanel`, `aria-selected`, `aria-controls`, roving `tabindex` | ArrowLeft/ArrowRight, Home/End |
+| `Disclosure`, `Accordion` | `aria-expanded`, `aria-controls`, panel `role="region"` | Accordion: ArrowDown/ArrowUp, Home/End between headers |
+| `Draggable`, `DropZone` | `aria-grabbed`, `data-dragging`, `data-over` highlight | `PickUp` and `MoveHere` buttons replace dragging for keyboard and touch |
+| `ToastRegion`, `Toast` | polite live region, `role="status"`, labelled Dismiss button | the auto-dismiss countdown pauses on hover and while focus is inside |
+
+Limits that need JavaScript or browser support Datastar does not have: a Dialog does not make the
+rest of the page inert (a screen reader's virtual cursor can leave it) and its scroll lock
+overwrites an inline `overflow` style on `<body>`; menus have no type-ahead or submenus; tab lists
+are horizontal only and not mirrored for right-to-left text; and HTML drag events never fire from
+touch or keyboard, hence the pick-up fallback. Because of the pick-up fallback `ui.DropInto` now
+clears its signal after the action runs.

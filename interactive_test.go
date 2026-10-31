@@ -1,6 +1,7 @@
 package ui_test
 
 import (
+	stdhtml "html"
 	"strings"
 	"testing"
 	"time"
@@ -78,5 +79,115 @@ func TestSignalExpressions(t *testing.T) {
 	}
 	if got := ui.Opens("x"); got.Name != "data-on:click__stop" || got.Value != "$x = true" {
 		t.Errorf("Opens = %+v", got)
+	}
+}
+
+// render returns the HTML of n with attribute entities decoded, so Datastar expressions can be
+// matched as written.
+func render(t *testing.T, n htemel.Node) string {
+	t.Helper()
+	got, err := htemel.RenderString(n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return stdhtml.UnescapeString(got)
+}
+
+// wantAll fails for each substring of want missing from got.
+func wantAll(t *testing.T, got string, want ...string) {
+	t.Helper()
+	for _, w := range want {
+		if !strings.Contains(got, w) {
+			t.Errorf("output lacks %q:\n%s", w, got)
+		}
+	}
+}
+
+func TestDialogAccessibility(t *testing.T) {
+	got := render(t, ui.Dialog("confirmDelete", "Delete?", html.P().Text("x")))
+	wantAll(t, got,
+		`role="dialog"`, `aria-modal="true"`, `aria-labelledby="confirmDelete-title"`, `id="confirmDelete-title"`,
+		`data-on:keydown__window="if (!$confirmDelete) return;`,
+		`evt.key === 'Escape'`, `evt.key !== 'Tab'`, `evt.shiftKey`, // Escape and the focus trap
+		`data-effect="`, `el._ret = document.activeElement`, `el._ret.focus()`, // initial focus and focus return
+		`document.body.style.overflow = open ? 'hidden' : ''`, // scroll lock
+	)
+}
+
+func TestDropdownAccessibility(t *testing.T) {
+	got := render(t, ui.Dropdown("rowMenu", ui.Button(ui.Secondary, "Options"), ui.MenuItem("Edit"), ui.MenuLink("Open", "/x")))
+	wantAll(t, got,
+		`id="rowMenu-trigger"`, `aria-haspopup="menu"`, `aria-controls="rowMenu-menu"`, `aria-expanded="false"`,
+		`data-attr:aria-expanded="($rowMenu) ? 'true' : 'false'"`,
+		`role="menu"`, `aria-labelledby="rowMenu-trigger"`,
+		`<button type="button" role="menuitem" tabindex="-1"`, `<a href="/x" role="menuitem" tabindex="-1"`,
+		`data-on:keydown="`, `'ArrowDown', 'ArrowUp', 'Home', 'End'`, `[role='menuitem']`,
+		`data-on:keydown__window="if (evt.key !== 'Escape' || !$rowMenu) return;`,
+		`data-on:click="$rowMenu = false; el.previousElementSibling.focus()"`, // close on item click, focus back
+	)
+}
+
+func TestTabsAccessibility(t *testing.T) {
+	got := render(t, ui.Tabs("settingsTab", ui.Tab("profile", "Profile"), ui.Tab("billing", "Billing")))
+	wantAll(t, got,
+		`role="tablist"`, `data-on:keydown="`, `'ArrowRight'`, `'ArrowLeft'`, `'Home'`, `'End'`,
+		`id="settingsTab-profile-tab"`, `aria-controls="settingsTab-profile-panel"`,
+		`id="settingsTab-profile-panel"`, `aria-labelledby="settingsTab-profile-tab"`, `role="tabpanel"`,
+		`aria-selected="true"`, `aria-selected="false"`,
+		`tabindex="0"`, `tabindex="-1"`, // roving tabindex, server-rendered
+		`data-attr:tabindex="($settingsTab === 'profile') ? '0' : '-1'"`, // and kept in step
+		`data-attr:aria-selected="($settingsTab === 'billing') ? 'true' : 'false'"`,
+	)
+}
+
+func TestDisclosureAccessibility(t *testing.T) {
+	got := render(t, ui.Disclosure("showMore", "More", html.P().Text("x")))
+	wantAll(t, got,
+		`id="showMore-button"`, `aria-controls="showMore-panel"`, `aria-expanded="false"`,
+		`data-attr:aria-expanded="($showMore) ? 'true' : 'false'"`,
+		`id="showMore-panel"`, `role="region"`, `aria-labelledby="showMore-button"`,
+		`style="display: none"`, `data-show="$showMore"`,
+	)
+	if strings.Contains(got, " hidden") {
+		t.Errorf("panel must be hidden by data-show alone, not the hidden attribute:\n%s", got)
+	}
+	acc := render(t, ui.Accordion("faq", ui.AccordionItem("a", "A"), ui.AccordionItem("b", "B")))
+	wantAll(t, acc, `data-on:keydown="`, `'ArrowDown'`, `'ArrowUp'`, `aria-controls="faq-b-panel"`, `aria-labelledby="faq-b-button"`)
+}
+
+func TestDragAndDropAccessibility(t *testing.T) {
+	drag := render(t, ui.Draggable("c1", html.P().Text("x")))
+	wantAll(t, drag, `draggable="true"`, `aria-grabbed="false"`,
+		`data-on:dragstart="`, `el.setAttribute('aria-grabbed', 'true')`, `el.toggleAttribute('data-dragging', true)`,
+		`data-on:dragend="`, `el.setAttribute('aria-grabbed', 'false')`)
+
+	zone := render(t, ui.DropZone(ui.DropInto("dragged", "@post('/m')")))
+	wantAll(t, zone,
+		`data-on:dragenter="evt.preventDefault(); el.toggleAttribute('data-over', true)"`,
+		`data-on:dragover="evt.preventDefault();`,
+		`data-on:dragleave="if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-over', false)"`,
+		`data-on:drop__prevent="el.toggleAttribute('data-over', false); $dragged = evt.dataTransfer.getData('text/plain'); @post('/m')`,
+		`data-over:outline-2`)
+
+	move := render(t, ui.MoveHere("dragged", "Move here", "@post('/m')"))
+	wantAll(t, move, `data-show="$dragged !== ''"`, `style="display: none"`, `data-on:click="@post('/m'); setTimeout(() => { $dragged = '' })"`, ">Move here<")
+	if got := ui.PickUp("dragged", "c1"); got.Name != "data-on:click" || got.Value != "$dragged = 'c1'" {
+		t.Errorf("PickUp = %+v", got)
+	}
+}
+
+func TestToastAccessibility(t *testing.T) {
+	region := render(t, ui.ToastRegion())
+	wantAll(t, region, `aria-live="polite"`, `aria-relevant="additions"`)
+
+	got := render(t, ui.Toast("a", ui.Info, "Saved", "", 4*time.Second))
+	wantAll(t, got, `role="status"`, `aria-label="Dismiss"`,
+		`data-on-interval__duration.250ms="if (el.matches('*:hover, *:focus-within')) return;`, // pause on hover and focus
+		`el._left ?? 4000`, `if (el._left <= 0) $toasts.a = false`)
+
+	short := render(t, ui.Toast("b", ui.Info, "Hi", "", 100*time.Millisecond))
+	wantAll(t, short, `data-on-interval__duration.100ms=`, `el._left ?? 100) - 100`)
+	if sticky := render(t, ui.Toast("c", ui.Info, "Hi", "", 0)); strings.Contains(sticky, "data-on-interval") {
+		t.Errorf("a toast without timeout must not tick:\n%s", sticky)
 	}
 }
