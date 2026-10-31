@@ -26,10 +26,14 @@ const ToastSignal = "toasts"
 // Datastar has no client-side list rendering, so toasts are elements rather than entries of a
 // signal array: the server appends Toast elements, and each toast's visibility is an entry of
 // the $toasts object signal, which the close button and the timeout set to false.
+//
+// The region is aria-live="polite" with aria-relevant="additions", so only new toasts are
+// announced, and each toast is role="status".
 func ToastRegion() *html.DivElement {
 	return html.Div().
 		Id(ToastRegionID).
 		Aria("live", "polite").
+		Aria("relevant", "additions").
 		Class(Classes("pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col items-end gap-3 sm:left-auto sm:w-96")).
 		Attrs(initially(ToastSignal, "{}"))
 }
@@ -46,6 +50,11 @@ var toneAccent = map[Tone]string{
 // must be unique on the page; it is reduced to lowercase letters and digits ("Saved-1" becomes
 // "saved1"). The toast hides itself after timeout, or stays until dismissed when timeout is 0.
 // message may be empty.
+//
+// The timeout is a countdown that pauses while the pointer is over the toast or focus is inside
+// it (a keyboard user tabbing to the close button), and resumes with the time that was left. It
+// is driven by data-on-interval ticking every 250ms (or the whole timeout when that is shorter),
+// so it is accurate to one tick. The close button is labelled "Dismiss".
 func Toast(id string, t Tone, title, message string, timeout time.Duration) *html.DivElement {
 	key := toastKey(id)
 	sig := "$" + ToastSignal + "." + key
@@ -64,10 +73,18 @@ func Toast(id string, t Tone, title, message string, timeout time.Duration) *htm
 			"dark:bg-zinc-800 dark:ring-white/10", pick(toneAccent, t, Neutral))).
 		Attrs(datastar.Signal(ToastSignal+"."+key, "true"), datastar.Show(sig))
 	if timeout > 0 {
-		el.Attrs(datastar.OnInterval(sig+" = false", datastar.Duration(timeout)))
+		tick := min(toastTick, timeout)
+		el.Attrs(datastar.OnInterval(
+			"if (el.matches('*:hover, *:focus-within')) return; "+
+				"el._left = (el._left ?? "+strconv.FormatInt(timeout.Milliseconds(), 10)+") - "+strconv.FormatInt(tick.Milliseconds(), 10)+"; "+
+				"if (el._left <= 0) "+sig+" = false",
+			datastar.Duration(tick)))
 	}
 	return el
 }
+
+// toastTick is how often a toast's countdown advances.
+const toastTick = 250 * time.Millisecond
 
 // toastKey reduces id to a safe signal path segment: lowercase ASCII letters and digits, never
 // starting with a digit.
