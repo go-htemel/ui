@@ -49,13 +49,13 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Layout | `Stack`, `Inline`, `Container`, `Card` | ready |
 | Feedback | `Alert`, `AlertDismissible`, `ToastRegion`, `Toast` | ready |
 | Forms | `Field` (`HelpText`, `ErrorText`, `ErrorSignal`), `Input`, `Textarea`, `Select`/`Choice`, `Checkbox`, `Radio`/`RadioGroup`, `Switch` | ready |
-| Overlays | `Dialog`/`DialogActions`, `Dropdown` with `MenuItem`/`MenuLink`/`MenuDivider` | ready; no focus trap or arrow keys yet |
+| Overlays | `Dialog`/`DialogActions` (native `<dialog>`), `Dropdown` with `MenuItem`/`MenuLink`/`MenuDivider` (Popover API) | ready |
 | Navigation | `Tabs`/`Tab`, `Disclosure`, `Accordion`/`AccordionItem` | ready; no arrow keys yet |
 | Drag and drop | `Draggable`, `DropZone`, `DropInto`, `DragData` | ready; mouse only (HTML drag events) |
 | Data | `Table` (`TableHead`, `TableBody`, `Th`, `Td`; `Striped`, `Dense`, `StickyHeader`), `SortableTh`, `EmptyState`/`EmptyRow`, `Pagination`, `PaginationSignal`, `Stat`/`StatGrid`, `DescriptionList` | ready |
 | Navigation | `Navbar`/`NavbarSignal` with `NavLink`, `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`Crumb`, `Steps` | ready; no arrow keys yet |
 | Progress | `Progress`, `ProgressSignal`, `Skeleton`, `Spinner` | ready |
-| Misc | `Tooltip` (CSS only, no Escape), `InputGroup` | ready |
+| Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` | ready |
 | Planned | Command palette | — |
 
 ## Interactivity
@@ -63,7 +63,10 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 State lives in Datastar signals that you name. `Dialog`, `Dropdown`, `Disclosure`, `Tabs`,
 `Accordion` and `AlertDismissible` take the signal as their first argument and declare it with
 `__ifmissing`, so a server can preset it. `ui.Open`, `ui.Close` and `ui.Toggle` return the
-expressions, and `ui.Opens(signal)` is the click handler for a trigger outside the component:
+expressions, and `ui.Opens(signal)` is the click handler for a trigger outside the component.
+`Dialog` and `Dropdown` are native overlays (a modal `<dialog>` and a `popover`): the browser
+opens, closes and focuses them, and their signal mirrors the state in both directions, so it
+stays correct after Escape or a click outside and setting it opens or closes them:
 
 ```go
 ui.Button(ui.Danger, "Delete").Attrs(ui.Opens("confirm"))
@@ -195,22 +198,45 @@ MIT
 
 ## Accessibility
 
-The interactive components follow the matching WAI-ARIA patterns using Datastar attributes and
-expressions only, with no JavaScript files. Each component's Go documentation lists exactly what
-it covers.
+The interactive components follow the matching WAI-ARIA patterns. Overlays use the platform:
+`Dialog` is a modal `<dialog>` and `Dropdown` a `popover`, so the top layer, inertness, Escape,
+light dismiss and focus return come from the browser. The rest is Datastar attributes and
+expressions. Each component's Go documentation lists exactly what it covers.
 
 | Component | Semantics | Keyboard and focus |
 | --- | --- | --- |
-| `Dialog` | `role="dialog"`, `aria-modal`, `aria-labelledby` the title | focus moves in on open and back to the trigger on close; Tab and Shift+Tab stay inside; Escape closes; page scroll is locked |
-| `Dropdown` | trigger `aria-haspopup`, `aria-controls`, bound `aria-expanded`; `role="menu"` and `menuitem` | ArrowDown/ArrowUp open from the trigger and move between items; Home/End; Escape returns focus to the trigger; Tab closes |
+| `Dialog` | native `<dialog>` opened with `showModal()`, `aria-labelledby` the title | native: page inert behind it, Tab and Shift+Tab stay inside, Escape closes, focus returns to the trigger; initial focus on `autofocus` (`DialogActions` sets it on its first button) |
+| `Dropdown` | trigger `popovertarget`, `aria-haspopup`, `aria-controls`, bound `aria-expanded`; `popover="auto"` `role="menu"` and `menuitem` | native: Escape closes and returns focus, click outside closes; ArrowDown/ArrowUp open from the trigger and move between items; Home/End; Tab closes |
+| `Tooltip` | `role="tooltip"`, trigger `aria-describedby` | shown on hover and focus (CSS) |
 | `Tabs` | `tablist`, `tab`, `tabpanel`, `aria-selected`, `aria-controls`, roving `tabindex` | ArrowLeft/ArrowRight, Home/End |
 | `Disclosure`, `Accordion` | `aria-expanded`, `aria-controls`, panel `role="region"` | Accordion: ArrowDown/ArrowUp, Home/End between headers |
 | `Draggable`, `DropZone` | `aria-grabbed`, `data-dragging`, `data-over` highlight | `PickUp` and `MoveHere` buttons replace dragging for keyboard and touch |
 | `ToastRegion`, `Toast` | polite live region, `role="status"`, labelled Dismiss button | the auto-dismiss countdown pauses on hover and while focus is inside |
 
-Limits that need JavaScript or browser support Datastar does not have: a Dialog does not make the
-rest of the page inert (a screen reader's virtual cursor can leave it) and its scroll lock
-overwrites an inline `overflow` style on `<body>`; menus have no type-ahead or submenus; tab lists
-are horizontal only and not mirrored for right-to-left text; and HTML drag events never fire from
-touch or keyboard, hence the pick-up fallback. Because of the pick-up fallback `ui.DropInto` now
-clears its signal after the action runs.
+### Browser support
+
+The baseline features (`<dialog>` with `showModal()`, the Popover API and its `toggle` and
+`beforetoggle` events) are in every current browser: Chrome/Edge 114+, Firefox 125+, Safari 17+.
+Newer features are used where available, with a fallback elsewhere:
+
+| Feature | Used for | Supported | Fallback |
+| --- | --- | --- | --- |
+| `<dialog closedby="any">` | closing a Dialog on a backdrop click | Chrome/Edge 134+, Firefox 141+; not Safari at the time of writing | a Datastar click-outside handler that only acts when `'closedBy' in HTMLDialogElement.prototype` is false |
+| CSS anchor positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`) | placing the Dropdown menu under its trigger and flipping it above near the bottom of the viewport | Chrome/Edge 125+ (`position-try-fallbacks` 128+), Safari 26+; Firefox not in a release at the time of writing | on `beforetoggle`, the menu's `top`/`right` are set from the trigger's bounding box; it does not follow the trigger on scroll or flip |
+| `popover="hint"` | not used | Chrome/Edge 133+ only | `Tooltip` stays CSS only: a hint popover needs script to show on hover and focus, plus positioning, and only adds the top layer and Escape |
+
+### Limits
+
+- A modal dialog does not stop the page behind it from scrolling. Add
+  `html:has(dialog:modal) { overflow: hidden; }` to your CSS (or the class
+  `has-[dialog:modal]:overflow-hidden` on `<html>`) to lock it.
+- A dialog or menu that the server patches while it is open loses its open state if the patch
+  replaces the element.
+- `Tooltip` is clipped by an ancestor with `overflow: hidden` or `auto` and is not dismissed by
+  Escape.
+- Menus have no type-ahead or submenus; tab lists are horizontal only and not mirrored for
+  right-to-left text; and HTML drag events never fire from touch or keyboard, hence the pick-up
+  fallback (and `ui.Sortable` for touch). Because of the pick-up fallback `ui.DropInto` clears
+  its signal after the action runs.
+
+See [CHANGELOG.md](CHANGELOG.md) for the API changes that came with the native overlays.

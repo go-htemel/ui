@@ -26,10 +26,13 @@
 // # Interactivity
 //
 // Open/close state lives in Datastar signals named by the caller: Dialog, Dropdown, Disclosure,
-// Tabs and Accordion take the signal name as their first argument, declare it with
-// __ifmissing so the server can preset it, and are driven by data-show, data-class and data-attr.
-// Open, Close and Toggle return the matching expressions, and Opens is the click handler for a
-// trigger outside the component. Toasts are appended to ToastRegion by the server (for example
+// Tabs and Accordion take the signal name as their first argument and declare it with
+// __ifmissing so the server can preset it. Disclosure, Tabs and Accordion are driven by data-show,
+// data-class and data-attr. Dialog and Dropdown are native overlays, a modal <dialog> and a
+// popover: the browser shows and hides them, and the signal mirrors their state both ways (an
+// effect calls showModal, close, showPopover or hidePopover, and the close and toggle events
+// write the signal back). Open, Close and Toggle return the matching expressions, and Opens is
+// the click handler for a trigger outside the component. Toasts are appended to ToastRegion by the server (for example
 // with datastar-go) and hide themselves after a timeout, which pauses while the pointer or focus
 // is on the toast.
 //
@@ -44,9 +47,10 @@
 // # Accessibility
 //
 // Dialog, Dropdown, Tabs, Disclosure, Accordion, Draggable and Toast carry their ARIA roles and
-// states and handle the keys of the matching WAI-ARIA pattern with Datastar expressions only;
-// each component's documentation says what that does and does not cover (for example, a Dialog
-// traps Tab but cannot make the rest of the page inert).
+// states and handle the keys of the matching WAI-ARIA pattern. For Dialog and Dropdown the
+// browser does most of it (inertness, Escape, light dismiss, focus return, the top layer); the
+// others use Datastar expressions. Each component's documentation says what is and is not
+// covered (for example, a modal Dialog does not lock page scrolling).
 //
 // # Styling
 //
