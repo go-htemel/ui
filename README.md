@@ -45,7 +45,7 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | --- | --- | --- |
 | Buttons | `Button`, `IconButton`, `ButtonGroup`; variants, sizes, icon slots, `WithLoading` (data-indicator) | ready |
 | Display | `Badge`, `Avatar`, `AvatarInitials`, `Kbd`, `Divider`, `DividerLabel` | ready |
-| Icons | `Icon` (Font Awesome), `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconCopy`, `IconGripVertical`, `IconSpinner` | ready |
+| Icons | `Icon` (Font Awesome), `IconCheck`, `IconX`, `IconChevronDown`, `IconSearch`, `IconPlus`, `IconTrash`, `IconPencil`, `IconCopy`, `IconGripVertical`, `IconSpinner`; for editors `IconBold`, `IconItalic`, `IconStrikethrough`, `IconHeading`, `IconQuote`, `IconCode`, `IconLink`, `IconImage`, `IconListBullet`, `IconListNumbered`, `IconListTask`, `IconTable` | ready |
 | Layout | `Stack`, `Inline`, `Container`, `Card` | ready |
 | Feedback | `Alert`, `AlertDismissible`, `ToastRegion`, `Toast` | ready |
 | Forms | `Field` (`HelpText`, `ErrorText`, `ErrorSignal`), `Input` (text-like, number, search, date/time, file, color, range), `Textarea`, `Select`/`Choice` (customizable picker where supported), `Checkbox`, `Radio`/`RadioGroup`, `Switch` (all drawn with tokens) | ready |
@@ -56,6 +56,7 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Navigation | `Navbar`/`NavbarSignal` with `NavLink` (collapses by container width), `Sidebar`/`SidebarGroup` (collapsible), `Breadcrumbs`/`BreadcrumbsLabel`/`Crumb`, `Steps`/`StepsLabel` | ready; no arrow keys yet |
 | Progress | `Progress`, `ProgressSignal`, `Skeleton`, `Spinner` | ready |
 | Code | `code.Block`, `code.Inline` (subpackage `ui/code`, server-side highlighting; see Code blocks) | ready |
+| Content | `MarkdownEditor`/`MarkdownPreview` (textarea, toolbar, server-rendered preview), `Prose`/`ProseSm`/`ProseLg`, `markdown.Render` (subpackage `ui/markdown`); see Markdown and Prose | ready; toolbar needs `ui.js` |
 | Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` (labelled by `Field` through its inner control) | ready |
 | Planned | Command palette | — |
 
@@ -464,11 +465,171 @@ black/40 in dark), on the surface over a card and on a highlighted line; the con
 the rows (`Code/...`). Regenerate `ui.theme.css` (`cmd/themecss`) to get the rules, and
 `tailwind.safelist.txt` (`cmd/safelist` reads `code/` as well as the root package).
 
+## Markdown
+
+For blogs, CMS pages, admin forms, notes and journal entries: a Markdown editor (a textarea with
+a toolbar, not contenteditable) whose preview is rendered on the server, and a renderer that
+turns stored Markdown into sanitised HTML.
+
+### Rendering: `github.com/go-htemel/ui/markdown`
+
+A subpackage, so applications that do not import it do not link the parser or the sanitiser
+([goldmark](https://github.com/yuin/goldmark) v1.8.7 and
+[bluemonday](https://github.com/microcosm-cc/bluemonday) v1.0.27; both keep `go 1.24`, and the
+root `ui` package imports neither):
+
+```go
+import "github.com/go-htemel/ui/markdown"
+
+markdown.Render(post.Body)                                   // *html.DivElement: ui.Prose around the HTML
+markdown.Render(post.Body, markdown.WithHeadingOffset(1))    // # becomes <h2> under the page's <h1>
+markdown.Render(note.Text, markdown.WithSize(ui.Sm))         // ui.ProseSm
+markdown.HTML(post.Body)                                     // the sanitised HTML as a string
+markdown.Excerpt(post.Body, 160)                             // plain-text teaser, cut at a word
+```
+
+CommonMark plus GitHub Flavored Markdown: tables (alignment kept as `align` attributes), ~~strike~~,
+task lists, bare URLs, footnotes, and heading ids made from the text. Fenced and indented code
+blocks are highlighted by the `code` package (`code.Block` without its copy button, which needs a
+`<template>` and a signal the sanitiser removes). `Plain(src)` strips the markup for search
+indexes and meta descriptions; `Excerpt(src, n)` cuts that to `n` characters plus "…".
+
+| Option | Effect |
+| --- | --- |
+| `WithHeadingOffset(n)` | shift headings down `n` levels (capped at `<h6>`) |
+| `WithIDPrefix(p)` | prefix heading and footnote ids; use it whenever the content shares a page with other ids (an editor preview, two posts) |
+| `WithoutHeadingIDs()` | no heading ids |
+| `WithLinkTarget("_blank")` | `target` on links (not on `#fragment` links); `_blank` adds `rel="noopener"` |
+| `WithSize(ui.Sm)` / `WithSize(ui.Lg)` | `ProseSm` / `ProseLg` instead of `Prose` |
+| `WithPolicy(p)` | sanitise with your own bluemonday policy; start from `markdown.Policy()` |
+| `WithUnsafeHTML()` | pass raw HTML through and skip sanitising: trusted authors only |
+
+**Sanitising.** By default raw HTML in the source is not rendered (goldmark omits it), dangerous
+URL schemes are dropped, and the output then goes through `markdown.Policy()`: bluemonday's
+`UGCPolicy` (text, lists, tables, images and links; `http`, `https`, `mailto` and relative URLs
+only; `rel="nofollow"` on links; no `style`, `<script>`, `<iframe>`, `<object>`, forms or event
+handlers) extended with exactly what the renderer emits: the code block classes (`ui-code`,
+`line`, `tok-*`, `language-*`), `tabindex="0"` on `<pre>` and the figure's `aria-label`,
+task-list classes and `<input type="checkbox" disabled aria-label="Done">`, `align` on cells,
+footnote classes and DPUB roles, and link targets. The tests run an XSS corpus (`<script>`,
+`javascript:` / `vbscript:` / `data:` links and images, entity-encoded schemes, `onerror=`,
+`<svg onload>`, `<iframe srcdoc>`, nested HTML, `style`, `<base>`, `<meta>`, forms) through every
+mode except unsafe and assert none of it survives.
+
+### Editing: `ui.MarkdownEditor`
+
+```go
+ed := ui.MarkdownEditor("body",
+	ui.WithPreview(datastar.Post("/posts/preview")),
+	ui.WithValue(post.Body),
+	ui.WithMaxLength(20000),
+)
+ui.Field("body", "Body", ed, ui.HelpText("Shown on the post page."))
+```
+
+The preview comes from your server: the action posts the signals (the textarea is bound to a
+signal named after the field, or `WithSignal`), and the handler patches the preview with
+datastar-go:
+
+```go
+func preview(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Body string `json:"body"`
+	}
+	if err := datastar.ReadSignals(r, &in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	body := markdown.Render(in.Body, markdown.WithIDPrefix("body-md-"), markdown.WithSize(ui.Sm))
+	html, _ := htemel.RenderString(ui.MarkdownPreview(ui.MarkdownPreviewID("body"), body))
+	_ = datastar.NewSSE(w, r).PatchElements(html)
+}
+```
+
+`MarkdownPreview(id, content...)` is the patch target (`MarkdownEditorElement.PreviewID()`, or
+`MarkdownPreviewID(editorID)` without the editor at hand). It sits inside the editor's preview
+region (`role="region"`, `aria-live="polite"`), which a patch never replaces.
+
+| Option | Effect |
+| --- | --- |
+| `WithPreview(action)` | add a preview fetched with a Datastar action; in tabs mode it runs when Preview is chosen |
+| `WithSplit()` | preview beside the textarea once the editor is 36rem wide (`@xl` container query), stacked below that; fetched on load and 400ms after the last keystroke |
+| `WithPreviewLabel(s)` | name of the preview region (default "Preview"); give each editor on a page its own |
+| `WithSignal(name)` | signal of the text (default: the field name) |
+| `WithEditorID(id)` | id the parts are named after (default: the name); the preview is `<id>-preview` |
+| `WithValue(s)`, `WithRows(n)`, `WithPlaceholder(s)` | initial text (and counts), visible rows (default 8), placeholder |
+| `WithMaxLength(n)` | "used / max characters" counter: warning colour from 90%, danger past the limit; no `maxlength` attribute, so pastes are never cut silently |
+| `WithAutosize()` | `field-sizing: content` (Chromium 123+), 10rem to 70vh |
+| `WithMonospace()` | `font-mono` textarea (the default is the sans font) |
+| `WithToolbar(tools...)` | pick and order the buttons (`MarkdownBold`, `MarkdownItalic`, `MarkdownStrikethrough`, `MarkdownHeading`, `MarkdownQuote`, `MarkdownCode`, `MarkdownLink`, `MarkdownImage`, `MarkdownBulletList`, `MarkdownNumberedList`, `MarkdownTaskList`, `MarkdownTable`, `MarkdownSeparator`); none removes the toolbar |
+| `WithUploadAction(action)` | handle pasted or dropped files: see below |
+| `WithHint(text, href)` | footer hint (default "Markdown supported" linking to the CommonMark help); empty text removes it |
+
+It is a `CompositeControl`: `Field` labels the textarea and its `aria-describedby` keeps the
+editor's hint and counter after Field's help and error; `Attrs` reaches the textarea; `Id`,
+`Class` and `AddClass` are the frame's.
+
+**The toolbar needs `ui.js`.** Its buttons carry only `data-ui-md-action="bold"` (and so on); the
+`<ui-mdeditor>` element in `ui.js` does the editing, so no attribute holds script and the markup
+stays small. A button wraps the selection (`**bold**`, `_italic_`, `~~strike~~`, `` `code` `` or
+a fenced block for several lines, `[text](https://)` / `![alt](https://)` with the URL selected),
+or toggles a prefix on every selected line (`## `, `> `, `- `, `1. `, `- [ ] `); `MarkdownTable`
+inserts a small table. Pressing it again undoes the wrap. Edits go through the browser's
+`insertText` command (falling back to `setRangeText` plus an `input` event), so Ctrl+Z works and
+`data-bind` sees every change. Shortcuts: Ctrl/Cmd+B, I, E, K and Ctrl/Cmd+Shift+X; Enter in a
+list item continues the list and Enter on an empty item ends it. Tab is not captured, so keyboard
+users can always leave the textarea. Without `ui.js` the toolbar stays hidden
+(`ui-mdeditor:not(:defined)`) and the textarea, counter and preview still work.
+
+**Uploads.** With `WithUploadAction`, pasting or dropping files on the textarea inserts nothing;
+the element dispatches a bubbling `ui:md-upload` event per file, which runs your action with
+`evt.detail.file` (the `File`) and `evt.detail.insert(text)` (insert Markdown at the caret, as if
+typed). Uploading is yours:
+
+```go
+ui.WithUploadAction("fetch('/uploads', {method: 'POST', body: evt.detail.file})" +
+	".then(r => r.text()).then(url => evt.detail.insert('![' + evt.detail.file.name + '](' + url + ')'))")
+```
+
+**Accessibility.** The toolbar is `role="toolbar"` (`aria-label="Formatting"`,
+`aria-controls` the textarea) with a roving tabindex (one tab stop; ArrowLeft/ArrowRight,
+Home/End); each button has an `aria-label`, a `title` naming its shortcut and
+`aria-keyshortcuts`. The Write / Preview tabs follow `Tabs` (roles, roving focus, arrow keys,
+the 200ms panel fade, none under reduced motion); the toolbar hides on the Preview tab. The
+whole frame shows the 2px focus ring while anything inside has focus. Contrast rows cover the
+text, placeholder, frame, focus ring, toolbar icons, hint link and the three counter states.
+
+## Prose
+
+`ui.Prose(children...)` styles long-form HTML that carries no classes: rendered Markdown, CMS
+bodies, help pages. It is a `<div class="ui-prose">` whose descendant rules live in
+`assets/ui.css` (Tailwind cannot put a class on every element of sanitised HTML, and no
+typography plugin is needed):
+
+```go
+ui.Prose(html.H2().Text("Release notes"), html.P().Text("..."))   // or markdown.Render(src)
+ui.ProseSm(...)                                                    // 14px body: comments, side panels
+ui.ProseLg(...).AddClass("max-w-prose")                            // 18px body: reading views
+```
+
+Headings (balanced wrapping, `scroll-margin-top` for anchors), paragraphs at `text-base/7`,
+underlined primary links with a focus outline, bullet and number lists with nested styles and
+muted markers, blockquotes with a `field-border` bar, tables in the `Table` colours, rules,
+images with `rounded-surface` and `max-width: 100%`, inline code as a chip (`neutral-100`,
+`white/10` in dark), `<kbd>`, `<mark>`, definition lists, figure captions, GFM task-list
+checkboxes drawn like `Checkbox` (read-only) and footnotes. Code blocks from the `code` package
+keep their own look. All spacing is in `em`, so the sizes scale as a whole; Prose sets no width.
+Colours are `--ui-prose-*` variables on `.ui-prose` (`body`, `headings`, `link`, `link-hover`,
+`muted`, `marker`, `code`, `code-bg`, `th`, `th-bg`, `rule`, `quote-border`, `check`) with dark
+values, so a scope can retheme them; the contrast test has rows for each text pair on a card and
+on the page (`Prose/...`).
+
 ## Assets and progressive enhancement
 
 Everything works without JavaScript files of your own. The one exception is optional: `ui.js`, a
-small embedded script (vanilla ES2020, no dependencies, about 150 lines) that defines the
-`<ui-sortable>` custom element for touch dragging. Serve it with `ui.Assets()` and load it with
+small embedded script (vanilla ES2020, no dependencies, about 330 lines) that defines two custom
+elements: `<ui-sortable>` for touch dragging and `<ui-mdeditor>` for the `MarkdownEditor` toolbar
+and shortcuts (see Markdown). Serve it with `ui.Assets()` and load it with
 `ui.ScriptTag()`:
 
 ```go
@@ -518,8 +679,9 @@ go run ./cmd/showcase -addr :8081
 `cmd/showcase` renders one page per component group with each live component next to the Go
 source that produced it, plus datastar-go demos: server-pushed toasts, live form validation, a
 kanban board whose drops post to the server and a table that sorts and pages on the server. The
-Code page shows the `code` package, and the
-Theming page switches token sets live through `<html data-theme>`. Example functions live in
+Code page shows the `code` package, the Markdown editor page posts its preview to
+`/demo/markdown/preview` (rendered with the `markdown` package), the Prose page renders a CMS
+article, and the Theming page switches token sets live through `<html data-theme>`. Example functions live in
 `cmd/showcase/examples_*.go`; those files are embedded and parsed at startup, so the displayed
 source is always the code that ran.
 
@@ -552,12 +714,15 @@ Datastar with:
 checks the `.dark` class and the painted background), at WCAG 2.1 A/AA. It also opens the interactive states first: the
 dialog, the drawer and the bottom sheet, the dropdown, a switched tab, an expanded disclosure
 and accordion, the narrow navbar's drawer, the open customizable select picker (when the
-Chromium supports `base-select`), and the color scheme toggle switched to the other scheme (then restored via System). The report groups violations by rule with impact, count, selectors and pages, and the
+Chromium supports `base-select`), the color scheme toggle switched to the other scheme (then restored via System), and the Markdown editor's server-rendered preview. The report groups violations by rule with impact, count, selectors and pages, and the
 task exits non-zero on any WCAG violation. Behaviour checks run alongside and fail it
 too: the stored scheme is applied before first paint (no flash: `.dark` is on `<html>` at
 `domcontentloaded` when the choice differs from the OS), no tab list overflows vertically (the scrollbar a tab's negative margin used to cause), and
 a Dialog's opacity really transitions when it opens and closes, the demo navbars switch
-layout by container width, a drop never flashes the Move here buttons, and no page logs a
+layout by container width, a drop never flashes the Move here buttons, a Markdown toolbar
+click wraps the selection, fires `input`, updates the bound signal and undoes with Ctrl+Z (plus
+the toolbar's roving tabindex, list continuation, the split preview and highlighted fenced code
+in Prose), and no page logs a
 console error (failed loads of the blocked external CDNs excepted). Rules tagged only `best-practice` are listed
 separately and do not fail the run. The scan fails loudly, rather than passing, when Tailwind
 did not apply (the showcase loads Tailwind and Datastar from CDNs).

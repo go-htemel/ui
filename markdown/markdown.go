@@ -260,9 +260,9 @@ func Plain(src string, opts ...Option) string {
 	return strings.Join(blocks, "\n\n")
 }
 
-// Excerpt returns Plain(src) as one line cut to at most n characters (runes) at a word
-// boundary, with "…" appended when it was cut: a teaser for a list of posts. n below 1 returns
-// "".
+// Excerpt returns Plain(src) as one line, cut at a word boundary to at most n characters (runes)
+// with "…" appended when it was cut: a teaser for a list of posts. A single word longer than n is
+// cut inside. n below 1 returns "".
 func Excerpt(src string, n int, opts ...Option) string {
 	if n < 1 {
 		return ""

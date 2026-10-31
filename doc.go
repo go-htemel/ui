@@ -36,13 +36,23 @@
 // with datastar-go) and hide themselves after a timeout, which pauses while the pointer or focus
 // is on the toast.
 //
+// # Long-form content
+//
+// Prose (ProseSm, ProseLg) styles HTML that has no classes of its own, such as rendered Markdown,
+// through .ui-prose descendant rules in the design tokens. MarkdownEditor is a textarea with a
+// formatting toolbar, Write / Preview tabs or a split view and a word count; its preview is
+// rendered by the application (the markdown subpackage, github.com/go-htemel/ui/markdown, turns
+// Markdown into sanitised HTML in Prose) and patched by id, so this package has no Markdown
+// dependency.
+//
 // # Assets
 //
-// One optional embedded script, served by Assets and loaded with ScriptTag, defines the
-// <ui-sortable> custom element that Sortable renders: it adds touch dragging to Draggable and
-// DropZone and nothing else. Every component works without it (the PickUp and MoveHere buttons
-// are the touch fallback), and it needs no inline script, so a strict Content-Security-Policy
-// allows it.
+// One optional embedded script, served by Assets and loaded with ScriptTag, defines two custom
+// elements: <ui-sortable>, which Sortable renders, adds touch dragging to Draggable and DropZone,
+// and <ui-mdeditor>, inside every MarkdownEditor, runs the toolbar buttons and the editing
+// shortcuts. Every component works without it (the PickUp and MoveHere buttons are the touch
+// fallback; the editor hides its toolbar and keeps the textarea), and it needs no inline script,
+// so a strict Content-Security-Policy allows it.
 //
 // # Light and dark mode
 //
