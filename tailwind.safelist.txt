@@ -255,6 +255,7 @@ ghost
 grabbed
 grid
 grid-cols-1
+grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]
 group
 group-focus-within:opacity-100
 group-has-checked:translate-x-5
@@ -313,7 +314,6 @@ labelledby
 last
 left-1/2
 lg
-lg:grid-cols-4
 lg:px-8
 link
 live
@@ -448,7 +448,6 @@ sm:border-zinc-200
 sm:col-span-1
 sm:col-span-2
 sm:flex-row
-sm:grid-cols-2
 sm:grid-cols-3
 sm:justify-end
 sm:left-auto

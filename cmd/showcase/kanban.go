@@ -73,7 +73,7 @@ func (b *board) snapshot() []kanbanCard {
 func (b *board) view() *html.DivElement {
 	cards := b.snapshot()
 	root := html.Div().Id("kanban").
-		Class("grid gap-4 md:grid-cols-3").
+		Class("grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4").
 		Attrs(datastar.Signal("dragged", datastar.Quote(""), datastar.IfMissing()))
 	for _, col := range columns {
 		var in []kanbanCard
@@ -97,11 +97,14 @@ func (b *board) view() *html.DivElement {
 }
 
 func kanbanCardView(c kanbanCard) *html.DivElement {
+	// The grip doubles as the keyboard/touch "pick up" control, so the card stays a single short
+	// row: an icon button, then the title, which may wrap.
 	return ui.Draggable(c.ID,
-		ui.IconGripVertical().Class("size-4 shrink-0 text-zinc-400"),
-		html.Span().Class("flex-1").Text(c.Title),
-		ui.Button(ui.Ghost, "Pick up", ui.WithSize(ui.Xs)).Attrs(ui.PickUp("dragged", c.ID)),
+		ui.IconButton(ui.Ghost, ui.IconGripVertical().Class("size-4"), "Pick up "+c.Title, ui.WithSize(ui.Xs)).
+			AddClass("-ml-1 shrink-0 text-zinc-400").
+			Attrs(ui.PickUp("dragged", c.ID)),
+		html.Span().Class("min-w-0 flex-1 break-words").Text(c.Title),
 	).Id("card-" + c.ID).
-		AddClass(ui.Classes("flex items-center gap-2 rounded-md bg-white p-3 text-sm text-zinc-800 shadow-xs ring-1 ring-zinc-950/5",
+		AddClass(ui.Classes("flex items-center gap-2 rounded-md bg-white p-2 pr-3 text-sm text-zinc-800 shadow-xs ring-1 ring-zinc-950/5",
 			"dark:bg-zinc-800 dark:text-zinc-100 dark:ring-white/10"))
 }

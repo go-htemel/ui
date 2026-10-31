@@ -18,7 +18,7 @@ import (
 // classPattern matches a Tailwind class: optional variant prefixes (dark:, hover:, *:,
 // has-checked:, ...), an optional ! or -, then a lowercase utility made of hyphenated segments,
 // which may carry an opacity (/10), a fraction or an arbitrary value ([0.625rem]).
-var classPattern = regexp.MustCompile(`^(?:[a-z0-9*&>\[\]=_-]+:)*!?-?[a-z][a-z0-9]*(?:-[a-z0-9.\[\]%#()]+)*(?:/[0-9.]+)?$`)
+var classPattern = regexp.MustCompile(`^(?:[a-z0-9*&>\[\]=_-]+:)*!?-?[a-z][a-z0-9]*(?:-[a-z0-9.\[\]%#(),]+)*(?:/[0-9.]+)?$`)
 
 // Classes returns the sorted, de-duplicated classes found in the string literals of the
 // non-test Go files of fsys's root directory, rewritten for theme t. String literals that are

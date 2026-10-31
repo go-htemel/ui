@@ -39,7 +39,7 @@ func Tooltip(trigger htemel.PhrasingContent, text string) *html.SpanElement {
 func Stat(label, value string, delta ...string) *html.DivElement {
 	figures := html.Div(
 		html.P().Class(Classes("text-2xl/8 font-semibold text-zinc-900 dark:text-white")).Text(value),
-	).Class("mt-1 flex items-baseline gap-x-2")
+	).Class("mt-1 flex flex-wrap items-baseline gap-x-2")
 	if len(delta) > 0 && delta[0] != "" {
 		tone := "text-zinc-500 dark:text-zinc-400"
 		switch {
@@ -48,17 +48,18 @@ func Stat(label, value string, delta ...string) *html.DivElement {
 		case strings.HasPrefix(delta[0], "-"), strings.HasPrefix(delta[0], "−"):
 			tone = "text-red-600 dark:text-red-400"
 		}
-		figures.Children(html.P().Class(Classes("text-sm font-medium", tone)).Text(delta[0]))
+		figures.Children(html.P().Class(Classes("shrink-0 text-sm font-medium whitespace-nowrap", tone)).Text(delta[0]))
 	}
 	return html.Div(
 		html.P().Class(Classes("text-sm text-zinc-500 dark:text-zinc-400")).Text(label),
 		figures,
-	).Class(Classes("rounded-md bg-white px-4 py-5 ring-1 ring-zinc-950/5 sm:px-6 dark:bg-zinc-900 dark:ring-white/10"))
+	).Class(Classes("min-w-0 rounded-md bg-white px-4 py-5 ring-1 ring-zinc-950/5 sm:px-6 dark:bg-zinc-900 dark:ring-white/10"))
 }
 
-// StatGrid lays Stat cards out in a responsive grid, up to four across.
+// StatGrid lays Stat cards out in a responsive grid: as many columns as fit at a minimum of
+// 11rem each, so cards wrap instead of squeezing their figures when the container is narrow.
 func StatGrid(stats ...htemel.FlowContent) *html.DivElement {
-	return html.Div(stats...).Class(Classes("grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"))
+	return html.Div(stats...).Class(Classes("grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-4"))
 }
 
 // DLItem is one term and its details in a DescriptionList. Detail is flow content, so it can hold

@@ -32,7 +32,7 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 				html.Div(
 					sidebar(current),
 					html.Main(content...).Class("min-w-0 flex-1 px-4 py-8 sm:px-8 lg:py-10"),
-				).Class("mx-auto flex min-h-dvh max-w-7xl flex-col lg:flex-row"),
+				).Class("flex min-h-dvh w-full flex-col lg:flex-row"),
 				ui.ToastRegion(),
 			).Class(ui.BodyClasses()),
 		).Lang("en"),
@@ -61,7 +61,8 @@ func sidebar(current string) *html.NavElement {
 		Aria("label", "Components")
 }
 
-// groupPage renders one component group: each example's live output beside its source.
+// groupPage renders one component group: each example's live output at full width, with its
+// source in a collapsible block underneath.
 func groupPage(g Group) htemel.Node {
 	body := html.Div(
 		html.H1().Class("text-2xl font-bold tracking-tight text-zinc-900 dark:text-white").Text(g.Title),
@@ -76,11 +77,12 @@ func groupPage(g Group) htemel.Node {
 func exampleView(e Example) *html.SectionElement {
 	return html.Section(
 		html.H2().Class("text-sm font-semibold text-zinc-900 dark:text-white").Text(e.Title),
-		html.Div(
-			html.Div(e.Node()).Class(ui.Classes("min-w-0 rounded-md bg-white p-6 ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10")),
+		html.Div(e.Node()).Class(ui.Classes("mt-3 min-w-0 rounded-md bg-white p-6 ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10")),
+		html.Details(
+			html.Summary().Class("cursor-pointer select-none text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white").Text("Show source"),
 			html.Pre(html.Code().Text(e.Source)).
-				Class(ui.Classes("max-h-[32rem] min-w-0 overflow-auto rounded-md bg-zinc-900 p-4 text-xs/5 text-zinc-100 ring-1 ring-white/10 dark:bg-black/40")),
-		).Class("mt-3 grid gap-4 xl:grid-cols-2"),
+				Class(ui.Classes("mt-2 max-h-[32rem] min-w-0 overflow-auto rounded-md bg-zinc-900 p-4 text-xs/5 text-zinc-100 ring-1 ring-white/10 dark:bg-black/40")),
+		).Class("mt-3"),
 	).Class("mt-10")
 }
 
@@ -96,7 +98,7 @@ func indexPage() htemel.Node {
 	return page("Overview", "", html.Div(
 		html.H1().Class("text-2xl font-bold tracking-tight text-zinc-900 dark:text-white").Text("go-htemel/ui"),
 		html.P().Class("mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400").
-			Text("Components for htemel: typed Go functions that render Tailwind-styled HTML, with Datastar for every interaction. Each page shows the live component next to the Go code that produced it."),
+			Text("Components for htemel: typed Go functions that render Tailwind-styled HTML, with Datastar for every interaction. Each page shows the live component with the Go code that produced it underneath."),
 		cards,
 	))
 }
