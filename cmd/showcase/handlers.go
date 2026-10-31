@@ -45,6 +45,7 @@ func routes() http.Handler {
 		r.Post("/progress", progressHandler)
 		r.Post("/markdown/preview", markdownPreview)
 	})
+	adminRoutes(r)
 	return r
 }
 

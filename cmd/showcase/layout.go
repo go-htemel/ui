@@ -124,11 +124,16 @@ func sidebar(current string) htemel.FlowContent {
 	for _, g := range groups {
 		list.Children(link("/components/"+g.Slug, g.Title, current == g.Slug))
 	}
+	demo := html.Div(
+		html.P().Class("px-3 pb-1 text-xs font-semibold tracking-wide text-neutral-500 uppercase dark:text-neutral-400").Text("Demos"),
+		html.Ul(link("/admin", "Admin demo", false)).Class("space-y-0.5"),
+	).Class("mt-6")
 	return html.Aside(
 		html.Nav(
 			html.A().Href("/").Class("text-base font-bold text-neutral-900 dark:text-white").Text("go-htemel/ui"),
 			html.P().Class("mt-1 text-xs text-neutral-500 dark:text-neutral-400").Text("htemel · Tailwind · Datastar"),
 			list,
+			demo,
 		).Aria("label", "Components"),
 		html.Div(ui.ColorSchemeToggle()).Class("mt-6 lg:mt-auto lg:pt-6"),
 	).Class("flex shrink-0 flex-col border-b border-neutral-200 px-4 py-6 lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:border-r lg:border-b-0 dark:border-white/10").
