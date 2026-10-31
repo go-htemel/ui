@@ -13,7 +13,13 @@ const (
 	datastarJS     = "https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.4/bundles/datastar.js"
 	tailwindJS     = "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
 	fontAwesomeCSS = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+	interCSS       = "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
 )
+
+// fontTheme points Tailwind's font-sans at Inter. The system-ui fallback is Segoe UI on Windows,
+// whose vertical metrics sit text about a pixel above centre in buttons and badges; Inter's are
+// balanced, and it is the face the Tailwind design language assumes.
+const fontTheme = `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif; }`
 
 // page wraps content in the showcase document: CDN assets, the sidebar and the toast region.
 func page(title, current string, content ...htemel.FlowContent) htemel.Node {
@@ -24,7 +30,10 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 				html.Meta().Charset(html.CharsetUtf8),
 				html.Meta().Name("viewport").Content("width=device-width, initial-scale=1"),
 				html.Title().Text(title+" · go-htemel/ui"),
+				html.Link().Rel("preconnect").Href("https://fonts.googleapis.com"),
+				html.Link().Rel("stylesheet").Href(interCSS),
 				html.Script().Src(tailwindJS),
+				html.Style().Attr("type", "text/tailwindcss").Text(fontTheme),
 				html.Script().Type(html.ScriptTypeModule).Src(datastarJS),
 				html.Link().Rel("stylesheet").Href(fontAwesomeCSS),
 			),

@@ -86,6 +86,7 @@ Classes use Tailwind's zinc palette with `dark:` variants and are written for `u
 ```go
 ui.SetTheme(ui.Theme{Primary: "indigo", Radius: "lg", Font: "font-serif"})
 ```
+> **Font:** `font-sans` resolves to your Tailwind `--font-sans`. If that falls back to `system-ui`, Windows renders Segoe UI, whose metrics place text about a pixel above centre in buttons and badges. Point `--font-sans` at a metrically balanced face such as Inter (the showcase does this with `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif; }`).
 
 Every `-sky-` class becomes `-indigo-`, every `rounded-md` (and `rounded-l-md`, ...) becomes
 `rounded-lg`, and `ui.BodyClasses()` carries the font. `ui.Classes(...)` applies the theme to
