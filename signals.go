@@ -1,0 +1,47 @@
+package ui
+
+import (
+	"github.com/go-htemel/htemel"
+	"github.com/go-htemel/htemel/datastar"
+	"github.com/go-htemel/htemel/html"
+)
+
+// Expressions and attributes for the boolean signals that open and close Dialog, Dropdown,
+// Disclosure and AlertDismissible. signal is the camelCase signal name, without the $.
+
+// Open returns the expression that sets signal to true.
+func Open(signal string) string { return "$" + signal + " = true" }
+
+// Close returns the expression that sets signal to false.
+func Close(signal string) string { return "$" + signal + " = false" }
+
+// Toggle returns the expression that flips signal.
+func Toggle(signal string) string { return "$" + signal + " = !$" + signal }
+
+// Opens is the click handler for a trigger that opens signal from outside the component, such as
+// the button that opens a Dialog. The click does not propagate, so it does not also reach the
+// component's click-outside handler and close it again.
+//
+//	ui.Button(ui.Primary, "Edit").Attrs(ui.Opens("editOpen"))
+func Opens(signal string) htemel.Attribute {
+	return datastar.OnClick(Open(signal), datastar.Stop())
+}
+
+// initially declares signal with value expr unless the page already has it.
+func initially(signal, expr string) htemel.Attribute {
+	return datastar.Signal(signal, expr, datastar.IfMissing())
+}
+
+// hiddenUntilDatastar is the inline style of elements that data-show reveals: they stay hidden
+// until Datastar evaluates the expression, instead of flashing on load.
+const hiddenUntilDatastar = "display: none"
+
+// closeButton is the small X button of alerts, toasts and dialogs; expr runs on click.
+func closeButton(label, expr string) *html.ButtonElement {
+	return html.Button(IconX().Class("size-4 shrink-0")).
+		Type(html.ButtonTypeButton).
+		Class(Classes("-m-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md p-1 opacity-60",
+			"hover:bg-black/5 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10")).
+		Aria("label", label).
+		Attrs(datastar.OnClick(expr))
+}
