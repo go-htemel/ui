@@ -65,8 +65,8 @@
 // tokens instead of fixed palette colors: the color families primary (brand and interactive),
 // neutral (surfaces, text, borders), success, warning, danger and info (bg-primary-600,
 // text-neutral-500, ring-danger-600/20), the radii rounded-control and rounded-surface, and
-// Tailwind's own font-sans. ThemeCSS (also cmd/themecss, and /ui.css from Assets) holds the
-// default tokens as a Tailwind @theme block: an indigo primary,
+// Tailwind's own font-sans (FontCSS, opt-in, sets it to the self-hosted Geist). ThemeCSS (also
+// cmd/themecss, and /ui.css from Assets) holds the default tokens as a Tailwind @theme block: an indigo primary,
 // zinc, green, amber, red and sky aliases, and md corners, plus the rules for native control
 // parts (autofill, spin buttons, the customizable select picker) that Input, Textarea and
 // Select opt into with the ui-control and ui-select classes. Applications retheme by overriding those CSS variables, globally in their own

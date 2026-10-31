@@ -16,16 +16,10 @@ const (
 	datastarJS     = "https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.4/bundles/datastar.js"
 	tailwindJS     = "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
 	fontAwesomeCSS = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-	interCSS       = "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
 )
 
-// fontTheme points Tailwind's font-sans at Inter. The system-ui fallback is Segoe UI on Windows,
-// whose vertical metrics sit text about a pixel above centre in buttons and badges; Inter's are
-// balanced, and it is the face the Tailwind design language assumes.
-const fontTheme = `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif; }`
-
 // pageCSS is the Tailwind source of every page, the browser-build counterpart of an app.css: the
-// default ui tokens, the Inter font, and the alternative token sets of the theming page.
+// default ui tokens, the self-hosted Geist fonts (ui.FontCSS), and the alternative token sets of the theming page.
 //
 // It deliberately contains no @import, not even in a comment (hence the comments are stripped
 // from ui.ThemeCSS(), whose header shows an @import example). The browser build prepends
@@ -34,7 +28,7 @@ const fontTheme = `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans
 // also works for Tailwind, but Chromium's preload scanner then sees `@import "tailwindcss"` at
 // the top of a <style> element, fetches /components/tailwindcss as a stylesheet and logs
 // "Refused to apply style ... MIME type" on every page.
-var pageCSS = cssComment.ReplaceAllString(ui.ThemeCSS(), "") + "\n" + fontTheme + "\n\n" + detailsCSS + "\n\n" + themeDemoCSS
+var pageCSS = cssComment.ReplaceAllString(ui.ThemeCSS(), "") + "\n" + ui.FontCSS("/assets") + "\n" + detailsCSS + "\n\n" + themeDemoCSS
 
 // detailsCSS animates the "Show source" <details> open and closed with no script: the
 // ::details-content box goes from block-size 0 to auto (interpolate-size: allow-keywords makes
@@ -62,24 +56,29 @@ var cssComment = regexp.MustCompile(`(?s)/\*.*?\*/`)
 
 // page wraps content in the showcase document: CDN assets, the sidebar and the toast region.
 func page(title, current string, content ...htemel.FlowContent) htemel.Node {
+	head := html.Head(
+		html.Meta().Charset(html.CharsetUtf8),
+		html.Meta().Name("viewport").Content("width=device-width, initial-scale=1"),
+		html.Title().Text(title+" · go-htemel/ui"),
+		// Before the stylesheet and the Tailwind script, so the stored color scheme is applied
+		// before the first paint.
+		ui.ColorSchemeBootstrap(),
+	)
+	// The Geist files are served by ui.Assets; preload them so the text does not swap fonts.
+	for _, l := range ui.FontPreload("/assets") {
+		head.Children(l)
+	}
+	head.Children(
+		html.Script().Src(tailwindJS),
+		html.Style().Attr("type", "text/tailwindcss").Text(pageCSS),
+		html.Script().Type(html.ScriptTypeModule).Src(datastarJS),
+		html.Link().Rel("stylesheet").Href(fontAwesomeCSS),
+		ui.ScriptTag("/assets"),
+	)
 	return htemel.Group(
 		htemel.Doctype(),
 		html.Html(
-			html.Head(
-				html.Meta().Charset(html.CharsetUtf8),
-				html.Meta().Name("viewport").Content("width=device-width, initial-scale=1"),
-				html.Title().Text(title+" · go-htemel/ui"),
-				// Before the stylesheet and the Tailwind script, so the stored color scheme is applied
-				// before the first paint.
-				ui.ColorSchemeBootstrap(),
-				html.Link().Rel("preconnect").Href("https://fonts.googleapis.com"),
-				html.Link().Rel("stylesheet").Href(interCSS),
-				html.Script().Src(tailwindJS),
-				html.Style().Attr("type", "text/tailwindcss").Text(pageCSS),
-				html.Script().Type(html.ScriptTypeModule).Src(datastarJS),
-				html.Link().Rel("stylesheet").Href(fontAwesomeCSS),
-				ui.ScriptTag("/assets"),
-			),
+			head,
 			html.Body(
 				html.Div(
 					sidebar(current),

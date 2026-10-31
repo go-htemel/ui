@@ -24,7 +24,7 @@ if (!BASE) {
   process.exit(2);
 }
 // A11Y_CDN_DIR: serve the showcase's CDN assets from local files (tailwind.js, datastar.js) instead of
-// the network, for sandboxes that block the CDNs. Font Awesome and Google Fonts are then stubbed out.
+// the network, for sandboxes that block the CDNs. Font Awesome is then stubbed out (the fonts are self-hosted by ui.Assets).
 const CDN_DIR = process.env.A11Y_CDN_DIR || "";
 const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.indexOf("--json") + 1] : "";
 
@@ -343,7 +343,7 @@ const FIX_NONE = () => {
 
 async function routeCDN(page) {
   const files = [[/@tailwindcss\/browser/, "tailwind.js"], [/datastar/, "datastar.js"]];
-  await page.route(/^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//, (route) => {
+  await page.route(/^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com)\//, (route) => {
     const u = route.request().url();
     const hit = files.find(([re]) => re.test(u));
     if (hit) return route.fulfill({ path: `${CDN_DIR}/${hit[1]}`, contentType: "application/javascript" });
@@ -489,7 +489,7 @@ try {
       const consoleErrors = [];
       page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text()); });
       page.on("requestfailed", (r) => {
-        if (!/^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//.test(r.url())) consoleErrors.push(`request failed: ${r.url()}`);
+        if (!/^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com)\//.test(r.url())) consoleErrors.push(`request failed: ${r.url()}`);
       });
       const resp = await page.goto(url, { waitUntil: "load" });
       if (!resp || !resp.ok()) throw new Error(`${url}: HTTP ${resp && resp.status()}`);
