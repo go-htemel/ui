@@ -1,4 +1,4 @@
-.PHONY: build test lint run tailwind-safelist check-safelist tidy
+.PHONY: build test lint run tailwind-safelist tidy
 
 ADDR ?= :8080
 
@@ -23,7 +23,7 @@ run:
 # Writes every Tailwind class the components use, for the default theme, to tailwind.safelist.txt.
 # Pass flags through SAFELIST_FLAGS, e.g. make tailwind-safelist SAFELIST_FLAGS="-primary indigo -radius lg".
 tailwind-safelist:
-	go run ./internal/cmd/safelist $(SAFELIST_FLAGS) > tailwind.safelist.txt
+	go run ./cmd/safelist $(SAFELIST_FLAGS) > tailwind.safelist.txt
 
 tidy:
 	go mod tidy
