@@ -240,13 +240,6 @@ func (s *adminStore) get(id int) (adminPost, bool) {
 	return adminPost{}, false
 }
 
-// slugTaken reports whether another post than except uses slug (ignoring case).
-func (s *adminStore) slugTaken(slug string, except int) bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.slugTakenLocked(slug, except)
-}
-
 func (s *adminStore) slugTakenLocked(slug string, except int) bool {
 	return slices.ContainsFunc(s.posts, func(p adminPost) bool { return p.ID != except && strings.EqualFold(p.Slug, slug) })
 }

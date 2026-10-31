@@ -33,24 +33,24 @@ func layoutRows() []spec {
 	add("AppShell/SidebarDark", "rail button icon", "button.go:20,button.go:21", nonText, dk("dark:text-neutral-300", ""), dk("dark:text-neutral-300", ""))
 	add("AppShell", "menu button icon", "layout_shell.go:148,layout_shell.go:150", nonText, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 
-	// PageHeader (layout_page.go:53-56) and SectionHeader, on the page and on a card.
+	// PageHeader (layout_page.go:54-56) and SectionHeader, on the page and on a card.
 	for _, bg := range []struct {
 		name string
 		l, d string
 	}{{"page", pageL, pageD}, {"card", cardL, cardD}} {
-		add("PageHeader", "title on the "+bg.name, "layout_page.go:56", largeText, on("text-neutral-900", "").over(bg.l), on("dark:text-white", "").over(bg.d))
-		add("PageHeader", "description on the "+bg.name, "layout_page.go:57", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
-		add("PageHeader", "meta on the "+bg.name, "layout_page.go:58", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
-		add("PageHeader", "back link on the "+bg.name, "layout_page.go:53,layout_page.go:55", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
+		add("PageHeader", "title on the "+bg.name, "layout_page.go:57", largeText, on("text-neutral-900", "").over(bg.l), on("dark:text-white", "").over(bg.d))
+		add("PageHeader", "description on the "+bg.name, "layout_page.go:58", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
+		add("PageHeader", "meta on the "+bg.name, "layout_page.go:59", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
+		add("PageHeader", "back link on the "+bg.name, "layout_page.go:54,layout_page.go:56", text, on("text-neutral-600", "").over(bg.l), on("dark:text-neutral-400", "").over(bg.d))
 	}
-	add("SectionHeader", "title", "layout_page.go:125", text, on("text-neutral-900", ""), on("dark:text-white", ""))
+	add("SectionHeader", "title", "layout_page.go:126", text, on("text-neutral-900", ""), on("dark:text-white", ""))
 
 	// Link tabs (StackedTabs) on the white / neutral-900 header band.
-	add("StackedTabs", "tab", "layout_page.go:135,layout_page.go:138", text, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
-	add("StackedTabs", "current tab", "layout_page.go:137,layout_page.go:139", text, on("aria-[current=page]:text-primary-600", "bg-white"), on("dark:aria-[current=page]:text-primary-400", "dark:bg-neutral-900"))
-	add("StackedTabs", "current tab underline", "layout_page.go:137,layout_page.go:139", nonText, on("aria-[current=page]:border-primary-600", "bg-white"), on("dark:aria-[current=page]:border-primary-400", "dark:bg-neutral-900"))
-	add("SettingsLayout", "link (@xl)", "layout_page.go:185,layout_page.go:188", text, on("text-neutral-600", ""), on("dark:text-neutral-400", ""))
-	add("SettingsLayout", "current link (@xl)", "layout_page.go:187,layout_page.go:189", text,
+	add("StackedTabs", "tab", "layout_page.go:136,layout_page.go:139", text, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
+	add("StackedTabs", "current tab", "layout_page.go:138,layout_page.go:140", text, on("aria-[current=page]:text-primary-600", "bg-white"), on("dark:aria-[current=page]:text-primary-400", "dark:bg-neutral-900"))
+	add("StackedTabs", "current tab underline", "layout_page.go:138,layout_page.go:140", nonText, on("aria-[current=page]:border-primary-600", "bg-white"), on("dark:aria-[current=page]:border-primary-400", "dark:bg-neutral-900"))
+	add("SettingsLayout", "link (@xl)", "layout_page.go:186,layout_page.go:189", text, on("text-neutral-600", ""), on("dark:text-neutral-400", ""))
+	add("SettingsLayout", "current link (@xl)", "layout_page.go:188,layout_page.go:190", text,
 		on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10"))
 	add("SplitDetailHeader", "title", "layout_split.go:131", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-900"))
 

@@ -1,10 +1,11 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/go-htemel/htemel"
 	"github.com/go-htemel/htemel/datastar"
 	"github.com/go-htemel/htemel/html"
-	"strings"
 )
 
 // PageHeaderOption configures PageHeader.
