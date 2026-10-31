@@ -1,6 +1,11 @@
 // Accessibility scan of the showcase: every page, light and dark, plus interactive states
 // (open dialog, drawer and bottom sheet, open dropdown, switched tab, expanded accordion, open
-// mobile nav drawer).
+// mobile nav drawer, the color scheme toggle switched to the other scheme).
+//
+// Dark mode follows the .dark class on <html> (ui.css's @custom-variant), set by the inline
+// ui.ColorSchemeBootstrap script from localStorage or, in system mode, from prefers-color-scheme.
+// So each scheme is tested by emulating the OS setting, which the bootstrap picks up, and every
+// scan first checks that both the class and the painted background really are that scheme.
 //
 //   BASE_URL=http://127.0.0.1:8080 node run.mjs [--json out.json]
 //
@@ -62,6 +67,31 @@ const STATES = {
         await page.locator("[popover]:popover-open").waitFor({ timeout: 5000 });
       },
       async close(page) { await page.keyboard.press("Escape"); },
+    },
+  ],
+  "/components/buttons": [
+    {
+      // Click the opposite scheme in the sidebar toggle: the class, the stored choice, aria-pressed
+      // and the painted page must all follow, and the page is scanned in the other scheme. close
+      // clicks System, which must restore the OS scheme.
+      name: "color scheme toggled",
+      async open(page, scheme) {
+        const other = scheme === "dark" ? "Light" : "Dark";
+        const group = page.getByRole("group", { name: "Color scheme" });
+        await group.getByRole("button", { name: other, exact: true }).click();
+        await group.getByRole("button", { name: other, exact: true }).and(page.locator("[aria-pressed=true]")).waitFor({ timeout: 5000 });
+        await waitForScheme(page, scheme === "dark" ? "light" : "dark", "after clicking " + other);
+        const stored = await page.evaluate(() => localStorage.getItem("color-scheme"));
+        if (stored !== other.toLowerCase()) throw new Error(`localStorage["color-scheme"] is ${stored}, want ${other.toLowerCase()}`);
+      },
+      async close(page, scheme) {
+        const group = page.getByRole("group", { name: "Color scheme" });
+        await group.getByRole("button", { name: "System", exact: true }).click();
+        await group.getByRole("button", { name: "System", exact: true }).and(page.locator("[aria-pressed=true]")).waitFor({ timeout: 5000 });
+        await waitForScheme(page, scheme, "after clicking System");
+        const stored = await page.evaluate(() => localStorage.getItem("color-scheme"));
+        if (stored !== null) throw new Error(`System left localStorage["color-scheme"] = ${stored}`);
+      },
     },
   ],
   "/components/disclosure": [
@@ -188,19 +218,38 @@ async function waitForStyles(page, scheme, url) {
     throw new Error(`Tailwind did not apply on ${url} (${scheme}): body background is transparent. ` +
       `Is the Tailwind CDN (cdn.jsdelivr.net) reachable? Refusing to scan unstyled pages.`);
   }
-  // Chromium reports oklch(); a canvas pixel gives plain sRGB to take the lightness from.
-  const [bg, lum] = await page.evaluate(() => {
+  const err = await schemeProblem(page, scheme);
+  if (err) throw new Error(`${url}: ${err}`);
+  await page.evaluate(() => document.fonts.ready);
+}
+
+// Chromium reports oklch(); a canvas pixel gives plain sRGB to take the lightness from. Returns a
+// description of what is wrong when the page is not in `scheme`, else "". Both the .dark class
+// (what the dark: variants follow) and the painted background must agree with the scheme.
+async function schemeProblem(page, scheme) {
+  const [bg, lum, dark] = await page.evaluate(() => {
     const css = getComputedStyle(document.body).backgroundColor;
     const c = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
     c.fillStyle = css;
     c.fillRect(0, 0, 1, 1);
     const [r, g, b] = c.getImageData(0, 0, 1, 1).data;
-    return [css, (r + g + b) / 3];
+    return [css, (r + g + b) / 3, document.documentElement.classList.contains("dark")];
   });
-  if (scheme === "dark" ? lum > 100 : lum < 150) {
-    throw new Error(`${url}: ${scheme} scheme not applied (body background ${bg}).`);
+  if (dark !== (scheme === "dark")) return `${scheme} scheme not applied: <html> ${dark ? "has" : "lacks"} the .dark class.`;
+  if (scheme === "dark" ? lum > 100 : lum < 150) return `${scheme} scheme not applied (body background ${bg}).`;
+  return "";
+}
+
+// Waits (up to 5s, for the transition-free class flip and style recalculation) until the page is
+// in `scheme`; throws with the reason otherwise.
+async function waitForScheme(page, scheme, when) {
+  let err = "";
+  for (let i = 0; i < 50; i++) {
+    err = await schemeProblem(page, scheme);
+    if (!err) return;
+    await page.waitForTimeout(100);
   }
-  await page.evaluate(() => document.fonts.ready);
+  throw new Error(`${when}: ${err}`);
 }
 
 function simplify(v, ctx) {
@@ -248,7 +297,34 @@ async function scan(page, ctx) {
 
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 let incompleteTotal = 0;
+
+// No flash of the wrong scheme: with a choice stored that differs from the OS setting (and with
+// none, following the OS), the inline bootstrap has set <html class="dark"> by the time the
+// document has been parsed, i.e. before anything could paint. Checked at domcontentloaded, before
+// Tailwind's styles are looked at.
+async function checkNoFlash() {
+  const cases = [
+    { os: "light", stored: "dark", dark: true },
+    { os: "dark", stored: "light", dark: false },
+    { os: "dark", stored: null, dark: true },
+    { os: "light", stored: null, dark: false },
+  ];
+  for (const c of cases) {
+    const context = await browser.newContext({ colorScheme: c.os });
+    const page = await context.newPage();
+    if (CDN_DIR) await routeCDN(page);
+    if (c.stored) await page.addInitScript((v) => localStorage.setItem("color-scheme", v), c.stored);
+    await page.goto(BASE + "/components/buttons", { waitUntil: "domcontentloaded" });
+    const dark = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+    const label = `os ${c.os}, stored ${c.stored || "none"}`;
+    if (dark !== c.dark) checkFailures.push(`no-flash (${label}): <html> ${dark ? "has" : "lacks"} .dark at domcontentloaded, want ${c.dark ? "dark" : "light"}`);
+    process.stdout.write(`checked no-flash (${label}): ${dark === c.dark ? "ok" : "FAIL"}\n`);
+    await context.close();
+  }
+}
+
 try {
+  await checkNoFlash();
   for (const scheme of SCHEMES) {
     const context = await browser.newContext({ colorScheme: scheme, viewport: { width: 1280, height: 900 } });
     for (const path of PAGES) {
@@ -273,14 +349,14 @@ try {
       for (const st of STATES[path] || []) {
         if (st.viewport) await page.setViewportSize(st.viewport);
         try {
-          await st.open(page);
+          await st.open(page, scheme);
         } catch (e) {
           throw new Error(`${url} (${scheme}): could not reach state "${st.name}": ${e.message.split("\n")[0]}`);
         }
         await page.waitForTimeout(350); // let transitions finish before measuring contrast
         incompleteTotal += await scan(page, { page: path, scheme, state: st.name });
         process.stdout.write(`scanned ${scheme.padEnd(5)} ${path} [${st.name}]\n`);
-        if (st.close) await st.close(page);
+        if (st.close) await st.close(page, scheme);
         if (st.viewport) await page.setViewportSize({ width: 1280, height: 900 });
       }
       await page.close();

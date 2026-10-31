@@ -34,6 +34,9 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 				html.Meta().Charset(html.CharsetUtf8),
 				html.Meta().Name("viewport").Content("width=device-width, initial-scale=1"),
 				html.Title().Text(title+" · go-htemel/ui"),
+				// Before the stylesheet and the Tailwind script, so the stored color scheme is applied
+				// before the first paint.
+				ui.ColorSchemeBootstrap(),
 				html.Link().Rel("preconnect").Href("https://fonts.googleapis.com"),
 				html.Link().Rel("stylesheet").Href(interCSS),
 				html.Script().Src(tailwindJS),
@@ -53,7 +56,7 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 	)
 }
 
-func sidebar(current string) *html.NavElement {
+func sidebar(current string) htemel.FlowContent {
 	link := func(href, label string, active bool) *html.LiElement {
 		cls := "block rounded-control px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white"
 		a := html.A().Href(href).Text(label)
@@ -67,12 +70,15 @@ func sidebar(current string) *html.NavElement {
 	for _, g := range groups {
 		list.Children(link("/components/"+g.Slug, g.Title, current == g.Slug))
 	}
-	return html.Nav(
-		html.A().Href("/").Class("text-base font-bold text-neutral-900 dark:text-white").Text("go-htemel/ui"),
-		html.P().Class("mt-1 text-xs text-neutral-500 dark:text-neutral-400").Text("htemel · Tailwind · Datastar"),
-		list,
-	).Class("shrink-0 border-b border-neutral-200 px-4 py-6 lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:border-r lg:border-b-0 dark:border-white/10").
-		Aria("label", "Components")
+	return html.Aside(
+		html.Nav(
+			html.A().Href("/").Class("text-base font-bold text-neutral-900 dark:text-white").Text("go-htemel/ui"),
+			html.P().Class("mt-1 text-xs text-neutral-500 dark:text-neutral-400").Text("htemel · Tailwind · Datastar"),
+			list,
+		).Aria("label", "Components"),
+		html.Div(ui.ColorSchemeToggle()).Class("mt-6 lg:mt-auto lg:pt-6"),
+	).Class("flex shrink-0 flex-col border-b border-neutral-200 px-4 py-6 lg:sticky lg:top-0 lg:h-dvh lg:w-60 lg:border-r lg:border-b-0 dark:border-white/10").
+		Aria("label", "Sidebar")
 }
 
 // groupPage renders one component group: each example's live output at full width, with its

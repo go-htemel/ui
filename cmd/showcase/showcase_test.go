@@ -15,6 +15,8 @@ import (
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+
+	"github.com/go-htemel/ui"
 )
 
 // datastarAttributes reads the Datastar v1.0.4 attribute list that the htemel datastar package
@@ -172,6 +174,15 @@ func TestPages(t *testing.T) {
 				t.Fatalf("GET %s: status %d", p, code)
 			}
 			checkDocument(t, p, body, allowed)
+			// The bootstrap must run before any stylesheet or the Tailwind script, or the first paint
+			// flashes the wrong color scheme; the toggle is in the sidebar.
+			boot := strings.Index(body, ui.ColorSchemeBootstrapSource())
+			if boot < 0 || boot > strings.Index(body, tailwindJS) || boot > strings.Index(body, `rel="stylesheet"`) {
+				t.Errorf("GET %s: ui.ColorSchemeBootstrap is missing or comes after the Tailwind script or a stylesheet", p)
+			}
+			if !strings.Contains(body, `aria-label="Color scheme"`) {
+				t.Errorf("GET %s: the sidebar has no color scheme toggle", p)
+			}
 			if !strings.Contains(body, datastarJS) || !strings.Contains(body, `id="toasts"`) {
 				t.Errorf("GET %s: layout is missing Datastar or the toast region", p)
 			}

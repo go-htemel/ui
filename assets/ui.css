@@ -42,7 +42,19 @@
  * Retheming primary to a lighter hue (sky, cyan, teal, amber, lime) can break these: rerun
  * go test -run Contrast . against your palette; light hues typically need the 700 step for solids
  * with white text (see the README, "Contrast").
+ *
+ * Dark mode: the @custom-variant line below makes every dark: utility follow a .dark class on
+ * <html> instead of Tailwind's default, the prefers-color-scheme media query. The class is set by
+ * ui.ColorSchemeBootstrap() (an inline script for <head> that applies the visitor's stored
+ * light / dark / system choice before first paint) and changed by ui.ColorSchemeToggle(), or by
+ * your own code. The two color-scheme rules after it make native controls, scrollbars and the
+ * Select arrow follow the same class. An application that wants OS-only behaviour deletes the
+ * @custom-variant line and the "color scheme" @layer block at the end of this file; dark: then
+ * follows prefers-color-scheme and neither the bootstrap nor the toggle is needed. Keep the
+ * line and omit the bootstrap, and the page stays light.
  */
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* primary (default: indigo). Brand and interactive color: primary buttons, links, focus rings,
@@ -130,4 +142,15 @@
 
   /* Corner radius of surfaces: Card, Dialog, Dropdown panel, Alert, Toast, Stat, Table frame. */
   --radius-surface: var(--radius-md);
+}
+
+/* color scheme: native controls, scrollbars and form widgets follow the .dark class. Delete this
+   block together with the @custom-variant line above for OS-only dark mode. */
+@layer base {
+  html.dark {
+    color-scheme: dark;
+  }
+  html:not(.dark) {
+    color-scheme: light;
+  }
 }
