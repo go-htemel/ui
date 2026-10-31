@@ -15,7 +15,7 @@ import (
 
 // This file measures the WCAG 2.x contrast of the shipped design tokens. The matrix below lists
 // the foreground/background class pairs the components use; the colors are resolved through
-// ui.ThemeCSS() (neutral-500 -> zinc-500 -> OKLCH -> sRGB; primary is literal OKLCH), so the matrix follows the
+// ui.ThemeCSS() (neutral-500 -> zinc-500 -> OKLCH -> sRGB; primary aliases indigo), so the matrix follows the
 // defaults.
 //
 // Every row names the source line it was read from. TestContrastMatrixInSync checks that those
@@ -98,14 +98,14 @@ func matrix() []spec {
 	const dis = "disabled:opacity-50" // buttonBase, button.go:10
 
 	// Button (button.go:14-25 buttonVariants). Text is text-sm/text-xs semibold: normal text.
-	// Solids with white text use the conventional steps: 600, hover 700 in light. Dark mode starts
-	// one step darker (700) so the hover can go lighter (600): the Emerald Sky 500 is only 3.15:1
-	// with white, so 600 -> 500 would miss 4.5:1.
-	add("Button/Primary", "default", "button.go:14", text, on("text-white", "bg-primary-600"), on("text-white", "dark:bg-primary-700"))
-	add("Button/Primary", "hover", "button.go:14", text, on("text-white", "hover:bg-primary-700"), on("text-white", "dark:hover:bg-primary-600"))
+	// Solids with white text use the conventional steps: 600, hover 700 in light. In dark, 600 with
+	// a lighter hover 500: white on indigo-500 is 4.58:1 (indigo-400 is only 3.13:1, so the
+	// Tailwind UI 500 -> 400 scheme would miss 4.5:1).
+	add("Button/Primary", "default", "button.go:14", text, on("text-white", "bg-primary-600"), on("text-white", "dark:bg-primary-600"))
+	add("Button/Primary", "hover", "button.go:14", text, on("text-white", "hover:bg-primary-700"), on("text-white", "dark:hover:bg-primary-500"))
 	add("Button/Primary", "focus-visible outline", "button.go:14", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
 	add("Button/Primary", "focus-visible outline on a card", "button.go:14", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over("dark:bg-neutral-800"))
-	disabled("Button/Primary", "disabled", "button.go:14", on("text-white", "bg-primary-600").grp(0.5).with(dis), on("text-white", "dark:bg-primary-700").grp(0.5).with(dis))
+	disabled("Button/Primary", "disabled", "button.go:14", on("text-white", "bg-primary-600").grp(0.5).with(dis), on("text-white", "dark:bg-primary-600").grp(0.5).with(dis))
 
 	add("Button/Secondary", "default", "button.go:16", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/10"))
 	add("Button/Secondary", "hover", "button.go:16", text, on("text-neutral-900", "hover:bg-neutral-50"), on("dark:text-white", "dark:hover:bg-white/20"))
@@ -210,8 +210,8 @@ func matrix() []spec {
 	add("Tabs", "active", "tabs.go:23", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
-	add("Pagination", "current page", "pagination.go:13", text, on("aria-[current=page]:text-white", "aria-[current=page]:bg-primary-600"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-primary-700"))
-	add("Pagination", "current page hover", "pagination.go:14", text, on("aria-[current=page]:text-white", "aria-[current=page]:hover:bg-primary-700"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:hover:bg-primary-600"))
+	add("Pagination", "current page", "pagination.go:13", text, on("aria-[current=page]:text-white", "aria-[current=page]:bg-primary-600"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-primary-600"))
+	add("Pagination", "current page hover", "pagination.go:14", text, on("aria-[current=page]:text-white", "aria-[current=page]:hover:bg-primary-700"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:hover:bg-primary-500"))
 	add("Pagination", "gap", "pagination.go:18", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// Kbd (badge.go:25-26), Avatar initials (avatar.go:31-32), Divider label (layout.go:44).
@@ -506,7 +506,7 @@ func TestContrastTokensResolve(t *testing.T) {
 	th := wcag.NewTheme(ui.ThemeCSS())
 	for tok, want := range map[string]string{
 		"neutral-500": "zinc-500", "success-600": "green-600",
-		"warning-500": "amber-500", "danger-500": "red-500", "info-600": "blue-600",
+		"warning-500": "amber-500", "primary-400": "indigo-400", "primary-500": "indigo-500", "primary-600": "indigo-600", "primary-700": "indigo-700", "danger-500": "red-500", "info-600": "blue-600",
 	} {
 		if got := th.Alias(tok); got != want {
 			t.Errorf("%s resolves to %s, want %s", tok, got, want)
@@ -514,32 +514,13 @@ func TestContrastTokensResolve(t *testing.T) {
 	}
 }
 
-// TestPrimaryIsLiteralOKLCH checks that the default primary scale is the tuned Emerald Sky: every
-// step a literal oklch() value (not a var() alias to a stock palette), with lightness strictly
-// decreasing from 50 to 950 and hue drifting from green to blue.
-func TestPrimaryIsLiteralOKLCH(t *testing.T) {
-	css := ui.ThemeCSS()
-	re := regexp.MustCompile(`(?m)^\s*--color-primary-(\d+):\s*(.+?);`)
-	literal := regexp.MustCompile(`^oklch\(([\d.]+)% ([\d.]+) ([\d.]+)\)$`)
-	steps := re.FindAllStringSubmatch(css, -1)
-	if len(steps) != 11 {
-		t.Fatalf("found %d primary tokens in ThemeCSS, want 11", len(steps))
-	}
-	prevL, prevH := 101.0, 0.0
-	for _, m := range steps {
-		g := literal.FindStringSubmatch(m[2])
-		if g == nil {
-			t.Errorf("primary-%s is %q, want a literal oklch(L%% C H)", m[1], m[2])
-			continue
+// TestPrimaryAliasesIndigo checks that every step of the default primary scale is a plain alias
+// of the stock Tailwind indigo step (the contrast matrix is measured against it).
+func TestPrimaryAliasesIndigo(t *testing.T) {
+	th := wcag.NewTheme(ui.ThemeCSS())
+	for _, st := range []string{"50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"} {
+		if got, want := th.Alias("primary-"+st), "indigo-"+st; got != want {
+			t.Errorf("primary-%s resolves to %q, want %q", st, got, want)
 		}
-		l, _ := strconv.ParseFloat(g[1], 64)
-		h, _ := strconv.ParseFloat(g[3], 64)
-		if l >= prevL {
-			t.Errorf("primary-%s has L=%.1f, not below the previous step (%.1f)", m[1], l, prevL)
-		}
-		if h <= prevH {
-			t.Errorf("primary-%s has hue %.1f, want the hue to keep drifting toward blue (previous %.1f)", m[1], h, prevH)
-		}
-		prevL, prevH = l, h
 	}
 }
