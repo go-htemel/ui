@@ -19,9 +19,9 @@ func Tab(key, label string, panel ...htemel.FlowContent) TabItem {
 }
 
 const (
-	tabBase     = "-mb-px cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-sky-600"
-	tabActive   = "border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400"
-	tabInactive = "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200"
+	tabBase     = "-mb-px cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-primary-600"
+	tabActive   = "border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400"
+	tabInactive = "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:text-neutral-400 dark:hover:border-white/20 dark:hover:text-neutral-200"
 )
 
 // Tabs returns a tab list and its panels, switched entirely in the browser: signal holds the key
@@ -43,7 +43,7 @@ func Tabs(signal string, tabs ...TabItem) *html.DivElement {
 	}
 	sig := "$" + signal
 	active, inactive := Classes(tabActive), Classes(tabInactive)
-	list := html.Div().Role("tablist").Attrs(datastar.OnKeyDown(tabKeys)).Class(Classes("flex gap-x-6 overflow-x-auto border-b border-zinc-200 dark:border-white/10"))
+	list := html.Div().Role("tablist").Attrs(datastar.OnKeyDown(tabKeys)).Class(Classes("flex gap-x-6 overflow-x-auto border-b border-neutral-200 dark:border-white/10"))
 	root := html.Div(list).Attrs(initially(signal, datastar.Quote(tabs[0].key)))
 	for i, t := range tabs {
 		id := domID(signal) + "-" + domID(t.key)
@@ -72,7 +72,7 @@ func Tabs(signal string, tabs ...TabItem) *html.DivElement {
 			Id(id+"-panel").
 			Aria("labelledby", id+"-tab").
 			Tabindex(0).
-			Class("pt-4 focus-visible:outline-2 focus-visible:outline-sky-600").
+			Class("pt-4 focus-visible:outline-2 focus-visible:outline-primary-600").
 			Attrs(datastar.Show(selected))
 		if i > 0 {
 			panel.Style(hiddenUntilDatastar)

@@ -31,17 +31,17 @@ func Container(children ...htemel.FlowContent) *html.DivElement {
 
 // Divider returns a horizontal rule, <hr>.
 func Divider() *html.HrElement {
-	return html.Hr().Class(Classes("border-zinc-200 dark:border-white/10"))
+	return html.Hr().Class(Classes("border-neutral-200 dark:border-white/10"))
 }
 
 // DividerLabel returns a horizontal rule with label centred on it, such as "or".
 func DividerLabel(label string) *html.DivElement {
 	line := func() *html.SpanElement {
-		return html.Span().Class(Classes("h-px flex-1 bg-zinc-200 dark:bg-white/10")).Aria("hidden", "true")
+		return html.Span().Class(Classes("h-px flex-1 bg-neutral-200 dark:bg-white/10")).Aria("hidden", "true")
 	}
 	return html.Div(
 		line(),
-		html.Span().Class(Classes("text-xs font-medium text-zinc-500 dark:text-zinc-400")).Text(label),
+		html.Span().Class(Classes("text-xs font-medium text-neutral-500 dark:text-neutral-400")).Text(label),
 		line(),
 	).Class(Classes("flex items-center gap-x-3"))
 }

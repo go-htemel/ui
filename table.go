@@ -52,7 +52,7 @@ func Table(head *html.TheadElement, body *html.TbodyElement, opts ...TableOption
 	}
 	table.Children(head, body)
 	if c.striped {
-		body.AddClass(Classes("*:even:bg-zinc-50 dark:*:even:bg-white/5"))
+		body.AddClass(Classes("*:even:bg-neutral-50 dark:*:even:bg-white/5"))
 	}
 	if c.dense {
 		head.AddClass(Classes("*:*:py-2"))
@@ -63,7 +63,7 @@ func Table(head *html.TheadElement, body *html.TbodyElement, opts ...TableOption
 		head.AddClass(Classes("*:*:sticky *:*:top-0 *:*:z-10"))
 		frame = "max-h-96 overflow-auto"
 	}
-	return html.Div(table).Class(Classes("rounded-md bg-white ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10", frame))
+	return html.Div(table).Class(Classes("rounded-surface bg-white ring-1 ring-neutral-950/5 dark:bg-neutral-900 dark:ring-white/10", frame))
 }
 
 // TableHead returns the <thead> with one row of header cells (Th and SortableTh).
@@ -91,12 +91,12 @@ func Th(children ...htemel.FlowContent) *html.ThElement {
 
 // Td returns a data cell.
 func Td(children ...htemel.FlowContent) *html.TdElement {
-	return html.Td(children...).Class(Classes("border-b border-zinc-200 px-3 py-3.5 text-sm text-zinc-700",
-		"dark:border-white/10 dark:text-zinc-300"))
+	return html.Td(children...).Class(Classes("border-b border-neutral-200 px-3 py-3.5 text-sm text-neutral-700",
+		"dark:border-white/10 dark:text-neutral-300"))
 }
 
-const thClass = "border-b border-zinc-200 bg-zinc-50 px-3 py-3.5 text-left text-xs font-semibold tracking-wide " +
-	"text-zinc-600 uppercase dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300"
+const thClass = "border-b border-neutral-200 bg-neutral-50 px-3 py-3.5 text-left text-xs font-semibold tracking-wide " +
+	"text-neutral-600 uppercase dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-300"
 
 // SortDirSignal returns the name of the signal that holds the sort direction ("asc" or "desc")
 // for the sort-key signal sortSignal: sortSignal + "Dir".
@@ -129,8 +129,8 @@ func SortableTh(label, key, sortSignal, action string) *html.ThElement {
 		)
 	button := html.Button(html.Span().Text(label), arrow).
 		Type(html.ButtonTypeButton).
-		Class(Classes("group -mx-1 inline-flex cursor-pointer items-center gap-x-1 rounded-md px-1 py-0.5 font-semibold uppercase",
-			"tracking-wide hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600",
+		Class(Classes("group -mx-1 inline-flex cursor-pointer items-center gap-x-1 rounded-control px-1 py-0.5 font-semibold uppercase",
+			"tracking-wide hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
 			"dark:hover:text-white")).
 		Attrs(datastar.OnClick(click))
 	return html.Th(button).Scope(html.ScopeCol).Class(Classes(thClass)).
@@ -148,11 +148,11 @@ func SortableTh(label, key, sortSignal, action string) *html.ThElement {
 func EmptyState(icon htemel.PhrasingContent, title, description string, action htemel.FlowContent) *html.DivElement {
 	d := html.Div().Class(Classes("flex flex-col items-center px-6 py-12 text-center"))
 	if icon != nil {
-		d.Children(html.Div(icon).Class(Classes("mb-3 text-zinc-400 *:size-8 dark:text-zinc-500")))
+		d.Children(html.Div(icon).Class(Classes("mb-3 text-neutral-400 *:size-8 dark:text-neutral-500")))
 	}
-	d.Children(html.P().Class(Classes("text-sm font-semibold text-zinc-900 dark:text-white")).Text(title))
+	d.Children(html.P().Class(Classes("text-sm font-semibold text-neutral-900 dark:text-white")).Text(title))
 	if description != "" {
-		d.Children(html.P().Class(Classes("mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400")).Text(description))
+		d.Children(html.P().Class(Classes("mt-1 max-w-sm text-sm text-neutral-500 dark:text-neutral-400")).Text(description))
 	}
 	if action != nil {
 		d.Children(html.Div(action).Class("mt-4"))

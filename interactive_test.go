@@ -109,7 +109,7 @@ func TestDialogAccessibility(t *testing.T) {
 		ui.DialogActions(ui.Button(ui.Secondary, "Cancel"), ui.Button(ui.Danger, "Delete"))))
 	wantAll(t, got,
 		`<dialog id="confirmDelete-dialog" aria-labelledby="confirmDelete-title" closedby="any"`, `id="confirmDelete-title"`,
-		`backdrop:bg-zinc-950/50`, `m-auto`,
+		`backdrop:bg-neutral-950/50`, `m-auto`,
 		`data-signals:confirm-delete__ifmissing="false"`,
 		`data-effect="$confirmDelete ? (el.open || el.showModal()) : (el.open && el.close())"`, // signal -> dialog
 		`data-on:close="$confirmDelete = false"`,                                               // Escape, closedby, method=dialog -> signal

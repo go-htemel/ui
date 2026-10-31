@@ -39,11 +39,11 @@ func ToastRegion() *html.DivElement {
 }
 
 var toneAccent = map[Tone]string{
-	Neutral: "border-zinc-400 dark:border-zinc-500",
-	Info:    "border-blue-500",
-	Success: "border-green-500",
-	Warning: "border-amber-500",
-	Danger:  "border-red-500",
+	Neutral: "border-neutral-400 dark:border-neutral-500",
+	Info:    "border-info-500",
+	Success: "border-success-500",
+	Warning: "border-warning-500",
+	Danger:  "border-danger-500",
 }
 
 // Toast returns a notification card for the ToastRegion. id names it in the $toasts signal and
@@ -59,18 +59,18 @@ func Toast(id string, t Tone, title, message string, timeout time.Duration) *htm
 	key := toastKey(id)
 	sig := "$" + ToastSignal + "." + key
 	content := html.Div(
-		html.P().Class(Classes("text-sm font-semibold text-zinc-900 dark:text-white")).Text(title),
+		html.P().Class(Classes("text-sm font-semibold text-neutral-900 dark:text-white")).Text(title),
 	).Class(Classes("min-w-0 flex-1"))
 	if message != "" {
-		content.Children(html.P().Class(Classes("mt-1 text-sm text-zinc-600 dark:text-zinc-300")).Text(message))
+		content.Children(html.P().Class(Classes("mt-1 text-sm text-neutral-600 dark:text-neutral-300")).Text(message))
 	}
 	el := html.Div(
 		content,
-		closeButton("Dismiss", sig+" = false").AddClass(Classes("text-zinc-500 dark:text-zinc-400")),
+		closeButton("Dismiss", sig+" = false").AddClass(Classes("text-neutral-500 dark:text-neutral-400")),
 	).Id("toast-"+key).
 		Role("status").
-		Class(Classes("pointer-events-auto flex w-full gap-x-3 rounded-md border-l-4 bg-white p-4 shadow-lg ring-1 ring-zinc-950/5",
-			"dark:bg-zinc-800 dark:ring-white/10", pick(toneAccent, t, Neutral))).
+		Class(Classes("pointer-events-auto flex w-full gap-x-3 rounded-surface border-l-4 bg-white p-4 shadow-lg ring-1 ring-neutral-950/5",
+			"dark:bg-neutral-800 dark:ring-white/10", pick(toneAccent, t, Neutral))).
 		Attrs(datastar.Signal(ToastSignal+"."+key, "true"), datastar.Show(sig))
 	if timeout > 0 {
 		tick := min(toastTick, timeout)

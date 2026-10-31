@@ -38,7 +38,7 @@ func AccordionItem(key, title string, children ...htemel.FlowContent) AccordionP
 func Accordion(signal string, items ...AccordionPanel) *html.DivElement {
 	sig := "$" + signal
 	root := html.Div().
-		Class(Classes("divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-white/10 dark:border-white/10")).
+		Class(Classes("divide-y divide-neutral-200 border-y border-neutral-200 dark:divide-white/10 dark:border-white/10")).
 		Attrs(initially(signal, "''"), datastar.OnKeyDown(accordionKeys))
 	for _, it := range items {
 		key := datastar.Quote(it.key)
@@ -57,12 +57,12 @@ func disclosureParts(id, title, open, toggle string, children []htemel.FlowConte
 	buttonID := id + "-button"
 	button := html.Button(
 		html.Span().Text(title),
-		IconChevronDown().Class("size-5 shrink-0 text-zinc-400 transition-transform duration-200").
+		IconChevronDown().Class("size-5 shrink-0 text-neutral-400 transition-transform duration-200").
 			Attrs(datastar.Class("rotate-180", open)),
 	).Type(html.ButtonTypeButton).
 		Id(buttonID).
 		Class(Classes("flex w-full cursor-pointer items-center justify-between gap-x-4 py-3 text-left text-sm font-semibold",
-			"text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-white")).
+			"text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:text-white")).
 		Aria("controls", panelID).
 		Attrs(expanded(open)...).
 		Attrs(datastar.OnClick(toggle))
@@ -70,7 +70,7 @@ func disclosureParts(id, title, open, toggle string, children []htemel.FlowConte
 		Id(panelID).
 		Role("region").
 		Aria("labelledby", buttonID).
-		Class(Classes("pb-4 text-sm text-zinc-600 dark:text-zinc-300")).
+		Class(Classes("pb-4 text-sm text-neutral-600 dark:text-neutral-300")).
 		Style(hiddenUntilDatastar).
 		Attrs(datastar.Show(open))
 	return []htemel.FlowContent{button, panel}

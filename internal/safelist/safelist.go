@@ -11,8 +11,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/go-htemel/ui"
 )
 
 // classPattern matches a Tailwind class: optional variant prefixes (dark:, hover:, *:,
@@ -24,17 +22,20 @@ var classPattern = regexp.MustCompile(`^(?:[a-z0-9*&>\[\]=_-]+:)*!?-?[a-z][a-z0-
 // through the datastar package is handled separately: only its name argument is a class.
 var classCalls = map[string]bool{"Class": true, "AddClass": true, "Classes": true, "ToggleClass": true}
 
+// classFuncs are the functions whose return values are class lists (BodyClasses).
+var classFuncs = map[string]bool{"BodyClasses": true}
+
 // quotedKey matches a quoted key of a JavaScript object literal, as in {'rotate-180': open}.
 var quotedKey = regexp.MustCompile(`['"]([^'"]+)['"]\s*:`)
 
 // Classes returns the sorted, de-duplicated classes the non-test Go files of fsys's root
-// directory can emit, rewritten for theme t. A class is a class-shaped token of a string that
+// directory can emit. A class is a class-shaped token of a string that
 // reaches a class-bearing call: an argument of .Class, .AddClass, .ToggleClass, Classes, or the
 // name of datastar.Class (and the keys of datastar.Classes). Identifiers in those arguments are
 // followed to the constants, variables, map and slice literals, assignments and call-site
 // arguments that supply them, so strings that never reach such a call (JavaScript expressions,
-// HTTP headers, SVG paths) contribute nothing.
-func Classes(fsys fs.FS, t ui.Theme) ([]string, error) {
+// HTTP headers, SVG paths) contribute nothing. The return values of BodyClasses count too.
+func Classes(fsys fs.FS) ([]string, error) {
 	entries, err := fs.ReadDir(fsys, ".")
 	if err != nil {
 		return nil, err
@@ -60,13 +61,10 @@ func Classes(fsys fs.FS, t ui.Theme) ([]string, error) {
 	c.run(files)
 
 	seen := map[string]bool{}
-	if t.Font != "" {
-		seen[t.Font] = true
-	}
 	for s := range c.strs {
 		for _, tok := range strings.Fields(s) {
 			if classPattern.MatchString(tok) {
-				seen[t.Classes(tok)] = true
+				seen[tok] = true
 			}
 		}
 	}
@@ -158,8 +156,14 @@ func calleeName(fun ast.Expr) string {
 	return ""
 }
 
-// run collects the arguments of every class-bearing call in files.
+// run collects the arguments of every class-bearing call in files and the results of the
+// classFuncs.
 func (c *collector) run(files []*ast.File) {
+	for name := range classFuncs {
+		if fd := c.funcs[name]; fd != nil {
+			c.collectReturns(fd)
+		}
+	}
 	for _, f := range files {
 		ast.Inspect(f, func(n ast.Node) bool {
 			call, ok := n.(*ast.CallExpr)

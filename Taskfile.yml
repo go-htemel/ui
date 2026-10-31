@@ -2,7 +2,6 @@ version: '3'
 
 vars:
   ADDR: '{{.ADDR | default ":8080"}}'
-  SAFELIST_FLAGS: '{{.SAFELIST_FLAGS | default ""}}'
 
 tasks:
   default:
@@ -43,9 +42,9 @@ tasks:
       - go run ./cmd/showcase -addr {{.ADDR}}
 
   tailwind-safelist:
-    desc: 'Write the Tailwind safelist to tailwind.safelist.txt (optional SAFELIST_FLAGS="-primary indigo")'
+    desc: Write the Tailwind safelist to tailwind.safelist.txt
     cmds:
-      - go run ./cmd/safelist {{.SAFELIST_FLAGS}} > tailwind.safelist.txt
+      - go run ./cmd/safelist > tailwind.safelist.txt
 
   tidy:
     desc: Run go mod tidy

@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
-
-	"github.com/go-htemel/ui"
 )
 
 const root = "../.."
@@ -17,7 +15,7 @@ const root = "../.."
 // TestCommittedSafelistIsCurrent fails when a class was added to or removed from the components
 // without regenerating tailwind.safelist.txt.
 func TestCommittedSafelistIsCurrent(t *testing.T) {
-	classes, err := Classes(os.DirFS(root), ui.DefaultTheme)
+	classes, err := Classes(os.DirFS(root))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +36,7 @@ var (
 // TestGoldenClassesAreListed checks that every class in the rendered golden output, including
 // the class names inside data-class expressions, is in the safelist.
 func TestGoldenClassesAreListed(t *testing.T) {
-	classes, err := Classes(os.DirFS(root), ui.DefaultTheme)
+	classes, err := Classes(os.DirFS(root))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,19 +67,24 @@ func TestGoldenClassesAreListed(t *testing.T) {
 	}
 }
 
-func TestThemedSafelist(t *testing.T) {
-	classes, err := Classes(os.DirFS(root), ui.Theme{Primary: "indigo", Radius: "lg", Font: "font-serif"})
+// TestTokenSafelist checks that the list is written in design tokens: the semantic color and
+// radius utilities are there (including variant and side forms, and the BodyClasses classes),
+// and no raw palette or radius class is.
+func TestTokenSafelist(t *testing.T) {
+	classes, err := Classes(os.DirFS(root))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"bg-indigo-600", "rounded-lg", "*:first:rounded-l-lg", "font-serif", "dark:bg-zinc-900"} {
+	for _, want := range []string{"bg-primary-600", "rounded-control", "rounded-surface", "*:first:rounded-l-control",
+		"font-sans", "dark:bg-neutral-950", "has-[dialog:modal]:overflow-hidden", "bg-danger-600"} {
 		if _, ok := slices.BinarySearch(classes, want); !ok {
-			t.Errorf("themed safelist lacks %q", want)
+			t.Errorf("safelist lacks %q", want)
 		}
 	}
+	raw := regexp.MustCompile(`-(sky|zinc|green|red|amber|blue)-\d|rounded(-[a-z]+)?-(sm|md|lg|xl)$`)
 	for _, c := range classes {
-		if strings.Contains(c, "-sky-") || strings.HasSuffix(c, "rounded-md") {
-			t.Errorf("themed safelist still has %q", c)
+		if raw.MatchString(c) {
+			t.Errorf("safelist has raw class %q", c)
 		}
 	}
 }
@@ -106,12 +109,16 @@ func a(w http.ResponseWriter, el El) {
 	el.Class("px-2 py-1").AddClass(Classes(base, pick(sizes, 1, 2)))
 	el.Attrs(datastar.Class("rotate-180", "open"))
 }
+
+const body = "font-sans antialiased"
+
+func BodyClasses() string { return body }
 `
-	got, err := Classes(fstest.MapFS{"x.go": {Data: []byte(src)}}, ui.DefaultTheme)
+	got, err := Classes(fstest.MapFS{"x.go": {Data: []byte(src)}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []string{"flex", "font-sans", "gap-2", "px-2", "py-1", "rotate-180", "text-lg", "text-sm"}
+	want := []string{"antialiased", "flex", "font-sans", "gap-2", "px-2", "py-1", "rotate-180", "text-lg", "text-sm"}
 	if !slices.Equal(got, want) {
 		t.Errorf("Classes = %q, want %q", got, want)
 	}

@@ -31,8 +31,8 @@ func (s CardSlot) Attrs(attrs ...htemel.Attribute) CardSlot {
 //	)
 func Card(slots ...CardSlot) *html.DivElement {
 	c := html.Div().
-		Class(Classes("divide-y divide-zinc-200 overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-zinc-950/5",
-			"dark:divide-white/10 dark:bg-zinc-900 dark:ring-white/10"))
+		Class(Classes("divide-y divide-neutral-200 overflow-hidden rounded-surface bg-white shadow-sm ring-1 ring-neutral-950/5",
+			"dark:divide-white/10 dark:bg-neutral-900 dark:ring-white/10"))
 	for _, s := range slots {
 		c.Children(htemel.Unchecked(s))
 	}
@@ -43,7 +43,7 @@ func Card(slots ...CardSlot) *html.DivElement {
 // the right.
 func CardHeader(title string, actions ...htemel.FlowContent) CardSlot {
 	el := html.Div(
-		html.H3().Class(Classes("text-base font-semibold text-zinc-900 dark:text-white")).Text(title),
+		html.H3().Class(Classes("text-base font-semibold text-neutral-900 dark:text-white")).Text(title),
 	).Class(Classes("flex items-center justify-between gap-x-4 px-4 py-4 sm:px-6"))
 	if len(actions) > 0 {
 		el.Children(html.Div(actions...).Class(Classes("flex shrink-0 items-center gap-x-2")))
@@ -53,11 +53,11 @@ func CardHeader(title string, actions ...htemel.FlowContent) CardSlot {
 
 // CardBody returns the card's main section.
 func CardBody(children ...htemel.FlowContent) CardSlot {
-	return CardSlot{el: html.Div(children...).Class(Classes("px-4 py-5 text-sm text-zinc-700 sm:p-6 dark:text-zinc-300"))}
+	return CardSlot{el: html.Div(children...).Class(Classes("px-4 py-5 text-sm text-neutral-700 sm:p-6 dark:text-neutral-300"))}
 }
 
 // CardFooter returns the card's bottom row, with its children aligned right.
 func CardFooter(children ...htemel.FlowContent) CardSlot {
 	return CardSlot{el: html.Div(children...).
-		Class(Classes("flex items-center justify-end gap-x-3 bg-zinc-50 px-4 py-3 sm:px-6 dark:bg-white/5"))}
+		Class(Classes("flex items-center justify-end gap-x-3 bg-neutral-50 px-4 py-3 sm:px-6 dark:bg-white/5"))}
 }

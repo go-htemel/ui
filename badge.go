@@ -4,11 +4,11 @@ import "github.com/go-htemel/htemel/html"
 
 // toneSoft is the low-contrast color set of each tone, shared by Badge and Alert.
 var toneSoft = map[Tone]string{
-	Neutral: "bg-zinc-100 text-zinc-700 ring-zinc-500/20 dark:bg-zinc-400/10 dark:text-zinc-300 dark:ring-zinc-400/20",
-	Info:    "bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-400/10 dark:text-blue-300 dark:ring-blue-400/30",
-	Success: "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/20",
-	Warning: "bg-amber-50 text-amber-800 ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/20",
-	Danger:  "bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-300 dark:ring-red-400/20",
+	Neutral: "bg-neutral-100 text-neutral-700 ring-neutral-500/20 dark:bg-neutral-400/10 dark:text-neutral-300 dark:ring-neutral-400/20",
+	Info:    "bg-info-50 text-info-700 ring-info-600/20 dark:bg-info-400/10 dark:text-info-300 dark:ring-info-400/30",
+	Success: "bg-success-50 text-success-700 ring-success-600/20 dark:bg-success-500/10 dark:text-success-300 dark:ring-success-500/20",
+	Warning: "bg-warning-50 text-warning-800 ring-warning-600/20 dark:bg-warning-400/10 dark:text-warning-300 dark:ring-warning-400/20",
+	Danger:  "bg-danger-50 text-danger-700 ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-300 dark:ring-danger-400/20",
 }
 
 // Badge returns a small pill, <span>, with label in tone t.
@@ -22,7 +22,7 @@ func Badge(t Tone, label string) *html.SpanElement {
 // Kbd returns a keyboard key, <kbd>, such as Kbd("Ctrl") or Kbd("⌘K").
 func Kbd(keys string) *html.KbdElement {
 	return html.Kbd().
-		Class(Classes("inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 font-mono text-xs",
-			"font-medium text-zinc-600 shadow-xs dark:border-white/10 dark:bg-white/5 dark:text-zinc-300")).
+		Class(Classes("inline-flex items-center rounded-control border border-neutral-200 bg-neutral-50 px-1.5 font-mono text-xs",
+			"font-medium text-neutral-600 shadow-xs dark:border-white/10 dark:bg-white/5 dark:text-neutral-300")).
 		Text(keys)
 }

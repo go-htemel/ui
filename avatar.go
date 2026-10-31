@@ -10,7 +10,7 @@ var avatarSizes = map[Size]string{
 	Xl: "size-14 text-lg",
 }
 
-const avatarBase = "inline-block shrink-0 rounded-full ring-2 ring-white dark:ring-zinc-900"
+const avatarBase = "inline-block shrink-0 rounded-full ring-2 ring-white dark:ring-neutral-900"
 
 // Avatar returns a round profile image, <img>. alt describes the person ("Ada Lovelace").
 //
@@ -18,7 +18,7 @@ const avatarBase = "inline-block shrink-0 rounded-full ring-2 ring-white dark:ri
 func Avatar(src, alt string, opts ...Option) *html.ImgElement {
 	o := collect(opts)
 	return html.Img().Src(src).Alt(alt).
-		Class(Classes(avatarBase, "bg-zinc-100 object-cover dark:bg-zinc-800", pick(avatarSizes, o.size, Md)))
+		Class(Classes(avatarBase, "bg-neutral-100 object-cover dark:bg-neutral-800", pick(avatarSizes, o.size, Md)))
 }
 
 // AvatarInitials returns a round placeholder with initials, for people without a picture. name
@@ -28,8 +28,8 @@ func Avatar(src, alt string, opts ...Option) *html.ImgElement {
 func AvatarInitials(initials, name string, opts ...Option) *html.SpanElement {
 	o := collect(opts)
 	return html.Span().
-		Class(Classes(avatarBase, "inline-flex items-center justify-center bg-zinc-600 font-medium text-white",
-			"dark:bg-zinc-500", pick(avatarSizes, o.size, Md))).
+		Class(Classes(avatarBase, "inline-flex items-center justify-center bg-neutral-600 font-medium text-white",
+			"dark:bg-neutral-500", pick(avatarSizes, o.size, Md))).
 		Role("img").
 		Aria("label", name).
 		Text(initials)

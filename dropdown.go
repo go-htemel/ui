@@ -60,8 +60,8 @@ func Dropdown(signal string, trigger *html.ButtonElement, items ...htemel.FlowCo
 		Role("menu").
 		Aria("labelledby", triggerID).
 		Style("position-anchor: "+anchor+"; position-area: bottom span-left; position-try-fallbacks: flip-block").
-		Class(Classes("mt-2 w-56 rounded-md bg-white p-1 shadow-lg ring-1 ring-zinc-950/5",
-			"dark:bg-zinc-800 dark:ring-white/10")).
+		Class(Classes("mt-2 w-56 rounded-surface bg-white p-1 shadow-lg ring-1 ring-neutral-950/5",
+			"dark:bg-neutral-800 dark:ring-white/10")).
 		Attrs(
 			datastar.On("beforetoggle", menuPlace(triggerID)),
 			datastar.On("toggle", "$"+signal+" = evt.newState === 'open'"),
@@ -109,9 +109,9 @@ func menuKeys() string {
 		"items[(n + items.length) % items.length].focus()"
 }
 
-const menuItemClass = "flex w-full cursor-pointer items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm text-zinc-700 " +
-	"hover:bg-zinc-100 hover:text-zinc-900 focus-visible:bg-zinc-100 focus-visible:outline-none " +
-	"dark:text-zinc-300 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5"
+const menuItemClass = "flex w-full cursor-pointer items-center gap-x-2 rounded-control px-3 py-2 text-left text-sm text-neutral-700 " +
+	"hover:bg-neutral-100 hover:text-neutral-900 focus-visible:bg-neutral-100 focus-visible:outline-none " +
+	"dark:text-neutral-300 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5"
 
 // MenuItem returns a menu entry, <button role="menuitem">. attrs usually include a Datastar click
 // handler: MenuItem("Archive", datastar.OnClick(datastar.Post("/archive"))).
@@ -126,5 +126,5 @@ func MenuLink(label, href string) *html.AElement {
 
 // MenuDivider returns a rule between groups of menu items.
 func MenuDivider() *html.HrElement {
-	return html.Hr().Class(Classes("-mx-1 my-1 border-zinc-100 dark:border-white/10"))
+	return html.Hr().Class(Classes("-mx-1 my-1 border-neutral-100 dark:border-white/10"))
 }

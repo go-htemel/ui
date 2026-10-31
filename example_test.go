@@ -35,11 +35,10 @@ func ExampleButton() {
 	b := ui.Button(ui.Link, "Docs", ui.WithSize(ui.Sm)).Attrs(datastar.OnClick(datastar.Get("/docs")))
 	out, _ := htemel.RenderString(b)
 	fmt.Println(out)
-	// Output: <button type="button" class="inline-flex items-center justify-center gap-x-1.5 rounded-md font-semibold whitespace-nowrap cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-sky-600 underline-offset-4 hover:text-sky-500 hover:underline focus-visible:outline-sky-600 dark:text-sky-400 dark:hover:text-sky-300 text-sm" data-on:click="@get(&#39;/docs&#39;)">Docs</button>
+	// Output: <button type="button" class="inline-flex items-center justify-center gap-x-1.5 rounded-control font-semibold whitespace-nowrap cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-primary-600 underline-offset-4 hover:text-primary-500 hover:underline focus-visible:outline-primary-600 dark:text-primary-400 dark:hover:text-primary-300 text-sm" data-on:click="@get(&#39;/docs&#39;)">Docs</button>
 }
 
-func ExampleTheme_Classes() {
-	t := ui.Theme{Primary: "indigo", Radius: "lg"}
-	fmt.Println(t.Classes("rounded-md bg-sky-600 dark:hover:bg-sky-500"))
-	// Output: rounded-lg bg-indigo-600 dark:hover:bg-indigo-500
+func ExampleClasses() {
+	fmt.Println(ui.Classes("  rounded-surface bg-primary-600 ", "", "dark:hover:bg-primary-500"))
+	// Output: rounded-surface bg-primary-600 dark:hover:bg-primary-500
 }

@@ -33,6 +33,6 @@ func alertBox(t Tone, title string, children []htemel.FlowContent) *html.DivElem
 		content.Children(html.Div(children...).Class("opacity-90"))
 	}
 	return html.Div(content).
-		Class(Classes("flex gap-x-3 rounded-md p-4 text-sm ring-1 ring-inset", pick(toneSoft, t, Neutral))).
+		Class(Classes("flex gap-x-3 rounded-surface p-4 text-sm ring-1 ring-inset", pick(toneSoft, t, Neutral))).
 		Role(role)
 }

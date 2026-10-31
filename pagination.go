@@ -8,14 +8,14 @@ import (
 	"github.com/go-htemel/htemel/html"
 )
 
-const pageItemClass = "inline-flex min-w-9 items-center justify-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium " +
-	"text-zinc-700 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 " +
-	"focus-visible:outline-sky-600 aria-[current=page]:bg-sky-600 aria-[current=page]:text-white aria-[current=page]:ring-sky-600 " +
-	"aria-[current=page]:hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50 " +
-	"dark:text-zinc-300 dark:ring-white/10 dark:hover:bg-white/5 dark:aria-[current=page]:bg-sky-600 " +
-	"dark:aria-[current=page]:text-white dark:aria-[current=page]:ring-sky-600"
+const pageItemClass = "inline-flex min-w-9 items-center justify-center gap-x-1 rounded-control px-3 py-1.5 text-sm font-medium " +
+	"text-neutral-700 ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 " +
+	"focus-visible:outline-primary-600 aria-[current=page]:bg-primary-600 aria-[current=page]:text-white aria-[current=page]:ring-primary-600 " +
+	"aria-[current=page]:hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50 " +
+	"dark:text-neutral-300 dark:ring-white/10 dark:hover:bg-white/5 dark:aria-[current=page]:bg-primary-600 " +
+	"dark:aria-[current=page]:text-white dark:aria-[current=page]:ring-primary-600"
 
-const pageGapClass = "inline-flex min-w-9 items-center justify-center px-1 py-1.5 text-sm text-zinc-500 dark:text-zinc-400"
+const pageGapClass = "inline-flex min-w-9 items-center justify-center px-1 py-1.5 text-sm text-neutral-500 dark:text-neutral-400"
 
 // pageWindow returns the page numbers Pagination shows, with 0 for an ellipsis. Up to seven
 // pages are all shown. More are cut to seven slots, so the control keeps its width as you page:

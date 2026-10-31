@@ -75,7 +75,7 @@ func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement 
 // drag data, so DropInto works for both without change.
 func DropZone(action string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).
-		Class(Classes("data-over:outline-2 data-over:outline-dashed data-over:outline-sky-500 data-over:bg-sky-500/10")).
+		Class(Classes("data-over:outline-2 data-over:outline-dashed data-over:outline-primary-500 data-over:bg-primary-500/10")).
 		Attrs(
 			htemel.Attr("data-ui-dropzone", ""),
 			datastar.On("dragenter", "evt.preventDefault(); el.toggleAttribute('data-over', true)"),
@@ -103,8 +103,8 @@ func PickUp(signal, payload string) htemel.Attribute {
 func MoveHere(signal, label, action string) *html.ButtonElement {
 	return html.Button().
 		Type(html.ButtonTypeButton).
-		Class(Classes("w-full cursor-pointer rounded-md border border-dashed border-sky-500 px-3 py-2 text-sm font-medium text-sky-700",
-			"hover:bg-sky-500/10 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-sky-400")).
+		Class(Classes("w-full cursor-pointer rounded-control border border-dashed border-primary-500 px-3 py-2 text-sm font-medium text-primary-700",
+			"hover:bg-primary-500/10 focus-visible:outline-2 focus-visible:outline-primary-600 dark:text-primary-400")).
 		Style(hiddenUntilDatastar).
 		Attrs(
 			datastar.Show("$"+signal+" !== ''"),

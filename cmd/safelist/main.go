@@ -1,8 +1,11 @@
-// Command safelist prints the Tailwind classes the ui components use, one per line, rewritten
-// for a theme. Tailwind generates only the classes it finds in your sources, and the ui sources
-// live in the Go module cache, so add this list to your Tailwind sources instead:
+// Command safelist prints the Tailwind classes the ui components use, one per line. Tailwind
+// generates only the classes it finds in your sources, and the ui sources live in the Go module
+// cache, so add this list to your Tailwind sources instead:
 //
-//	go run github.com/go-htemel/ui/cmd/safelist -primary indigo -radius lg > tailwind.safelist.txt
+//	go run github.com/go-htemel/ui/cmd/safelist > tailwind.safelist.txt
+//
+// The classes use design tokens (bg-primary-600, rounded-control, ...), so one list serves every
+// theme; see cmd/themecss for the tokens.
 //
 // It reads the ui sources from -dir; by default from the current directory when that is the ui
 // module, and otherwise from the ui module your go.mod requires.
@@ -16,16 +19,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-htemel/ui"
 	"github.com/go-htemel/ui/internal/safelist"
 )
 
 func main() {
-	t := ui.DefaultTheme
 	dir := flag.String("dir", "", "directory of the ui package sources (default: detected)")
-	flag.StringVar(&t.Primary, "primary", t.Primary, "primary Tailwind color family")
-	flag.StringVar(&t.Radius, "radius", t.Radius, "Tailwind radius suffix (none, sm, md, lg, xl, 2xl, full)")
-	flag.StringVar(&t.Font, "font", t.Font, "font-family class")
 	flag.Parse()
 
 	if *dir == "" {
@@ -35,7 +33,7 @@ func main() {
 		}
 		*dir = d
 	}
-	classes, err := safelist.Classes(os.DirFS(*dir), t)
+	classes, err := safelist.Classes(os.DirFS(*dir))
 	if err != nil {
 		fail(err)
 	}

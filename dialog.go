@@ -51,10 +51,10 @@ func Dialog(signal, title string, children ...htemel.FlowContent) *html.DialogEl
 	titleID := domID(signal) + "-title"
 	panel := html.Div(
 		html.Div(
-			html.H2().Id(titleID).Class(Classes("text-base font-semibold text-zinc-900 dark:text-white")).Text(title),
+			html.H2().Id(titleID).Class(Classes("text-base font-semibold text-neutral-900 dark:text-white")).Text(title),
 			closeButton("Close", Close(signal)),
 		).Class(Classes("flex items-start justify-between gap-x-4")),
-		html.Div(children...).Id(domID(signal)+"-body").Class(Classes("mt-3 text-sm text-zinc-600 dark:text-zinc-300")),
+		html.Div(children...).Id(domID(signal)+"-body").Class(Classes("mt-3 text-sm text-neutral-600 dark:text-neutral-300")),
 	).Class("p-6").
 		// The panel fills the dialog, so a click outside it is a click on the backdrop.
 		Attrs(datastar.OnClick(dialogBackdropClick(signal), datastar.Outside()))
@@ -62,8 +62,8 @@ func Dialog(signal, title string, children ...htemel.FlowContent) *html.DialogEl
 		Id(domID(signal)+"-dialog").
 		Aria("labelledby", titleID).
 		Closedby(html.ClosedbyAny).
-		Class(Classes("m-auto w-[calc(100%-2rem)] max-w-lg rounded-md bg-white p-0 shadow-xl ring-1 ring-zinc-950/5",
-			"backdrop:bg-zinc-950/50 dark:bg-zinc-900 dark:ring-white/10 dark:backdrop:bg-zinc-950/70")).
+		Class(Classes("m-auto w-[calc(100%-2rem)] max-w-lg rounded-surface bg-white p-0 shadow-xl ring-1 ring-neutral-950/5",
+			"backdrop:bg-neutral-950/50 dark:bg-neutral-900 dark:ring-white/10 dark:backdrop:bg-neutral-950/70")).
 		Attrs(
 			initially(signal, "false"),
 			datastar.Effect(dialogEffect(signal)),

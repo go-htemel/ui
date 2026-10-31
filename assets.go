@@ -24,29 +24,46 @@ var uiJSHash = func() string {
 	return hex.EncodeToString(sum[:])[:12]
 }()
 
-// Assets returns a handler that serves the embedded script as /ui.js. Mount it under a prefix
-// with http.StripPrefix (or chi's Mount), and load it with ScriptTag using the same prefix:
+// themeCSSHash is a short content hash of the design tokens, used as the ETag of /ui.css.
+var themeCSSHash = func() string {
+	sum := sha256.Sum256([]byte(themeCSS))
+	return hex.EncodeToString(sum[:])[:12]
+}()
+
+// Assets returns a handler that serves the embedded script as /ui.js and the default design
+// tokens (ThemeCSS) as /ui.css. Mount it under a prefix with http.StripPrefix (or chi's Mount),
+// and load the script with ScriptTag using the same prefix:
 //
 //	mux.Handle("/assets/", http.StripPrefix("/assets", ui.Assets()))
 //
-// The response is cacheable for a year and immutable: ScriptTag adds a ?v=<hash> query, so a new
-// version of the library gets a new URL. A request with a matching If-None-Match gets a 304.
+// /ui.js is cacheable for a year and immutable: ScriptTag adds a ?v=<hash> query, so a new
+// version of the library gets a new URL. /ui.css is Tailwind source (an @theme block), not a
+// stylesheet a browser applies on its own; it is served for tooling and the Tailwind browser
+// build, so it is revalidated on every use (no-cache). A request with a matching If-None-Match
+// gets a 304.
 func Assets() http.Handler {
-	etag := `"` + uiJSHash + `"`
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /ui.js", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /ui.js", serveAsset("ui.js", "text/javascript; charset=utf-8",
+		"public, max-age=31536000, immutable", uiJSHash, uiJS))
+	mux.Handle("GET /ui.css", serveAsset("ui.css", "text/css; charset=utf-8",
+		"public, no-cache", themeCSSHash, []byte(themeCSS)))
+	return mux
+}
+
+func serveAsset(name, contentType, cacheControl, hash string, body []byte) http.Handler {
+	etag := `"` + hash + `"`
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
-		h.Set("Content-Type", "text/javascript; charset=utf-8")
-		h.Set("Cache-Control", "public, max-age=31536000, immutable")
+		h.Set("Content-Type", contentType)
+		h.Set("Cache-Control", cacheControl)
 		h.Set("ETag", etag)
 		h.Set("X-Content-Type-Options", "nosniff")
 		if matchETag(r.Header.Get("If-None-Match"), etag) {
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
-		http.ServeContent(w, r, "ui.js", time.Time{}, bytes.NewReader(uiJS))
+		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(body))
 	})
-	return mux
 }
 
 func matchETag(header, etag string) bool {

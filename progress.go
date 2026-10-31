@@ -29,11 +29,11 @@ func ProgressLabel(label string) ProgressOption { return func(c *progressConfig)
 var progressHeights = map[Size]string{Xs: "h-1", Sm: "h-1.5", Md: "h-2.5", Lg: "h-4", Xl: "h-6"}
 
 var progressTones = map[Tone]string{
-	Neutral: "bg-sky-600 dark:bg-sky-500",
-	Info:    "bg-blue-500",
-	Success: "bg-green-500",
-	Warning: "bg-amber-500",
-	Danger:  "bg-red-500",
+	Neutral: "bg-primary-600 dark:bg-primary-500",
+	Info:    "bg-info-500",
+	Success: "bg-success-500",
+	Warning: "bg-warning-500",
+	Danger:  "bg-danger-500",
 }
 
 func progressBar(max int, opts []ProgressOption) (*html.DivElement, *html.DivElement) {
@@ -48,7 +48,7 @@ func progressBar(max int, opts []ProgressOption) (*html.DivElement, *html.DivEle
 		Role("progressbar").
 		Aria("valuemin", "0").
 		Aria("valuemax", strconv.Itoa(max)).
-		Class(Classes("w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-white/10", pick(progressHeights, c.size, Md)))
+		Class(Classes("w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-white/10", pick(progressHeights, c.size, Md)))
 	if c.label != "" {
 		track.Aria("label", c.label)
 	}
@@ -103,7 +103,7 @@ func Skeleton(lines int) *html.DivElement {
 		if i == lines-1 && lines > 1 {
 			w = "w-2/3"
 		}
-		d.Children(html.Div().Aria("hidden", "true").Class(Classes("h-3 rounded-full bg-zinc-200 dark:bg-white/10", w)))
+		d.Children(html.Div().Aria("hidden", "true").Class(Classes("h-3 rounded-full bg-neutral-200 dark:bg-white/10", w)))
 	}
 	return d
 }
@@ -132,20 +132,20 @@ func Steps(current int, labels ...string) *html.NavElement {
 		case n < current:
 			state = " (completed)"
 			dot = html.Span(IconCheck().Class("size-4")).
-				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white dark:bg-sky-500"))
+				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white dark:bg-primary-500"))
 		case n == current:
 			state = " (current)"
 			dot = html.Span().Text(strconv.Itoa(n)).
-				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-sky-600 ring-2 ring-sky-600",
-					"dark:text-sky-400 dark:ring-sky-500"))
+				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-primary-600 ring-2 ring-primary-600",
+					"dark:text-primary-400 dark:ring-primary-500"))
 		default:
 			dot = html.Span().Text(strconv.Itoa(n)).
-				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-medium text-zinc-500 ring-1 ring-zinc-300",
-					"dark:text-zinc-400 dark:ring-white/20"))
+				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-medium text-neutral-500 ring-1 ring-neutral-300",
+					"dark:text-neutral-400 dark:ring-white/20"))
 		}
-		text := "text-zinc-500 dark:text-zinc-400"
+		text := "text-neutral-500 dark:text-neutral-400"
 		if n <= current {
-			text = "text-zinc-900 dark:text-white"
+			text = "text-neutral-900 dark:text-white"
 		}
 		li := html.Li(
 			dot,
@@ -155,9 +155,9 @@ func Steps(current int, labels ...string) *html.NavElement {
 			li.Aria("current", "step")
 		}
 		if n > 1 {
-			line := "bg-zinc-200 dark:bg-white/10"
+			line := "bg-neutral-200 dark:bg-white/10"
 			if n <= current {
-				line = "bg-sky-600 dark:bg-sky-500"
+				line = "bg-primary-600 dark:bg-primary-500"
 			}
 			list.Children(html.Li().Aria("hidden", "true").Class(Classes("mx-3 h-px min-w-6 flex-1", line)))
 		}

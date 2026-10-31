@@ -6,23 +6,23 @@ import (
 	"github.com/go-htemel/htemel/html"
 )
 
-const buttonBase = "inline-flex items-center justify-center gap-x-1.5 rounded-md font-semibold whitespace-nowrap " +
+const buttonBase = "inline-flex items-center justify-center gap-x-1.5 rounded-control font-semibold whitespace-nowrap " +
 	"cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 " +
 	"disabled:cursor-not-allowed disabled:opacity-50"
 
 var buttonVariants = map[Variant]string{
-	Primary: "bg-sky-600 text-white shadow-xs hover:bg-sky-700 focus-visible:outline-sky-600 " +
-		"dark:bg-sky-600 dark:hover:bg-sky-500 dark:focus-visible:outline-sky-500",
-	Secondary: "bg-white text-zinc-900 shadow-xs ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 focus-visible:outline-zinc-400 " +
+	Primary: "bg-primary-600 text-white shadow-xs hover:bg-primary-700 focus-visible:outline-primary-600 " +
+		"dark:bg-primary-600 dark:hover:bg-primary-500 dark:focus-visible:outline-primary-500",
+	Secondary: "bg-white text-neutral-900 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 focus-visible:outline-neutral-400 " +
 		"dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/10 dark:hover:bg-white/20",
-	Outline: "ring-1 ring-inset ring-sky-600 text-sky-700 hover:bg-sky-50 focus-visible:outline-sky-600 " +
-		"dark:ring-sky-500 dark:text-sky-400 dark:hover:bg-sky-500/10",
-	Ghost: "text-zinc-700 hover:bg-zinc-100 focus-visible:outline-zinc-400 " +
-		"dark:text-zinc-300 dark:hover:bg-white/10",
-	Danger: "bg-red-600 text-white shadow-xs hover:bg-red-500 focus-visible:outline-red-600 " +
-		"dark:bg-red-500 dark:hover:bg-red-400 dark:focus-visible:outline-red-500",
-	Link: "text-sky-600 underline-offset-4 hover:text-sky-500 hover:underline focus-visible:outline-sky-600 " +
-		"dark:text-sky-400 dark:hover:text-sky-300",
+	Outline: "ring-1 ring-inset ring-primary-600 text-primary-700 hover:bg-primary-50 focus-visible:outline-primary-600 " +
+		"dark:ring-primary-500 dark:text-primary-400 dark:hover:bg-primary-500/10",
+	Ghost: "text-neutral-700 hover:bg-neutral-100 focus-visible:outline-neutral-400 " +
+		"dark:text-neutral-300 dark:hover:bg-white/10",
+	Danger: "bg-danger-600 text-white shadow-xs hover:bg-danger-500 focus-visible:outline-danger-600 " +
+		"dark:bg-danger-500 dark:hover:bg-danger-400 dark:focus-visible:outline-danger-500",
+	Link: "text-primary-600 underline-offset-4 hover:text-primary-500 hover:underline focus-visible:outline-primary-600 " +
+		"dark:text-primary-400 dark:hover:text-primary-300",
 }
 
 var buttonSizes = map[Size]string{
@@ -94,8 +94,8 @@ func IconButton(v Variant, icon htemel.PhrasingContent, label string, opts ...Op
 // Outline buttons; the group squares their inner corners.
 func ButtonGroup(buttons ...*html.ButtonElement) *html.SpanElement {
 	g := html.Span().
-		Class(Classes("isolate inline-flex -space-x-px rounded-md shadow-xs",
-			"*:rounded-none *:shadow-none *:focus-visible:z-10 *:first:rounded-l-md *:last:rounded-r-md")).
+		Class(Classes("isolate inline-flex -space-x-px rounded-control shadow-xs",
+			"*:rounded-none *:shadow-none *:focus-visible:z-10 *:first:rounded-l-control *:last:rounded-r-control")).
 		Role("group")
 	for _, b := range buttons {
 		g.Children(b)
