@@ -10,10 +10,11 @@ import (
 //go:embed assets/ui.css
 var themeCSS string
 
-// ThemeCSS returns the default design tokens as a Tailwind v4 stylesheet: one @theme block that
+// ThemeCSS returns the default design tokens as a Tailwind v4 stylesheet: an @theme block that
 // defines the color families the components use (primary, neutral, success, warning, danger,
 // info, each a 50-950 scale: each an alias of a Tailwind palette: primary is indigo) and the radius tokens
-// (--radius-control, --radius-surface). Write it into your Tailwind sources, import it after
+// (--radius-control, --radius-surface), then the class-based dark variant and the color-scheme
+// rules that go with it (see ColorSchemeBootstrap; delete both for OS-only dark mode). Write it into your Tailwind sources, import it after
 // tailwindcss, and override the variables in your own CSS:
 //
 //	go run github.com/go-htemel/ui/cmd/themecss > assets/ui.theme.css

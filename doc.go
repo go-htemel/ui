@@ -44,6 +44,13 @@
 // are the touch fallback), and it needs no inline script, so a strict Content-Security-Policy
 // allows it.
 //
+// # Light and dark mode
+//
+// The dark: variants follow a .dark class on <html> (see ThemeCSS). ColorSchemeBootstrap, an inline
+// script for <head> before the stylesheet, applies the visitor's stored choice before the first
+// paint, and ColorSchemeToggle is the System / Light / Dark control that changes it. Apps that
+// want prefers-color-scheme only drop the @custom-variant line from the tokens.
+//
 // # Accessibility
 //
 // Dialog, Dropdown, Tabs, Disclosure, Accordion, Draggable and Toast carry their ARIA roles and

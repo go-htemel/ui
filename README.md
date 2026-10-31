@@ -100,7 +100,7 @@ go run github.com/go-htemel/ui/cmd/safelist > assets/tailwind.safelist.txt
 ```css
 /* assets/app.css */
 @import "tailwindcss";
-@import "./ui.theme.css";              /* default tokens: one @theme block */
+@import "./ui.theme.css";              /* default tokens: @theme, the dark variant, color-scheme */
 @source "./tailwind.safelist.txt";     /* the classes the components use */
 
 @theme {
@@ -116,9 +116,10 @@ Rerun both `go run` commands after upgrading the module (they read the version y
 requires) and commit the two files. The safelist is one static list for every theme: class names
 never change, only the values behind the tokens. `ui.ThemeCSS()` returns the same tokens as a
 string, and `ui.Assets()` serves them at `/ui.css`, but that file is Tailwind source (an `@theme`
-block), not a stylesheet browsers apply on their own. The showcase compiles its CSS in the browser
+block, the dark variant and a base layer), not a stylesheet browsers apply on their own. The showcase compiles its CSS in the browser
 with the Tailwind browser build and puts `ui.ThemeCSS()` in its `<style type="text/tailwindcss">`
-block; real applications should build their CSS with the Tailwind CLI.
+block; real applications should build their CSS with the Tailwind CLI and add
+`ui.ColorSchemeBootstrap()` to `<head>` (see [Light and dark mode](#light-and-dark-mode)).
 
 ## Theming
 
@@ -234,10 +235,59 @@ runtime, should use literal color values.
 ### Dark mode
 
 Components carry `dark:` variants that pick other steps of the same tokens (`text-neutral-900
-dark:text-neutral-100`), so one override covers both modes. Tailwind's `dark:` follows
-`prefers-color-scheme` by default; for a class toggle add
-`@custom-variant dark (&:where(.dark, .dark *));` to `app.css`. To use different palettes per
-mode, override the tokens inside that scope (`.dark { --color-primary-500: ...; }`).
+dark:text-neutral-100`), so one override covers both modes. Which mode applies, and how visitors
+choose it, is described in [Light and dark mode](#light-and-dark-mode). To use different palettes
+per mode, override the tokens inside the dark scope (`.dark { --color-primary-500: ...; }`).
+
+## Light and dark mode
+
+Dark mode follows a `.dark` class on `<html>`, not the operating-system setting alone. `ui.css`
+declares `@custom-variant dark (&:where(.dark, .dark *));`, so every `dark:` utility keys off that
+class, and a small `@layer base` block sets `color-scheme` from it (`html.dark { color-scheme:
+dark }`, `html:not(.dark) { color-scheme: light }`) so native controls, scrollbars and the Select
+arrow match the page.
+
+Three pieces make it work:
+
+1. **The bootstrap.** `ui.ColorSchemeBootstrap()` is an inline `<script>` that reads
+   `localStorage["color-scheme"]` (`ui.ColorSchemeKey`: `"light"`, `"dark"`, or absent for
+   "system") and toggles the class: dark when the choice is `dark`, or when it is not `light` and
+   `prefers-color-scheme: dark` matches. It also listens for OS changes, so a page in system mode
+   follows the OS live. Put it in `<head>` **before** your stylesheet or the Tailwind script and
+   render it on every page. It is the only inline script in the library, deliberately: a deferred
+   or external script would run after the first paint and dark-mode visitors would see a flash of
+   the light page.
+
+   ```go
+   html.Head(
+       ui.ColorSchemeBootstrap(),
+       html.Link().Rel("stylesheet").Href("/static/app.css"),
+       ui.ScriptTag("/assets"),
+   )
+   ```
+
+2. **Content-Security-Policy, if you have one.** A policy without `'unsafe-inline'` blocks
+   the script. Pass a per-response nonce, `ui.ColorSchemeBootstrap(ui.WithNonce(nonce))`, and send
+   `script-src 'self' 'nonce-<nonce>'`; or allow its hash (the text is
+   `ui.ColorSchemeBootstrapSource()`) as `'sha256-...'`.
+
+3. **The toggle.** `ui.ColorSchemeToggle()` is a System / Light / Dark segmented control
+   (`ui.WithLabels()` adds visible words to the icons). Each button sets the class, stores the
+   choice, and `aria-pressed` follows the `colorScheme` signal, which is initialised from the
+   stored choice. System removes the stored choice and re-derives the class from the OS. Place it
+   anywhere (the showcase puts it at the bottom of its sidebar); several toggles on one page stay
+   in step. It needs Datastar and the bootstrap.
+
+```go
+html.Div(ui.ColorSchemeToggle(ui.WithLabels())).Class("p-4")
+```
+
+**OS-only apps.** If you do not want a toggle and are happy with `prefers-color-scheme`, delete
+the `@custom-variant dark` line and the `@layer base` color-scheme block from your copy of
+`ui.css` (`go run github.com/go-htemel/ui/cmd/themecss > assets/ui.theme.css`, then edit); `dark:`
+reverts to Tailwind's media-query default and neither the bootstrap nor the toggle is needed.
+The reverse is the trap: with the class variant kept and no bootstrap, the page is always light
+unless your own code sets `.dark`.
 
 ## Assets and progressive enhancement
 
@@ -322,11 +372,13 @@ Datastar with:
 
 `task a11y` builds the showcase, serves it on a free port and scans every page with
 [axe-core](https://github.com/dequelabs/axe-core) in Chromium (Playwright), in light and dark
-(`prefers-color-scheme`), at WCAG 2.1 A/AA. It also opens the interactive states first: the
+(the OS setting is emulated and picked up through the color scheme bootstrap; each scan also
+checks the `.dark` class and the painted background), at WCAG 2.1 A/AA. It also opens the interactive states first: the
 dialog, the drawer and the bottom sheet, the dropdown, a switched tab, an expanded disclosure
-and accordion, and the mobile navbar's drawer. The report groups violations by rule with impact, count, selectors and pages, and the
-task exits non-zero on any WCAG violation. Two behaviour checks run alongside and fail it
-too: no tab list overflows vertically (the scrollbar a tab's negative margin used to cause), and
+and accordion, the mobile navbar's drawer, and the color scheme toggle switched to the other scheme (then restored via System). The report groups violations by rule with impact, count, selectors and pages, and the
+task exits non-zero on any WCAG violation. Behaviour checks run alongside and fail it
+too: the stored scheme is applied before first paint (no flash: `.dark` is on `<html>` at
+`domcontentloaded` when the choice differs from the OS), no tab list overflows vertically (the scrollbar a tab's negative margin used to cause), and
 a Dialog's opacity really transitions when it opens and closes. Rules tagged only `best-practice` are listed
 separately and do not fail the run. The scan fails loudly, rather than passing, when Tailwind
 did not apply (the showcase loads Tailwind and Datastar from CDNs).
