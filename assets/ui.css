@@ -21,7 +21,7 @@
  * overriding --color-primary-600 in a scope would then have no effect.
  *
  * The aliases resolve where they are declared (on :root), so to retheme a scope override the
- * semantic token (--color-primary-600), not the palette color it points at (--color-sky-600).
+ * semantic token (--color-primary-600), not the palette color it points at (e.g. --color-sky-600).
  *
  * Generated utilities only reference the steps the components use, but every family defines the
  * full 50-950 scale so your own markup can use any step.
@@ -30,25 +30,35 @@
  *
  * Contrast: the defaults meet WCAG 2.1 AA in light and dark, and the module's contrast test
  * (go test -run Contrast) measures every pair the components use. Solids with white text use the
- * 700 step (bg-primary-700, hover 800; Danger 600, hover 700), links text-primary-700 in light.
- * Light hues -- sky (the default), cyan, amber, lime, yellow -- need that 700 step to reach 4.5:1
- * against white. The test guards these defaults only: if you alias other palettes, rerun it
- * against them (see the README, "Contrast").
+ * conventional steps: bg-primary-600, hover 700 in light; in dark, 700 with a lighter hover 600
+ * (Danger 600, hover 700 in light; 700, hover 600 in dark). Links are text-primary-600 in light,
+ * text-primary-400 in dark. The default primary is tuned so 600 clears 4.6:1 with white. Light
+ * hues -- sky, cyan, amber, lime, yellow -- do not: with a stock palette like those, retheme the
+ * solids to the 700 step (see the README, "Contrast"). The test guards these defaults only: if
+ * you alias other palettes, rerun it against them.
  */
 
 @theme {
-  /* primary (default: sky). Brand and interactive color: primary buttons, links, focus rings, selected states, drop targets. */
-  --color-primary-50: var(--color-sky-50);
-  --color-primary-100: var(--color-sky-100);
-  --color-primary-200: var(--color-sky-200);
-  --color-primary-300: var(--color-sky-300);
-  --color-primary-400: var(--color-sky-400);
-  --color-primary-500: var(--color-sky-500);
-  --color-primary-600: var(--color-sky-600);
-  --color-primary-700: var(--color-sky-700);
-  --color-primary-800: var(--color-sky-800);
-  --color-primary-900: var(--color-sky-900);
-  --color-primary-950: var(--color-sky-950);
+  /* primary (default: Emerald Sky, a tuned palette; literal OKLCH, not an alias). Brand and
+     interactive color: primary buttons, links, focus rings, selected states, drop targets.
+     Hue drifts from green (~150) at 50 to blue (~247) at 950; hue and chroma per step come from
+     the original Emerald Sky palette, lightness was solved for WCAG AA (cmd/palettetune):
+       600 white text >= 4.8:1 (solids; as link text it stays >= 4.5:1 on the neutral-50 page)
+       700 white text >= 6:1 (hover); 800 >= 8:1
+       500 white >= 3.1:1 (non-text; too light for 4.5:1 without collapsing into 600)
+       400 on neutral-900/950 >= 6:1, 300 >= 8:1 (dark-mode text); 50-200 under neutral-900 >= 12:1
+       consecutive steps >= 0.06 apart in OKLCH L (about 0.09 across 400-500-600). */
+  --color-primary-50: oklch(98.5% 0.009 150.7);
+  --color-primary-100: oklch(92.4% 0.041 151.8);
+  --color-primary-200: oklch(86.3% 0.071 156.0);
+  --color-primary-300: oklch(79.9% 0.096 160.4);
+  --color-primary-400: oklch(73.0% 0.138 164.9);
+  --color-primary-500: oklch(63.6% 0.114 174.6);
+  --color-primary-600: oklch(54.2% 0.092 186.2);
+  --color-primary-700: oklch(48.0% 0.070 200.3);
+  --color-primary-800: oklch(42.0% 0.053 215.7);
+  --color-primary-900: oklch(34.0% 0.044 226.5);
+  --color-primary-950: oklch(20.3% 0.037 247.1);
 
   /* neutral (default: zinc). Surfaces, text, borders, dividers and the page background. */
   --color-neutral-50: var(--color-zinc-50);

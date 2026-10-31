@@ -103,8 +103,8 @@ func PickUp(signal, payload string) htemel.Attribute {
 func MoveHere(signal, label, action string) *html.ButtonElement {
 	return html.Button().
 		Type(html.ButtonTypeButton).
-		Class(Classes("w-full cursor-pointer rounded-control border border-dashed border-primary-600 px-3 py-2 text-sm font-medium text-primary-700",
-			"hover:bg-primary-500/10 focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500 dark:text-primary-400")).
+		Class(Classes("w-full cursor-pointer rounded-control border border-dashed border-primary-600 px-3 py-2 text-sm font-medium text-primary-600",
+			"hover:bg-primary-500/10 hover:text-primary-700 focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 dark:text-primary-400 dark:hover:text-primary-400")).
 		Style(hiddenUntilDatastar).
 		Attrs(
 			datastar.Show("$"+signal+" !== ''"),

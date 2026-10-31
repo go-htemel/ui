@@ -19,8 +19,8 @@ func Tab(key, label string, panel ...htemel.FlowContent) TabItem {
 }
 
 const (
-	tabBase     = "cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500"
-	tabActive   = "border-primary-700 text-primary-700 dark:border-primary-400 dark:text-primary-400"
+	tabBase     = "cursor-pointer border-b-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500"
+	tabActive   = "border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400"
 	tabInactive = "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:text-neutral-400 dark:hover:border-white/20 dark:hover:text-neutral-200"
 )
 
@@ -80,7 +80,7 @@ func Tabs(signal string, tabs ...TabItem) *html.DivElement {
 			Tabindex(0).
 			// data-show reveals the panel; @starting-style (starting:) fades it in from there.
 			Class(Classes("pt-4 transition-opacity duration-200 ease-out starting:opacity-0 motion-reduce:transition-none",
-				"focus-visible:outline-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500")).
+				"focus-visible:outline-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500")).
 			Attrs(datastar.Show(selected))
 		if i > 0 {
 			panel.Style(hiddenUntilDatastar)

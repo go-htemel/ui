@@ -31,9 +31,9 @@ animate-pulse
 animate-spin
 antialiased
 appearance-none
-aria-[current=page]:bg-primary-700
+aria-[current=page]:bg-primary-600
 aria-[current=page]:hover:bg-primary-700
-aria-[current=page]:ring-primary-700
+aria-[current=page]:ring-primary-600
 aria-[current=page]:text-white
 aria-invalid:focus:outline-danger-600
 aria-invalid:outline-danger-500
@@ -53,7 +53,6 @@ bg-neutral-50
 bg-neutral-600
 bg-neutral-900
 bg-primary-600
-bg-primary-700
 bg-success-50
 bg-success-700
 bg-warning-50
@@ -72,7 +71,6 @@ border-neutral-100
 border-neutral-200
 border-neutral-500
 border-primary-600
-border-primary-700
 border-r
 border-separate
 border-spacing-0
@@ -91,6 +89,7 @@ dark:*:bg-neutral-800
 dark:*:even:bg-white/5
 dark:accent-primary-500
 dark:aria-[current=page]:bg-primary-700
+dark:aria-[current=page]:hover:bg-primary-600
 dark:aria-[current=page]:ring-primary-700
 dark:aria-[current=page]:text-white
 dark:aria-invalid:outline-danger-400
@@ -107,6 +106,7 @@ dark:bg-neutral-800
 dark:bg-neutral-900
 dark:bg-neutral-950
 dark:bg-primary-500
+dark:bg-primary-700
 dark:bg-success-500
 dark:bg-success-500/10
 dark:bg-warning-400/10
@@ -128,14 +128,16 @@ dark:focus-visible:outline-primary-500
 dark:focus:outline-primary-500
 dark:has-checked:bg-primary-500
 dark:has-focus-visible:outline-primary-500
-dark:hover:bg-danger-800
+dark:hover:bg-danger-600
 dark:hover:bg-primary-500/10
+dark:hover:bg-primary-600
 dark:hover:bg-white/10
 dark:hover:bg-white/20
 dark:hover:bg-white/5
 dark:hover:border-white/20
 dark:hover:text-neutral-200
 dark:hover:text-primary-300
+dark:hover:text-primary-400
 dark:hover:text-white
 dark:outline-white/35
 dark:placeholder:text-neutral-400
@@ -190,11 +192,11 @@ focus-visible:outline-danger-600
 focus-visible:outline-neutral-500
 focus-visible:outline-none
 focus-visible:outline-offset-2
-focus-visible:outline-primary-700
+focus-visible:outline-primary-600
 focus:-outline-offset-2
 focus:outline-2
 focus:outline-none
-focus:outline-primary-700
+focus:outline-primary-600
 font-medium
 font-mono
 font-sans
@@ -238,7 +240,7 @@ has-[dialog:modal]:overflow-hidden
 has-checked:bg-primary-600
 has-focus-visible:outline-2
 has-focus-visible:outline-offset-2
-has-focus-visible:outline-primary-700
+has-focus-visible:outline-primary-600
 hidden
 hover:bg-black/5
 hover:bg-danger-700
@@ -246,11 +248,11 @@ hover:bg-neutral-100
 hover:bg-neutral-50
 hover:bg-primary-50
 hover:bg-primary-500/10
-hover:bg-primary-800
+hover:bg-primary-700
 hover:border-neutral-300
 hover:text-neutral-700
 hover:text-neutral-900
-hover:text-primary-800
+hover:text-primary-700
 hover:underline
 inline-block
 inline-flex
@@ -367,7 +369,7 @@ ring-neutral-300
 ring-neutral-500/20
 ring-neutral-900/5
 ring-neutral-950/5
-ring-primary-700
+ring-primary-600
 ring-success-600/20
 ring-warning-600/20
 ring-white
@@ -435,7 +437,7 @@ text-neutral-500
 text-neutral-600
 text-neutral-700
 text-neutral-900
-text-primary-700
+text-primary-600
 text-sm
 text-sm/6
 text-success-700

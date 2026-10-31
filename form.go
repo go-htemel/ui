@@ -23,7 +23,7 @@ type CompositeControl interface {
 }
 
 const controlBase = "block w-full rounded-control bg-white text-base text-neutral-900 outline-1 -outline-offset-1 outline-neutral-500 " +
-	"placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-2 focus:outline-primary-700 sm:text-sm/6 " +
+	"placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-2 focus:outline-primary-600 sm:text-sm/6 " +
 	"disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500 " +
 	"aria-invalid:outline-danger-500 aria-invalid:focus:outline-danger-600 " +
 	"dark:bg-white/5 dark:text-white dark:outline-white/35 dark:placeholder:text-neutral-400 dark:focus:outline-primary-500 " +
@@ -116,7 +116,7 @@ func Field(id, label string, control FormControl, opts ...FieldOption) *html.Div
 const choiceLabel = "inline-flex cursor-pointer items-center gap-x-3 text-sm/6 text-neutral-900 dark:text-white"
 
 const choiceInput = "size-4 shrink-0 cursor-pointer accent-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 " +
-	"focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500 disabled:cursor-not-allowed dark:accent-primary-500"
+	"focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500 disabled:cursor-not-allowed dark:accent-primary-500"
 
 // Checkbox returns a checkbox with its label, <label><input type="checkbox">label</label>. attrs
 // go on the <input>: Checkbox("Remember me", datastar.Bind("remember")).
@@ -158,6 +158,6 @@ func Switch(label string, attrs ...htemel.Attribute) *html.LabelElement {
 				"transition-transform duration-200 ease-out group-has-checked:translate-x-5 motion-reduce:transition-none")),
 	).Class(Classes("group relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-neutral-200 p-0.5",
 		"transition-colors duration-150 has-checked:bg-primary-600 has-focus-visible:outline-2 has-focus-visible:outline-offset-2",
-		"has-focus-visible:outline-primary-700 dark:has-focus-visible:outline-primary-500 dark:bg-white/10 dark:has-checked:bg-primary-500"))
+		"has-focus-visible:outline-primary-600 dark:has-focus-visible:outline-primary-500 dark:bg-white/10 dark:has-checked:bg-primary-500"))
 	return html.Label(track).Class(Classes(choiceLabel)).Text(label)
 }

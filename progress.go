@@ -142,11 +142,11 @@ func StepsLabel(label string, current int, labels ...string) *html.NavElement {
 		case n < current:
 			state = " (completed)"
 			dot = html.Span(IconCheck().Class("size-4")).
-				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-700 text-white"))
+				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white"))
 		case n == current:
 			state = " (current)"
 			dot = html.Span().Text(strconv.Itoa(n)).
-				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-primary-700 ring-2 ring-primary-700",
+				Class(Classes("flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-primary-600 ring-2 ring-primary-600",
 					"dark:text-primary-400 dark:ring-primary-500"))
 		default:
 			dot = html.Span().Text(strconv.Itoa(n)).
@@ -167,7 +167,7 @@ func StepsLabel(label string, current int, labels ...string) *html.NavElement {
 		if n > 1 {
 			line := "bg-neutral-200 dark:bg-white/10"
 			if n <= current {
-				line = "bg-primary-700 dark:bg-primary-500"
+				line = "bg-primary-600 dark:bg-primary-500"
 			}
 			list.Children(html.Li().Aria("hidden", "true").Class(Classes("mx-3 h-px min-w-6 flex-1", line)))
 		}

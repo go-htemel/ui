@@ -15,7 +15,8 @@ import (
 
 // This file measures the WCAG 2.x contrast of the shipped design tokens. The matrix below lists
 // the foreground/background class pairs the components use; the colors are resolved through
-// ui.ThemeCSS() (primary-600 -> sky-600 -> OKLCH -> sRGB), so the matrix follows the defaults.
+// ui.ThemeCSS() (neutral-500 -> zinc-500 -> OKLCH -> sRGB; primary is literal OKLCH), so the matrix follows the
+// defaults.
 //
 // Every row names the source line it was read from. TestContrastMatrixInSync checks that those
 // lines still contain the classes and that the goldens still render them, so the matrix cannot
@@ -97,24 +98,25 @@ func matrix() []spec {
 	const dis = "disabled:opacity-50" // buttonBase, button.go:10
 
 	// Button (button.go:14-25 buttonVariants). Text is text-sm/text-xs semibold: normal text.
-	// Solid surfaces with white text use the 700 step (hover 800) in both schemes: light hues such
-	// as sky only reach 4.5:1 against white there.
-	add("Button/Primary", "default", "button.go:14", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
-	add("Button/Primary", "hover", "button.go:14", text, on("text-white", "hover:bg-primary-800"), on("text-white", "hover:bg-primary-800"))
-	add("Button/Primary", "focus-visible outline", "button.go:14", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
-	add("Button/Primary", "focus-visible outline on a card", "button.go:14", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over("dark:bg-neutral-800"))
-	disabled("Button/Primary", "disabled", "button.go:14", on("text-white", "bg-primary-700").grp(0.5).with(dis), on("text-white", "bg-primary-700").grp(0.5).with(dis))
+	// Solids with white text use the conventional steps: 600, hover 700 in light. Dark mode starts
+	// one step darker (700) so the hover can go lighter (600): the Emerald Sky 500 is only 3.15:1
+	// with white, so 600 -> 500 would miss 4.5:1.
+	add("Button/Primary", "default", "button.go:14", text, on("text-white", "bg-primary-600"), on("text-white", "dark:bg-primary-700"))
+	add("Button/Primary", "hover", "button.go:14", text, on("text-white", "hover:bg-primary-700"), on("text-white", "dark:hover:bg-primary-600"))
+	add("Button/Primary", "focus-visible outline", "button.go:14", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
+	add("Button/Primary", "focus-visible outline on a card", "button.go:14", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over("dark:bg-neutral-800"))
+	disabled("Button/Primary", "disabled", "button.go:14", on("text-white", "bg-primary-600").grp(0.5).with(dis), on("text-white", "dark:bg-primary-700").grp(0.5).with(dis))
 
 	add("Button/Secondary", "default", "button.go:16", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-white/10"))
 	add("Button/Secondary", "hover", "button.go:16", text, on("text-neutral-900", "hover:bg-neutral-50"), on("dark:text-white", "dark:hover:bg-white/20"))
 	add("Button/Secondary", "focus-visible outline", "button.go:16", nonText, on("focus-visible:outline-neutral-500", ""), on("focus-visible:outline-neutral-500", ""))
 	disabled("Button/Secondary", "disabled", "button.go:16", on("text-neutral-900", "bg-white").grp(0.5).with(dis), on("dark:text-white", "dark:bg-white/10").grp(0.5).with(dis))
 
-	add("Button/Outline", "default", "button.go:18", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
-	add("Button/Outline", "hover", "button.go:18", text, on("text-primary-700", "hover:bg-primary-50"), on("dark:text-primary-400", "dark:hover:bg-primary-500/10"))
-	add("Button/Outline", "ring (boundary)", "button.go:18", nonText, on("ring-primary-700", ""), on("dark:ring-primary-500", ""))
-	add("Button/Outline", "focus-visible outline", "button.go:18", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
-	disabled("Button/Outline", "disabled", "button.go:18", on("text-primary-700", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
+	add("Button/Outline", "default", "button.go:18", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
+	add("Button/Outline", "hover", "button.go:18", text, on("hover:text-primary-700", "hover:bg-primary-50"), on("dark:hover:text-primary-400", "dark:hover:bg-primary-500/10"))
+	add("Button/Outline", "ring (boundary)", "button.go:18", nonText, on("ring-primary-600", ""), on("dark:ring-primary-500", ""))
+	add("Button/Outline", "focus-visible outline", "button.go:18", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
+	disabled("Button/Outline", "disabled", "button.go:18", on("text-primary-600", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
 
 	add("Button/Ghost", "default", "button.go:20", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
 	add("Button/Ghost", "hover", "button.go:20", text, on("text-neutral-700", "hover:bg-neutral-100"), on("dark:text-neutral-300", "dark:hover:bg-white/10"))
@@ -122,14 +124,14 @@ func matrix() []spec {
 	disabled("Button/Ghost", "disabled", "button.go:20", on("text-neutral-700", "").grp(0.5).with(dis), on("dark:text-neutral-300", "").grp(0.5).with(dis))
 
 	add("Button/Danger", "default", "button.go:22", text, on("text-white", "bg-danger-600"), on("text-white", "dark:bg-danger-700"))
-	add("Button/Danger", "hover", "button.go:22", text, on("text-white", "hover:bg-danger-700"), on("text-white", "dark:hover:bg-danger-800"))
+	add("Button/Danger", "hover", "button.go:22", text, on("text-white", "hover:bg-danger-700"), on("text-white", "dark:hover:bg-danger-600"))
 	add("Button/Danger", "focus-visible outline", "button.go:22", nonText, on("focus-visible:outline-danger-600", ""), on("dark:focus-visible:outline-danger-500", ""))
 	disabled("Button/Danger", "disabled", "button.go:22", on("text-white", "bg-danger-600").grp(0.5).with(dis), on("text-white", "dark:bg-danger-700").grp(0.5).with(dis))
 
-	add("Button/Link", "default", "button.go:24", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
-	add("Button/Link", "hover", "button.go:24", text, on("hover:text-primary-800", ""), on("dark:hover:text-primary-300", ""))
-	add("Button/Link", "focus-visible outline", "button.go:24", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
-	disabled("Button/Link", "disabled", "button.go:24", on("text-primary-700", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
+	add("Button/Link", "default", "button.go:24", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
+	add("Button/Link", "hover", "button.go:24", text, on("hover:text-primary-700", ""), on("dark:hover:text-primary-300", ""))
+	add("Button/Link", "focus-visible outline", "button.go:24", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
+	disabled("Button/Link", "disabled", "button.go:24", on("text-primary-600", "").grp(0.5).with(dis), on("dark:text-primary-400", "").grp(0.5).with(dis))
 
 	// Badge, Alert (title and body) and Toast per tone.
 	for _, t := range tones {
@@ -153,7 +155,7 @@ func matrix() []spec {
 	add("Input", "border (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", ""), on("dark:outline-white/35", ""))
 	add("Input", "border against the field (SC 1.4.11)", "form.go:25", nonText, on("outline-neutral-500", "bg-white"), on("dark:outline-white/35", "dark:bg-white/5"))
 	add("InputGroup", "affix border", "info.go:105", nonText, on("outline-neutral-500", "bg-neutral-50"), on("dark:outline-white/35", "dark:bg-white/5"))
-	add("Input", "focus outline", "form.go:26", nonText, on("focus:outline-primary-700", ""), on("dark:focus:outline-primary-500", ""))
+	add("Input", "focus outline", "form.go:26", nonText, on("focus:outline-primary-600", ""), on("dark:focus:outline-primary-500", ""))
 	add("Input", "invalid outline", "form.go:28", nonText, on("aria-invalid:outline-danger-500", ""), on("dark:aria-invalid:outline-danger-400", ""))
 	disabled("Input", "disabled text", "form.go:27", on("disabled:text-neutral-500", "disabled:bg-neutral-50"), on("dark:disabled:text-neutral-400", "dark:disabled:bg-white/10"))
 
@@ -168,7 +170,7 @@ func matrix() []spec {
 	add("Table", "striped body text", "table.go:94", text,
 		on("text-neutral-700", "*:even:bg-neutral-50").over(cardL).with("*:even:bg-neutral-50"),
 		on("dark:text-neutral-300", "dark:*:even:bg-white/5").over(cardD).with("dark:*:even:bg-white/5"))
-	add("Table", "sort button focus outline", "table.go:133", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	add("Table", "sort button focus outline", "table.go:133", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	add("Table", "empty-state description", "table.go:155", text, on("text-neutral-500", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 
 	// Stat (info.go:51-66) on its white / neutral-900 card. The value is text-2xl semibold.
@@ -189,8 +191,8 @@ func matrix() []spec {
 	} {
 		add("Progress/"+p.name, "fill on track", "progress.go:"+p.line, nonText, on(p.l, "bg-neutral-200"), on(p.d, "dark:bg-white/10"))
 	}
-	add("Steps", "completed number", "progress.go:145", text, on("text-white", "bg-primary-700"), on("text-white", "bg-primary-700"))
-	add("Steps", "current number", "progress.go:149", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
+	add("Steps", "completed number", "progress.go:145", text, on("text-white", "bg-primary-600"), on("text-white", "bg-primary-600"))
+	add("Steps", "current number", "progress.go:149", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("Steps", "upcoming number", "progress.go:153", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Steps", "upcoming label", "progress.go:156", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Steps", "current label", "progress.go:158", text, on("text-neutral-900", ""), on("dark:text-white", ""))
@@ -201,14 +203,15 @@ func matrix() []spec {
 	// Nav (nav.go:22-24, 123), Breadcrumb (nav.go:171-179), Tabs, Pagination.
 	add("Nav link", "inactive", "nav.go:22", text, on("text-neutral-600", "").over(cardL), on("dark:text-neutral-400", "").over(cardD))
 	add("Nav link", "active", "nav.go:23", text, on("text-neutral-900", "bg-neutral-100").over(cardL), on("dark:text-white", "dark:bg-white/10").over(cardD))
-	add("Nav link", "focus-visible outline", "nav.go:24", nonText, on("focus-visible:outline-primary-700", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
+	add("Nav link", "focus-visible outline", "nav.go:24", nonText, on("focus-visible:outline-primary-600", "").over(cardL), on("dark:focus-visible:outline-primary-500", "").over(cardD))
 	add("Sidebar group", "heading", "nav.go:123", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Breadcrumb", "current", "nav.go:171", text, on("text-neutral-900", ""), on("dark:text-white", ""))
 	add("Breadcrumb", "link", "nav.go:178", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
-	add("Tabs", "active", "tabs.go:23", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
+	add("Tabs", "active", "tabs.go:23", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
 	add("Tabs", "inactive", "tabs.go:24", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 	add("Pagination", "item", "pagination.go:12", text, on("text-neutral-700", ""), on("dark:text-neutral-300", ""))
-	add("Pagination", "current page", "pagination.go:13", text, on("aria-[current=page]:text-white", "aria-[current=page]:bg-primary-700"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-primary-700"))
+	add("Pagination", "current page", "pagination.go:13", text, on("aria-[current=page]:text-white", "aria-[current=page]:bg-primary-600"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-primary-700"))
+	add("Pagination", "current page hover", "pagination.go:14", text, on("aria-[current=page]:text-white", "aria-[current=page]:hover:bg-primary-700"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:hover:bg-primary-600"))
 	add("Pagination", "gap", "pagination.go:18", text, on("text-neutral-500", ""), on("dark:text-neutral-400", ""))
 
 	// Kbd (badge.go:25-26), Avatar initials (avatar.go:31-32), Divider label (layout.go:44).
@@ -219,7 +222,8 @@ func matrix() []spec {
 	// DropZone highlight (dnd.go:78) and MoveHere (dnd.go:106-107).
 	add("DropZone", "data-over outline", "dnd.go:78", nonText, on("data-over:outline-primary-600", ""), on("data-over:outline-primary-600", ""))
 	add("MoveHere", "dashed border", "dnd.go:106", nonText, on("border-primary-600", ""), on("border-primary-600", ""))
-	add("MoveHere", "text", "dnd.go:106", text, on("text-primary-700", ""), on("dark:text-primary-400", ""))
+	add("MoveHere", "text", "dnd.go:106", text, on("text-primary-600", ""), on("dark:text-primary-400", ""))
+	add("MoveHere", "text on hover", "dnd.go:107", text, on("hover:text-primary-700", "hover:bg-primary-500/10"), on("dark:hover:text-primary-400", "hover:bg-primary-500/10"))
 
 	// Dialog (dialog.go:54, dialogHeader at dialog.go:98) and Drawer on their white / neutral-900 panels.
 	add("Dialog", "close icon", "dialog.go:98", nonText, on("text-neutral-500", "bg-white"), on("dark:text-neutral-400", "dark:bg-neutral-900"))
@@ -227,7 +231,7 @@ func matrix() []spec {
 	add("Drawer", "body text", "drawer.go:96", text, on("text-neutral-600", "bg-white"), on("dark:text-neutral-300", "dark:bg-neutral-900"))
 
 	// Other focus rings that sit on the page background.
-	add("Disclosure", "focus-visible outline", "disclosure.go:68", nonText, on("focus-visible:outline-primary-700", ""), on("dark:focus-visible:outline-primary-500", ""))
+	add("Disclosure", "focus-visible outline", "disclosure.go:68", nonText, on("focus-visible:outline-primary-600", ""), on("dark:focus-visible:outline-primary-500", ""))
 	return m
 }
 
@@ -501,11 +505,41 @@ func TestContrastMatrixInSync(t *testing.T) {
 func TestContrastTokensResolve(t *testing.T) {
 	th := wcag.NewTheme(ui.ThemeCSS())
 	for tok, want := range map[string]string{
-		"primary-600": "sky-600", "neutral-500": "zinc-500", "success-600": "green-600",
+		"neutral-500": "zinc-500", "success-600": "green-600",
 		"warning-500": "amber-500", "danger-500": "red-500", "info-600": "blue-600",
 	} {
 		if got := th.Alias(tok); got != want {
 			t.Errorf("%s resolves to %s, want %s", tok, got, want)
 		}
+	}
+}
+
+// TestPrimaryIsLiteralOKLCH checks that the default primary scale is the tuned Emerald Sky: every
+// step a literal oklch() value (not a var() alias to a stock palette), with lightness strictly
+// decreasing from 50 to 950 and hue drifting from green to blue.
+func TestPrimaryIsLiteralOKLCH(t *testing.T) {
+	css := ui.ThemeCSS()
+	re := regexp.MustCompile(`(?m)^\s*--color-primary-(\d+):\s*(.+?);`)
+	literal := regexp.MustCompile(`^oklch\(([\d.]+)% ([\d.]+) ([\d.]+)\)$`)
+	steps := re.FindAllStringSubmatch(css, -1)
+	if len(steps) != 11 {
+		t.Fatalf("found %d primary tokens in ThemeCSS, want 11", len(steps))
+	}
+	prevL, prevH := 101.0, 0.0
+	for _, m := range steps {
+		g := literal.FindStringSubmatch(m[2])
+		if g == nil {
+			t.Errorf("primary-%s is %q, want a literal oklch(L%% C H)", m[1], m[2])
+			continue
+		}
+		l, _ := strconv.ParseFloat(g[1], 64)
+		h, _ := strconv.ParseFloat(g[3], 64)
+		if l >= prevL {
+			t.Errorf("primary-%s has L=%.1f, not below the previous step (%.1f)", m[1], l, prevL)
+		}
+		if h <= prevH {
+			t.Errorf("primary-%s has hue %.1f, want the hue to keep drifting toward blue (previous %.1f)", m[1], h, prevH)
+		}
+		prevL, prevH = l, h
 	}
 }

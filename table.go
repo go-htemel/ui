@@ -130,7 +130,7 @@ func SortableTh(label, key, sortSignal, action string) *html.ThElement {
 	button := html.Button(html.Span().Text(label), arrow).
 		Type(html.ButtonTypeButton).
 		Class(Classes("group -mx-1 inline-flex cursor-pointer items-center gap-x-1 rounded-control px-1 py-0.5 font-semibold uppercase",
-			"tracking-wide hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 dark:focus-visible:outline-primary-500",
+			"tracking-wide hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500",
 			"dark:hover:text-white")).
 		Attrs(datastar.OnClick(click))
 	return html.Th(button).Scope(html.ScopeCol).Class(Classes(thClass)).
