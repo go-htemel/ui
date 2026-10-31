@@ -41,6 +41,11 @@ tasks:
     cmds:
       - go run ./cmd/showcase -addr {{.ADDR}}
 
+  a11y:
+    desc: "axe-core WCAG 2.1 AA scan of every showcase page, light and dark (needs node, Chromium via Playwright)"
+    cmds:
+      - tools/a11y/run.sh
+
   tailwind-safelist:
     desc: Write the Tailwind safelist to tailwind.safelist.txt
     cmds:

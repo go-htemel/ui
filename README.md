@@ -277,6 +277,27 @@ Datastar with:
   until you do. Tests also fail on a raw palette or radius class (`bg-sky-600`, `rounded-md`) in
   a component, and on a token class whose variable `assets/ui.css` does not define.
 
+### Accessibility testing
+
+`task a11y` builds the showcase, serves it on a free port and scans every page with
+[axe-core](https://github.com/dequelabs/axe-core) in Chromium (Playwright), in light and dark
+(`prefers-color-scheme`), at WCAG 2.1 A/AA. It also opens the interactive states first: the
+dialog, the dropdown, a switched tab, an expanded disclosure and accordion, and the mobile
+navbar. The report groups violations by rule with impact, count, selectors and pages, and the
+task exits non-zero on any WCAG violation. Rules tagged only `best-practice` are listed
+separately and do not fail the run. The scan fails loudly, rather than passing, when Tailwind
+did not apply (the showcase loads Tailwind and Datastar from CDNs).
+
+```shell
+(cd tools/a11y && npm ci && npx playwright install chromium)   # once
+task a11y
+```
+
+Options, as environment variables: `CHROMIUM_PATH` launches an existing Chromium instead of
+Playwright's, and `A11Y_CDN_DIR` serves `tailwind.js` and `datastar.js` from a directory when
+the CDNs are unreachable. CI runs it as the separate `a11y` job. Colour contrast between tokens
+is also covered without a browser by the Go contrast test.
+
 ## License
 
 MIT

@@ -1,0 +1,12 @@
+{
+  "name": "ui-a11y",
+  "private": true,
+  "type": "module",
+  "description": "axe-core accessibility scan of the showcase pages (light and dark, interactive states)",
+  "scripts": { "scan": "node run.mjs" },
+  "dependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "axe-core": "4.11.0",
+    "playwright": "1.63.0"
+  }
+}
