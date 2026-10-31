@@ -33,9 +33,15 @@ func (s *SelectElement) SetAttrUnsafe(name, value string) { s.control.SetAttrUns
 
 // Select returns a native <select> with the given name and options (see Choice), styled like
 // Input and with the library chevron. Put it in a Field to label it.
+//
+// The ui-select class opts it into the customizable select of ui.css: where the browser supports
+// appearance: base-select (Chromium 135+), the open picker is drawn like the Dropdown menu, with
+// padded options, a primary highlight on hover and keyboard focus, a check mark on the selected
+// option and a 200ms fade (off under prefers-reduced-motion). Other browsers show their native
+// popup; the closed select looks the same in both.
 func Select(name string, options ...html.SelectChild) *SelectElement {
 	control := html.Select(options...).Name(name).
-		Class(Classes(controlBase, "col-start-1 row-start-1 appearance-none py-1.5 pr-8 pl-3 dark:*:bg-neutral-800"))
+		Class(Classes(controlBase, "ui-select col-start-1 row-start-1 appearance-none py-1.5 pr-8 pl-3 dark:*:bg-neutral-800"))
 	wrapper := html.Div(
 		control,
 		IconChevronDown().Class(Classes("pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end",

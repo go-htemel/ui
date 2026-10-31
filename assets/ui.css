@@ -39,6 +39,12 @@
  *   - focus outlines: 600 in light, 500 in dark
  * Danger follows the same solids convention (600, hover 700; dark 700, hover 600).
  *
+ * Form controls: Input, Textarea and Select carry the class ui-control (Select also ui-select).
+ * The rules at the end of this file use it to restyle the parts of native controls that
+ * utilities cannot reach: Chrome's autofill colors, number spin buttons, the search clear
+ * button, the date/time picker icon, the color swatch, and the customizable select picker
+ * (appearance: base-select, Chromium 135+; other browsers keep the native popup).
+ *
  * Retheming primary to a lighter hue (sky, cyan, teal, amber, lime) can break these: rerun
  * go test -run Contrast . against your palette; light hues typically need the 700 step for solids
  * with white text (see the README, "Contrast").
@@ -123,18 +129,19 @@
   --color-danger-900: var(--color-red-900);
   --color-danger-950: var(--color-red-950);
 
-  /* info (default: blue). Info tone: Badge, Alert, Toast, Progress. */
-  --color-info-50: var(--color-blue-50);
-  --color-info-100: var(--color-blue-100);
-  --color-info-200: var(--color-blue-200);
-  --color-info-300: var(--color-blue-300);
-  --color-info-400: var(--color-blue-400);
-  --color-info-500: var(--color-blue-500);
-  --color-info-600: var(--color-blue-600);
-  --color-info-700: var(--color-blue-700);
-  --color-info-800: var(--color-blue-800);
-  --color-info-900: var(--color-blue-900);
-  --color-info-950: var(--color-blue-950);
+  /* info (default: sky). Info tone: Badge, Alert, Toast, Progress. Sky rather than blue, so the
+     info tone does not read as a second primary next to the indigo brand color. */
+  --color-info-50: var(--color-sky-50);
+  --color-info-100: var(--color-sky-100);
+  --color-info-200: var(--color-sky-200);
+  --color-info-300: var(--color-sky-300);
+  --color-info-400: var(--color-sky-400);
+  --color-info-500: var(--color-sky-500);
+  --color-info-600: var(--color-sky-600);
+  --color-info-700: var(--color-sky-700);
+  --color-info-800: var(--color-sky-800);
+  --color-info-900: var(--color-sky-900);
+  --color-info-950: var(--color-sky-950);
 
   /* Corner radius of controls: buttons, button groups, inputs, menu items, nav links,
      pagination, tooltips, Kbd. Side forms such as rounded-l-control follow it. */
@@ -152,5 +159,177 @@
   }
   html:not(.dark) {
     color-scheme: light;
+  }
+}
+
+/* Native control polish for ui-control (Input, Textarea, Select). Written as CSS rather than
+   utilities because the selectors (vendor pseudo-elements, :autofill with !important UA colors)
+   do not fit Tailwind class names the safelist can carry. */
+@layer base {
+  /* Chrome and Safari paint autofilled fields with their own yellow/blue background (an
+     !important UA rule that background-color cannot override) and text color. An inset shadow
+     covers the background and -webkit-text-fill-color restores the text. The cover must be
+     opaque, so dark mode cannot reuse the field's translucent bg-white/5: it uses neutral-800,
+     the opaque color closest to white/5 over a neutral-900 card. */
+  .ui-control:is(:-webkit-autofill, :autofill) {
+    box-shadow: inset 0 0 0 1000px var(--color-white);
+    -webkit-text-fill-color: var(--color-neutral-900);
+    caret-color: var(--color-neutral-900);
+    @variant dark {
+      box-shadow: inset 0 0 0 1000px var(--color-neutral-800);
+      -webkit-text-fill-color: var(--color-white);
+      caret-color: var(--color-white);
+    }
+  }
+
+  /* Number: no spin buttons (they differ per browser and crowd the field); the arrow keys still
+     step the value. */
+  .ui-control[type="number"] {
+    appearance: textfield;
+  }
+  .ui-control[type="number"]::-webkit-inner-spin-button,
+  .ui-control[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Search: the WebKit clear button redrawn as a cross in the text color (Escape also clears). */
+  .ui-control[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+  }
+  .ui-control[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    width: 1rem;
+    height: 1rem;
+    margin-inline-start: 0.5rem;
+    background-color: currentColor;
+    opacity: 0.7;
+    cursor: pointer;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .ui-control[type="search"]::-webkit-search-cancel-button:hover {
+    opacity: 1;
+  }
+
+  /* Date and time: the picker icon keeps its native glyph, which follows color-scheme (set from
+     the .dark class above), so it needs no invert filter in dark mode. */
+  .ui-control::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    border-radius: var(--radius-control);
+    opacity: 0.7;
+  }
+  .ui-control::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
+  /* Color: the swatch fills the field, with the control radius. */
+  .ui-control[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  .ui-control[type="color"]::-webkit-color-swatch {
+    border: 0;
+    border-radius: calc(var(--radius-control) - 2px);
+  }
+  .ui-control[type="color"]::-moz-color-swatch {
+    border: 0;
+    border-radius: calc(var(--radius-control) - 2px);
+  }
+}
+
+/* Customizable select (appearance: base-select, Chromium 135+). The picker becomes stylable DOM:
+   it is drawn like the Dropdown menu, options get padding, a hover/focus highlight and a check
+   mark on the selected one, and it fades in with a 1px drop like the Dropdown. Browsers without
+   base-select keep the native popup (the closed select looks the same either way). The library
+   chevron stays as the icon in both cases, so ::picker-icon is hidden.
+
+   These rules are unlayered on purpose: `appearance: base-select` must beat the select's
+   appearance-none utility, and unlayered CSS wins over every @layer. */
+@supports (appearance: base-select) {
+  select.ui-select,
+  select.ui-select::picker(select) {
+    appearance: base-select;
+  }
+  select.ui-select::picker-icon {
+    display: none;
+  }
+  select.ui-select::picker(select) {
+    margin-block: 0.25rem;
+    padding: 0.25rem;
+    border: 0;
+    border-radius: var(--radius-surface);
+    background-color: var(--color-white);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 0 0 1px color-mix(in oklab, var(--color-neutral-950) 5%, transparent);
+    opacity: 0;
+    translate: 0 -1px;
+    transition: opacity 200ms ease-out, translate 200ms ease-out, display 200ms allow-discrete, overlay 200ms allow-discrete;
+  }
+  select.ui-select:open::picker(select) {
+    opacity: 1;
+    translate: 0 0;
+  }
+  @starting-style {
+    select.ui-select:open::picker(select) {
+      opacity: 0;
+      translate: 0 -1px;
+    }
+  }
+  select.ui-select option {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-control);
+    color: var(--color-neutral-900);
+    background-color: transparent;
+    cursor: pointer;
+    transition: background-color 150ms, color 150ms;
+  }
+  select.ui-select option:checked {
+    font-weight: 600;
+  }
+  select.ui-select option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+    color: var(--color-primary-600);
+  }
+  select.ui-select option:not(:disabled):is(:hover, :focus-visible) {
+    outline: none;
+    color: var(--color-white);
+    background-color: var(--color-primary-600);
+  }
+  select.ui-select option:not(:disabled):is(:hover, :focus-visible)::checkmark {
+    color: var(--color-white);
+  }
+  select.ui-select option:disabled {
+    color: var(--color-neutral-500);
+    cursor: not-allowed;
+  }
+  select.ui-select {
+    @variant dark {
+      &::picker(select) {
+        background-color: var(--color-neutral-800);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 0 0 1px color-mix(in oklab, var(--color-white) 10%, transparent);
+      }
+      & option {
+        color: var(--color-white);
+        background-color: transparent;
+      }
+      & option::checkmark {
+        color: var(--color-primary-400);
+      }
+      & option:not(:disabled):is(:hover, :focus-visible) {
+        color: var(--color-white);
+        background-color: var(--color-primary-600);
+      }
+      & option:not(:disabled):is(:hover, :focus-visible)::checkmark {
+        color: var(--color-white);
+      }
+      & option:disabled {
+        color: var(--color-neutral-400);
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    select.ui-select::picker(select) {
+      transition: none;
+    }
   }
 }
