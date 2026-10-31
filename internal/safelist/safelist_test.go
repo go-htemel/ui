@@ -25,7 +25,7 @@ func TestCommittedSafelistIsCurrent(t *testing.T) {
 		t.Fatal(err)
 	}
 	if string(committed) != File(classes) {
-		t.Error("tailwind.safelist.txt is out of date; run make tailwind-safelist")
+		t.Error("tailwind.safelist.txt is out of date; run task tailwind-safelist")
 	}
 }
 

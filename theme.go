@@ -18,7 +18,7 @@ import (
 //   - Font is the font-family class BodyClasses puts on <body> ("font-sans", "font-serif", ...).
 //
 // Tailwind only generates classes it finds in your sources. With a non-default theme, generate a
-// safelist for it (make tailwind-safelist SAFELIST_FLAGS="-primary indigo") and add it to your
+// safelist for it (task tailwind-safelist SAFELIST_FLAGS="-primary indigo") and add it to your
 // Tailwind sources; see the README.
 type Theme struct {
 	Primary string

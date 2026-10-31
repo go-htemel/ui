@@ -1,0 +1,48 @@
+version: '3'
+
+vars:
+  ADDR: '{{.ADDR | default ":8080"}}'
+  SAFELIST_FLAGS: '{{.SAFELIST_FLAGS | default ""}}'
+
+tasks:
+  default:
+    desc: List available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  build:
+    desc: Build all packages
+    cmds:
+      - go build ./...
+
+  test:
+    desc: Run all tests with the race detector
+    cmds:
+      - go test -race ./...
+
+  lint:
+    desc: Run golangci-lint if installed, otherwise go vet
+    cmds:
+      - |
+        if command -v golangci-lint >/dev/null 2>&1; then
+          golangci-lint run ./...
+        else
+          echo "golangci-lint not installed; falling back to go vet"
+          go vet ./...
+        fi
+
+  run:
+    desc: "Start the component showcase (default ADDR=:8080, e.g. task run ADDR=:8081)"
+    cmds:
+      - go run ./cmd/showcase -addr {{.ADDR}}
+
+  tailwind-safelist:
+    desc: 'Write the Tailwind safelist to tailwind.safelist.txt (optional SAFELIST_FLAGS="-primary indigo")'
+    cmds:
+      - go run ./cmd/safelist {{.SAFELIST_FLAGS}} > tailwind.safelist.txt
+
+  tidy:
+    desc: Run go mod tidy
+    cmds:
+      - go mod tidy

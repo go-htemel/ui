@@ -114,7 +114,14 @@ with the Tailwind CLI.
 ## Showcase
 
 ```shell
-make run   # http://localhost:8080
+task run   # http://localhost:8080
+```
+
+To use another port, pass `ADDR` to the task or the `-addr` flag to the program:
+
+```shell
+task run ADDR=:8081
+go run ./cmd/showcase -addr :8081
 ```
 
 `cmd/showcase` renders one page per component group with each live component next to the Go
@@ -136,11 +143,11 @@ Datastar with:
 
 ## Development
 
-- `make test` runs `go test -race ./...`: golden HTML per component (`go test -run TestGolden
+- `task test` runs `go test -race ./...`: golden HTML per component (`go test -run TestGolden
   -update` rewrites `testdata/`), compile-time content assertions, safelist checks and showcase
   page checks.
-- `make lint` runs golangci-lint v2.
-- `make tailwind-safelist` regenerates `tailwind.safelist.txt` after a class change; a test fails
+- `task lint` runs golangci-lint v2.
+- `task tailwind-safelist` regenerates `tailwind.safelist.txt` after a class change; a test fails
   until you do.
 
 ## License
