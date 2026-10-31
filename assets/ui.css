@@ -549,3 +549,333 @@
     --color-field-border-hover: rgb(255 255 255 / 0.55);
   }
 }
+
+/* Prose (ui.Prose, and markdown.Render, which wraps its output in it): typography for rendered
+   Markdown and other long-form HTML that has no classes of its own, so it is styled through
+   descendant selectors rather than utilities. Sizes are in em, so ui-prose-sm and ui-prose-lg
+   scale everything by changing the root font size. Colors are variables on .ui-prose with dark
+   overrides; each text pair is measured by the contrast test (rows "Prose/...") on a white /
+   neutral-900 card and on the page background. Add max-w-prose (65ch) for a readable measure. */
+@layer components {
+  .ui-prose {
+    --ui-prose-body: var(--color-neutral-700);
+    --ui-prose-headings: var(--color-neutral-900);
+    --ui-prose-link: var(--color-primary-600);
+    --ui-prose-link-hover: var(--color-primary-700);
+    --ui-prose-muted: var(--color-neutral-600);
+    --ui-prose-marker: var(--color-neutral-500);
+    --ui-prose-code: var(--color-neutral-800);
+    --ui-prose-code-bg: var(--color-neutral-100);
+    --ui-prose-th: var(--color-neutral-900);
+    --ui-prose-th-bg: var(--color-neutral-50);
+    --ui-prose-rule: var(--color-neutral-200);
+    --ui-prose-quote-border: var(--color-field-border);
+    --ui-prose-check: var(--color-primary-600);
+    min-width: 0;
+    color: var(--ui-prose-body);
+    font-size: 1rem;
+    line-height: 1.75;
+    overflow-wrap: break-word;
+    @variant dark {
+      --ui-prose-body: var(--color-neutral-300);
+      --ui-prose-headings: var(--color-white);
+      --ui-prose-link: var(--color-primary-400);
+      --ui-prose-link-hover: var(--color-primary-300);
+      --ui-prose-muted: var(--color-neutral-400);
+      --ui-prose-marker: var(--color-neutral-400);
+      --ui-prose-code: var(--color-neutral-200);
+      --ui-prose-code-bg: color-mix(in oklab, var(--color-white) 10%, transparent);
+      --ui-prose-th: var(--color-white);
+      --ui-prose-th-bg: color-mix(in oklab, var(--color-white) 5%, transparent);
+      --ui-prose-rule: color-mix(in oklab, var(--color-white) 10%, transparent);
+      --ui-prose-check: var(--color-primary-500);
+    }
+  }
+  .ui-prose-sm {
+    font-size: 0.875rem;
+    line-height: 1.7142857;
+  }
+  .ui-prose-lg {
+    font-size: 1.125rem;
+    line-height: 1.7777778;
+  }
+  .ui-prose > :first-child {
+    margin-top: 0;
+  }
+  .ui-prose > :last-child {
+    margin-bottom: 0;
+  }
+  .ui-prose :where(p, ul, ol, dl, blockquote, table, figure, pre, details) {
+    margin-block: 1.25em;
+  }
+  .ui-prose :where(h1, h2, h3, h4, h5, h6) {
+    color: var(--ui-prose-headings);
+    font-weight: 600;
+    scroll-margin-top: 1.5rem;
+    text-wrap: balance;
+  }
+  .ui-prose h1 {
+    margin: 0 0 0.875em;
+    font-size: 2.125em;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .ui-prose h2 {
+    margin: 1.9em 0 0.75em;
+    font-size: 1.5em;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .ui-prose h3 {
+    margin: 1.6em 0 0.6em;
+    font-size: 1.25em;
+    line-height: 1.5;
+  }
+  .ui-prose :where(h4, h5, h6) {
+    margin: 1.5em 0 0.5em;
+    font-size: 1em;
+    line-height: 1.5;
+  }
+  .ui-prose :where(h1, h2, h3, h4, h5, h6) + * {
+    margin-top: 0;
+  }
+  .ui-prose :where(strong, b) {
+    color: var(--ui-prose-headings);
+    font-weight: 600;
+  }
+  .ui-prose a {
+    color: var(--ui-prose-link);
+    font-weight: 500;
+    text-decoration-line: underline;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.2em;
+    transition: color 150ms;
+  }
+  .ui-prose a:hover {
+    color: var(--ui-prose-link-hover);
+  }
+  .ui-prose a:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid var(--color-primary-600);
+    outline-offset: 2px;
+    @variant dark {
+      outline-color: var(--color-primary-500);
+    }
+  }
+  .ui-prose :where(ul, ol) {
+    padding-inline-start: 1.625em;
+  }
+  .ui-prose ul {
+    list-style-type: disc;
+  }
+  .ui-prose ol {
+    list-style-type: decimal;
+  }
+  .ui-prose :where(ul ul, ol ul) {
+    list-style-type: circle;
+  }
+  .ui-prose :where(ol ol) {
+    list-style-type: lower-alpha;
+  }
+  .ui-prose li {
+    margin-block: 0.5em;
+    padding-inline-start: 0.375em;
+  }
+  .ui-prose li::marker {
+    color: var(--ui-prose-marker);
+  }
+  .ui-prose ol > li::marker {
+    font-variant-numeric: tabular-nums;
+  }
+  .ui-prose li > :where(ul, ol) {
+    margin-block: 0.5em;
+  }
+  .ui-prose li > p {
+    margin-block: 0.75em;
+  }
+  .ui-prose :where(dt) {
+    margin-top: 1.25em;
+    color: var(--ui-prose-headings);
+    font-weight: 600;
+  }
+  .ui-prose :where(dd) {
+    margin-top: 0.5em;
+    padding-inline-start: 1.625em;
+  }
+  /* Task lists (GFM "- [x] done"): no bullet, and the read-only checkbox drawn like Checkbox. */
+  .ui-prose :where(ul:has(> li > input[type="checkbox"]:first-child), ul.contains-task-list) {
+    padding-inline-start: 0.25em;
+    list-style: none;
+  }
+  .ui-prose li:has(> input[type="checkbox"]:first-child) {
+    padding-inline-start: 0;
+  }
+  .ui-prose li > input[type="checkbox"]:first-child {
+    appearance: none;
+    display: inline-grid;
+    place-content: center;
+    width: 1em;
+    height: 1em;
+    margin: 0 0.5em 0 0;
+    vertical-align: -0.125em;
+    border: 1px solid var(--color-field-border);
+    border-radius: 0.25rem;
+    background-color: var(--color-white);
+    @variant dark {
+      background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+    }
+  }
+  .ui-prose li > input[type="checkbox"]:first-child:checked {
+    border-color: var(--ui-prose-check);
+    background-color: var(--ui-prose-check);
+  }
+  .ui-prose li > input[type="checkbox"]:first-child:checked::before {
+    content: "";
+    width: 0.75em;
+    height: 0.75em;
+    background-color: var(--color-white);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8L6 11L11 3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  @media (forced-colors: active) {
+    .ui-prose li > input[type="checkbox"]:first-child {
+      appearance: auto;
+    }
+  }
+  .ui-prose blockquote {
+    padding-inline-start: 1em;
+    border-inline-start: 0.25rem solid var(--ui-prose-quote-border);
+    color: var(--ui-prose-muted);
+    font-style: italic;
+  }
+  .ui-prose blockquote > :first-child {
+    margin-top: 0;
+  }
+  .ui-prose blockquote > :last-child {
+    margin-bottom: 0;
+  }
+  .ui-prose hr {
+    margin-block: 2.5em;
+    border: 0;
+    border-top: 1px solid var(--ui-prose-rule);
+  }
+  .ui-prose :where(img, video) {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-surface);
+  }
+  .ui-prose p > img {
+    display: inline-block;
+  }
+  .ui-prose figcaption {
+    margin-top: 0.75em;
+    color: var(--ui-prose-muted);
+    font-size: 0.875em;
+  }
+  /* Inline code: a chip. Code blocks (figure.ui-code from the code package) and highlighted
+     inline code (code.Inline) keep their own look. */
+  .ui-prose :not(pre) > code:not(.ui-code-inline) {
+    padding: 0.125em 0.3em;
+    border-radius: 0.25rem;
+    background-color: var(--ui-prose-code-bg);
+    box-decoration-break: clone;
+    color: var(--ui-prose-code);
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+    font-size: 0.875em;
+  }
+  .ui-prose :where(h1, h2, h3, h4, a) > code:not(.ui-code-inline) {
+    color: inherit;
+  }
+  .ui-prose .ui-code {
+    margin-block: 1.5em;
+  }
+  .ui-prose kbd {
+    display: inline-block;
+    padding: 0 0.375em;
+    border: 1px solid var(--color-neutral-200);
+    border-radius: var(--radius-control);
+    background-color: var(--color-neutral-50);
+    box-shadow: 0 1px 0 var(--color-neutral-200);
+    color: var(--color-neutral-600);
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+    font-size: 0.8125em;
+    font-weight: 500;
+    @variant dark {
+      border-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+      background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+      box-shadow: none;
+      color: var(--color-neutral-300);
+    }
+  }
+  .ui-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+    text-align: start;
+  }
+  .ui-prose thead th {
+    padding: 0.5em 0.75em;
+    border-bottom: 1px solid var(--color-field-border);
+    background-color: var(--ui-prose-th-bg);
+    color: var(--ui-prose-th);
+    font-weight: 600;
+    vertical-align: bottom;
+  }
+  .ui-prose td {
+    padding: 0.5em 0.75em;
+    border-bottom: 1px solid var(--ui-prose-rule);
+    vertical-align: top;
+  }
+  .ui-prose :where(th, td)[align="center"] {
+    text-align: center;
+  }
+  .ui-prose :where(th, td)[align="right"] {
+    text-align: end;
+  }
+  .ui-prose :where(th, td):not([align]) {
+    text-align: start;
+  }
+  .ui-prose tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .ui-prose :where(sup, sub) {
+    line-height: 0;
+  }
+  .ui-prose sup > a {
+    padding-inline: 0.125em;
+    text-decoration: none;
+  }
+  /* Footnotes (goldmark's section.footnotes / div.footnotes). */
+  .ui-prose .footnotes {
+    margin-top: 3em;
+    color: var(--ui-prose-muted);
+    font-size: 0.875em;
+  }
+  .ui-prose .footnotes hr {
+    margin-block: 0 1.5em;
+  }
+  .ui-prose .footnote-backref {
+    text-decoration: none;
+  }
+  .ui-prose mark {
+    padding-inline: 0.125em;
+    border-radius: 0.125rem;
+    background-color: var(--color-warning-100);
+    color: var(--color-neutral-900);
+    @variant dark {
+      background-color: color-mix(in oklab, var(--color-warning-400) 25%, transparent);
+      color: var(--color-white);
+    }
+  }
+  .ui-prose del {
+    text-decoration-thickness: from-font;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-prose a {
+      transition: none;
+    }
+  }
+}

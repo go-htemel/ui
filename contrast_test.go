@@ -293,6 +293,8 @@ func matrix() []spec {
 
 	// Code blocks (assets/ui.css, --color-code-*): see contrast_code_test.go.
 	m = append(m, codeRows()...)
+	// Prose (assets/ui.css, --ui-prose-*): see prose_test.go.
+	m = append(m, proseRows()...)
 	return m
 }
 

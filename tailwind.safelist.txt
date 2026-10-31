@@ -556,6 +556,9 @@ ui-code-titled
 ui-code-toolbar
 ui-code-wrap
 ui-control
+ui-prose
+ui-prose-lg
+ui-prose-sm
 ui-select
 underline-offset-4
 uppercase
