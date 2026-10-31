@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/go-htemel/htemel"
 	"github.com/go-htemel/htemel/datastar"
 	"github.com/go-htemel/htemel/html"
@@ -28,6 +30,11 @@ import (
 //	ui.Draggable("card-42", card, ui.Button(ui.Ghost, "Pick up").Attrs(ui.PickUp("dragged", "card-42")))
 //	ui.DropZone(ui.DropInto("dragged", act), ui.MoveHere("dragged", "Move here", act), column...)
 //
+// Touch and pen drags work too when the page loads the script from Assets and the board is
+// wrapped in Sortable: Draggable and DropZone carry data-ui-drag, data-ui-payload and
+// data-ui-dropzone for it, and a touch drop reaches the zone as a ui:drop event that runs the
+// same action. Without the script the Pick up / Move here flow above is the touch fallback.
+//
 // During a mouse drag the draggable carries data-dragging (and aria-grabbed="true", the
 // deprecated but still read ARIA 1.0 state) and a DropZone under the pointer carries data-over,
 // which the built-in classes style. They are element attributes rather than Datastar signals
@@ -37,6 +44,10 @@ import (
 // DragData is the expression that reads the dropped payload in a DropZone action.
 const DragData = "evt.dataTransfer.getData('text/plain')"
 
+// DropDetail is the expression that reads the dropped payload from the ui:drop event of a touch
+// drag; DropZone substitutes it for DragData in its action.
+const DropDetail = "evt.detail.payload"
+
 // Draggable returns a draggable <div> carrying payload as its drag data.
 func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).
@@ -44,6 +55,8 @@ func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement 
 		Aria("grabbed", "false").
 		Class(Classes("cursor-grab active:cursor-grabbing data-dragging:opacity-50")).
 		Attrs(
+			htemel.Attr("data-ui-drag", ""),
+			htemel.Attr("data-ui-payload", payload),
 			datastar.On("dragstart",
 				"evt.dataTransfer.setData('text/plain', "+datastar.Quote(payload)+"); evt.dataTransfer.effectAllowed = 'move'; "+
 					"el.toggleAttribute('data-dragging', true); el.setAttribute('aria-grabbed', 'true')"),
@@ -56,14 +69,20 @@ func Draggable(payload string, children ...htemel.FlowContent) *html.DivElement 
 // default drop handling (which would otherwise navigate to dropped text in some browsers). While
 // a drag is over the zone it has the data-over attribute, styled with an outline and tint; dragenter
 // and dragleave toggle it, ignoring the enter/leave pairs fired when the pointer crosses a child.
+//
+// The zone also listens for the ui:drop event that <ui-sortable> dispatches for touch drags (see
+// Sortable): the same action runs, with the payload read from evt.detail.payload instead of the
+// drag data, so DropInto works for both without change.
 func DropZone(action string, children ...htemel.FlowContent) *html.DivElement {
 	return html.Div(children...).
 		Class(Classes("data-over:outline-2 data-over:outline-dashed data-over:outline-sky-500 data-over:bg-sky-500/10")).
 		Attrs(
+			htemel.Attr("data-ui-dropzone", ""),
 			datastar.On("dragenter", "evt.preventDefault(); el.toggleAttribute('data-over', true)"),
 			datastar.On("dragover", "evt.preventDefault(); evt.dataTransfer.dropEffect = 'move'"),
 			datastar.On("dragleave", "if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-over', false)"),
 			datastar.On("drop", "el.toggleAttribute('data-over', false); "+action, datastar.Prevent()),
+			datastar.On("ui:drop", "el.toggleAttribute('data-over', false); "+strings.ReplaceAll(action, DragData, DropDetail)),
 		)
 }
 

@@ -27,6 +27,7 @@ var (
 	_ htemel.FlowContent = ui.Toast("t", ui.Info, "x", "", 0)
 	_ htemel.FlowContent = ui.Draggable("p")
 	_ htemel.FlowContent = ui.DropZone("x")
+	_ htemel.FlowContent = ui.Sortable()
 )
 
 func init() {
@@ -157,7 +158,7 @@ func TestDisclosureAccessibility(t *testing.T) {
 
 func TestDragAndDropAccessibility(t *testing.T) {
 	drag := render(t, ui.Draggable("c1", html.P().Text("x")))
-	wantAll(t, drag, `draggable="true"`, `aria-grabbed="false"`,
+	wantAll(t, drag, `data-ui-drag `, `data-ui-payload="c1"`, `draggable="true"`, `aria-grabbed="false"`,
 		`data-on:dragstart="`, `el.setAttribute('aria-grabbed', 'true')`, `el.toggleAttribute('data-dragging', true)`,
 		`data-on:dragend="`, `el.setAttribute('aria-grabbed', 'false')`)
 
@@ -167,7 +168,8 @@ func TestDragAndDropAccessibility(t *testing.T) {
 		`data-on:dragover="evt.preventDefault();`,
 		`data-on:dragleave="if (!el.contains(evt.relatedTarget)) el.toggleAttribute('data-over', false)"`,
 		`data-on:drop__prevent="el.toggleAttribute('data-over', false); $dragged = evt.dataTransfer.getData('text/plain'); @post('/m')`,
-		`data-over:outline-2`)
+		`data-over:outline-2`, ` data-ui-dropzone `,
+		`data-on:ui:drop="el.toggleAttribute('data-over', false); $dragged = evt.detail.payload; @post('/m')`)
 
 	move := render(t, ui.MoveHere("dragged", "Move here", "@post('/m')"))
 	wantAll(t, move, `data-show="$dragged !== ''"`, `style="display: none"`, `data-on:click="@post('/m'); setTimeout(() => { $dragged = '' })"`, ">Move here<")
