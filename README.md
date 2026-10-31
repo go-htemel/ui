@@ -81,39 +81,122 @@ s, _ := htemel.RenderString(ui.Toast(ui.NextToastID(), ui.Success, "Saved", "", 
 sse.PatchElements(s, datastar.WithSelectorID(ui.ToastRegionID), datastar.WithModeAppend())
 ```
 
-## Theming
-
-Classes use Tailwind's zinc palette with `dark:` variants and are written for `ui.DefaultTheme`
-(primary `sky`, radius `md`, font `font-sans`). Change it once at startup:
-
-```go
-ui.SetTheme(ui.Theme{Primary: "indigo", Radius: "lg", Font: "font-serif"})
-```
-> **Font:** `font-sans` resolves to your Tailwind `--font-sans`. If that falls back to `system-ui`, Windows renders Segoe UI, whose metrics place text about a pixel above centre in buttons and badges. Point `--font-sans` at a metrically balanced face such as Inter (the showcase does this with `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif; }`).
-
-Every `-sky-` class becomes `-indigo-`, every `rounded-md` (and `rounded-l-md`, ...) becomes
-`rounded-lg`, and `ui.BodyClasses()` carries the font. `ui.Classes(...)` applies the theme to
-your own class strings.
-
 ## Tailwind
 
-Tailwind only generates classes it finds in your sources, and the ui sources sit in the Go module
-cache. Add the class list to your build instead. For the default theme, use the committed
-`tailwind.safelist.txt`; for another theme, generate one:
+Tailwind v4 is required (the components use `shadow-xs`, `has-checked:`, `*:` variants and CSS
+theme variables). The components are styled with design tokens (see [Theming](#theming)), so your
+build needs two files from the module: the token definitions and the list of classes the
+components use. Tailwind only generates classes it finds in your sources, and the ui sources sit
+in the Go module cache, so the class list stands in for them.
 
 ```shell
-go run github.com/go-htemel/ui/cmd/safelist -primary indigo -radius lg > tailwind.safelist.txt
+go run github.com/go-htemel/ui/cmd/themecss > assets/ui.theme.css
+go run github.com/go-htemel/ui/cmd/safelist > assets/tailwind.safelist.txt
 ```
 
 ```css
-/* app.css (Tailwind v4) */
+/* assets/app.css */
 @import "tailwindcss";
-@source "./tailwind.safelist.txt";
+@import "./ui.theme.css";              /* default tokens: one @theme block */
+@source "./tailwind.safelist.txt";     /* the classes the components use */
+
+@theme {
+  /* your overrides, see Theming */
+}
 ```
 
-Tailwind v4 is required (the components use `shadow-xs`, `has-checked:` and `*:` variants). The
-showcase uses the Tailwind browser build from a CDN; real applications should build their CSS
-with the Tailwind CLI.
+```shell
+npx @tailwindcss/cli -i assets/app.css -o static/app.css
+```
+
+Rerun both `go run` commands after upgrading the module (they read the version your `go.mod`
+requires) and commit the two files. The safelist is one static list for every theme: class names
+never change, only the values behind the tokens. `ui.ThemeCSS()` returns the same tokens as a
+string, and `ui.Assets()` serves them at `/ui.css`, but that file is Tailwind source (an `@theme`
+block), not a stylesheet browsers apply on their own. The showcase compiles its CSS in the browser
+with the Tailwind browser build and puts `ui.ThemeCSS()` in its `<style type="text/tailwindcss">`
+block; real applications should build their CSS with the Tailwind CLI.
+
+## Theming
+
+Components never name a palette color. They use semantic tokens, defined as CSS variables in
+`ui.theme.css`, and you retheme by overriding those variables in CSS:
+
+| Token | Utilities | Default | Used for |
+| --- | --- | --- | --- |
+| `--color-primary-{50..950}` | `bg-primary-600`, `text-primary-700`, `outline-primary-600`, ... | `sky` | primary buttons, links, focus rings, selected and active states, drop targets |
+| `--color-neutral-{50..950}` | `bg-neutral-50`, `text-neutral-500`, `ring-neutral-950/5`, ... | `zinc` | surfaces, text, borders, dividers, the page background |
+| `--color-success-{50..950}` | `bg-success-50`, `text-success-700`, ... | `green` | Success tone (Badge, Alert, Toast, Progress), positive Stat deltas |
+| `--color-warning-{50..950}` | `bg-warning-50`, `text-warning-800`, ... | `amber` | Warning tone |
+| `--color-danger-{50..950}` | `bg-danger-600`, `outline-danger-500`, ... | `red` | Danger tone and button, invalid fields, error text, negative Stat deltas |
+| `--color-info-{50..950}` | `bg-info-50`, `text-info-700`, ... | `blue` | Info tone |
+| `--radius-control` | `rounded-control`, `rounded-l-control`, ... | `--radius-md` | buttons, button and input groups, inputs, menu items, nav links, pagination, tooltips, `Kbd` |
+| `--radius-surface` | `rounded-surface` | `--radius-md` | Card, Dialog, Dropdown panel, Alert, Toast, Stat, Table frame |
+| `--font-sans` (Tailwind's own) | `font-sans` | Tailwind's sans stack | `ui.BodyClasses()` puts `font-sans` on `<body>` |
+
+Pills and avatars stay `rounded-full`. Each family defines the full 50–950 scale, so your own
+markup can use any step (`bg-primary-100`), and `ui.Classes(...)` joins class lists for your own
+components.
+
+### Overriding tokens
+
+Override in your `@theme` block, after the import, to change the default for the whole app:
+
+```css
+@theme {
+  --color-primary-50:  var(--color-indigo-50);
+  /* ... 100 to 900 ... */
+  --color-primary-950: var(--color-indigo-950);
+  --color-neutral-500: var(--color-slate-500);   /* and the other neutral steps */
+  --radius-control: var(--radius-lg);
+  --radius-surface: var(--radius-xl);            /* square: 0, pill: calc(infinity * 1px) */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+```
+
+Alias the whole scale of a family you change: components use several steps (for example
+`bg-primary-600 hover:bg-primary-500 dark:bg-primary-500`). Any CSS color works as a value
+(`oklch(...)`, hex), not only a Tailwind palette variable. The token families share their names
+with nothing in Tailwind's palette except `neutral`: `ui.theme.css` redefines Tailwind's `neutral`
+scale as the zinc alias, so `bg-neutral-*` in your own markup follows the token too.
+
+> **Font:** if `--font-sans` falls back to `system-ui`, Windows renders Segoe UI, whose metrics
+> place text about a pixel above centre in buttons and badges. Point it at a metrically balanced
+> face such as Inter, as above (the showcase does).
+
+### Scoped themes, live
+
+`ui.theme.css` uses plain `@theme`, not `@theme inline`, so the generated utilities read the token
+itself (`.bg-primary-600 { background-color: var(--color-primary-600) }`). Redefining a token in
+any selector therefore rethemes everything inside it, in the browser, with no Go change, no new
+safelist and no new markup:
+
+```css
+[data-theme="emerald"] {
+  --color-primary-500: var(--color-emerald-500);
+  --color-primary-600: var(--color-emerald-600);   /* ... the whole scale ... */
+  --radius-control: calc(infinity * 1px);
+}
+```
+
+```go
+html.Div(content...).Attr("data-theme", "emerald") // or set it on <html> to switch the page
+```
+
+Switching `data-theme` (the showcase's Theming page does it with a `<select>`, a signal and
+`data-effect`) needs no CSS build either. Override the semantic token (`--color-primary-600`), not
+the palette color it aliases (`--color-sky-600`): the alias resolves where it is declared, on
+`:root`. Tailwind emits the palette variables your CSS references (`var(--color-emerald-600)`
+above), but CSS it never sees, such as a per-tenant `style="--color-primary-600: ..."` added at
+runtime, should use literal color values.
+
+### Dark mode
+
+Components carry `dark:` variants that pick other steps of the same tokens (`text-neutral-900
+dark:text-neutral-100`), so one override covers both modes. Tailwind's `dark:` follows
+`prefers-color-scheme` by default; for a class toggle add
+`@custom-variant dark (&:where(.dark, .dark *));` to `app.css`. To use different palettes per
+mode, override the tokens inside that scope (`.dark { --color-primary-500: ...; }`).
 
 ## Assets and progressive enhancement
 
@@ -123,7 +206,7 @@ small embedded script (vanilla ES2020, no dependencies, about 150 lines) that de
 `ui.ScriptTag()`:
 
 ```go
-mux.Handle("/assets/", http.StripPrefix("/assets", ui.Assets()))   // GET /assets/ui.js
+mux.Handle("/assets/", http.StripPrefix("/assets", ui.Assets()))   // GET /assets/ui.js (and /assets/ui.css)
 
 html.Head(ui.ScriptTag("/assets")) // <script type="module" src="/assets/ui.js?v=<hash>">
 ```
@@ -168,7 +251,8 @@ go run ./cmd/showcase -addr :8081
 
 `cmd/showcase` renders one page per component group with each live component next to the Go
 source that produced it, plus datastar-go demos: server-pushed toasts, live form validation, a
-kanban board whose drops post to the server and a table that sorts and pages on the server. Example functions live in
+kanban board whose drops post to the server and a table that sorts and pages on the server. The
+Theming page switches token sets live through `<html data-theme>`. Example functions live in
 `cmd/showcase/examples_*.go`; those files are embedded and parsed at startup, so the displayed
 source is always the code that ran.
 
@@ -190,7 +274,8 @@ Datastar with:
   page checks.
 - `task lint` runs golangci-lint v2.
 - `task tailwind-safelist` regenerates `tailwind.safelist.txt` after a class change; a test fails
-  until you do.
+  until you do. Tests also fail on a raw palette or radius class (`bg-sky-600`, `rounded-md`) in
+  a component, and on a token class whose variable `assets/ui.css` does not define.
 
 ## License
 
