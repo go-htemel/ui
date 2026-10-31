@@ -347,6 +347,7 @@ justify-self-center
 justify-self-end
 left-1/2
 lg:px-8
+line
 m-0
 m-auto
 max-h-96
@@ -546,6 +547,14 @@ transition-transform
 translate-x-full
 translate-y-full
 translate-y-px
+ui-code
+ui-code-actions
+ui-code-inline
+ui-code-lines
+ui-code-title
+ui-code-titled
+ui-code-toolbar
+ui-code-wrap
 ui-control
 ui-select
 underline-offset-4

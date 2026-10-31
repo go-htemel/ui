@@ -7,7 +7,7 @@
 // The classes use design tokens (bg-primary-600, rounded-control, ...), so one list serves every
 // theme; see cmd/themecss for the tokens.
 //
-// It reads the ui sources from -dir; by default from the current directory when that is the ui
+// It reads the ui sources (the root package and the code subpackage) from -dir; by default from the current directory when that is the ui
 // module, and otherwise from the ui module your go.mod requires.
 package main
 

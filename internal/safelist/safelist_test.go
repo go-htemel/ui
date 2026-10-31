@@ -123,3 +123,57 @@ func BodyClasses() string { return body }
 		t.Errorf("Classes = %q, want %q", got, want)
 	}
 }
+
+// TestSubpackagesAreScanned: classes written in the code package reach the safelist, and a
+// module without that directory still works.
+func TestSubpackagesAreScanned(t *testing.T) {
+	fsys := fstest.MapFS{
+		"x.go":           {Data: []byte("package x\nfunc a(e El) { e.Class(\"flex\") }\n")},
+		"code/y.go":      {Data: []byte("package code\nfunc b(e El) { e.Class(\"sr-only\") }\n")},
+		"code/y_test.go": {Data: []byte("package code\nfunc c(e El) { e.Class(\"test-only\") }\n")},
+	}
+	got, err := Classes(fsys)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"flex", "sr-only"}; !slices.Equal(got, want) {
+		t.Errorf("Classes = %q, want %q", got, want)
+	}
+	if _, err := Classes(fstest.MapFS{"x.go": fsys["x.go"]}); err != nil {
+		t.Errorf("no code directory: %v", err)
+	}
+}
+
+// TestCodeGoldenClassesAreListed is TestGoldenClassesAreListed for the code package's output.
+func TestCodeGoldenClassesAreListed(t *testing.T) {
+	classes, err := Classes(os.DirFS(root))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, err := filepath.Glob(filepath.Join(root, "code", "testdata", "*.golden.html"))
+	if err != nil || len(files) == 0 {
+		t.Fatalf("no code golden files: %v", err)
+	}
+	for _, f := range files {
+		b, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var found []string
+		for _, m := range classAttr.FindAllStringSubmatch(string(b), -1) {
+			found = append(found, strings.Fields(m[1])...)
+		}
+		for _, m := range regexp.MustCompile(`data-class:([^=]+)=`).FindAllStringSubmatch(string(b), -1) {
+			found = append(found, m[1])
+		}
+		for _, c := range found {
+			// The tok-*, line and language-* classes are plain CSS classes from ui.css, not utilities.
+			if strings.HasPrefix(c, "tok-") || strings.HasPrefix(c, "language-") || c == "line" {
+				continue
+			}
+			if _, ok := slices.BinarySearch(classes, c); !ok {
+				t.Errorf("%s: class %q is not in the safelist", filepath.Base(f), c)
+			}
+		}
+	}
+}

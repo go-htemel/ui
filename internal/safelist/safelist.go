@@ -3,10 +3,12 @@
 package safelist
 
 import (
+	"errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"io/fs"
+	pathpkg "path"
 	"regexp"
 	"slices"
 	"strconv"
@@ -28,34 +30,44 @@ var classFuncs = map[string]bool{"BodyClasses": true}
 // quotedKey matches a quoted key of a JavaScript object literal, as in {'rotate-180': open}.
 var quotedKey = regexp.MustCompile(`['"]([^'"]+)['"]\s*:`)
 
+// subpackages are the directories below the root that also hold ui components: the code
+// package renders Tailwind classes too. Missing directories are skipped.
+var subpackages = []string{"code"}
+
 // Classes returns the sorted, de-duplicated classes the non-test Go files of fsys's root
-// directory can emit. A class is a class-shaped token of a string that
+// directory and of the subpackages (code/) can emit. A class is a class-shaped token of a string that
 // reaches a class-bearing call: an argument of .Class, .AddClass, .ToggleClass, Classes, or the
 // name of datastar.Class (and the keys of datastar.Classes). Identifiers in those arguments are
 // followed to the constants, variables, map and slice literals, assignments and call-site
 // arguments that supply them, so strings that never reach such a call (JavaScript expressions,
 // HTTP headers, SVG paths) contribute nothing. The return values of BodyClasses count too.
 func Classes(fsys fs.FS) ([]string, error) {
-	entries, err := fs.ReadDir(fsys, ".")
-	if err != nil {
-		return nil, err
-	}
 	var files []*ast.File
 	fset := token.NewFileSet()
-	for _, e := range entries {
-		name := e.Name()
-		if e.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-			continue
-		}
-		src, err := fs.ReadFile(fsys, name)
+	for _, dir := range append([]string{"."}, subpackages...) {
+		entries, err := fs.ReadDir(fsys, dir)
 		if err != nil {
+			if dir != "." && errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
 			return nil, err
 		}
-		f, err := parser.ParseFile(fset, name, src, parser.SkipObjectResolution)
-		if err != nil {
-			return nil, err
+		for _, e := range entries {
+			name := e.Name()
+			if e.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+				continue
+			}
+			path := pathpkg.Join(dir, name)
+			src, err := fs.ReadFile(fsys, path)
+			if err != nil {
+				return nil, err
+			}
+			f, err := parser.ParseFile(fset, path, src, parser.SkipObjectResolution)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, f)
 		}
-		files = append(files, f)
 	}
 	c := newCollector(files)
 	c.run(files)
