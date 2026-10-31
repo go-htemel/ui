@@ -73,7 +73,10 @@ func newMarkdown(c config) goldmark.Markdown {
 	if !c.noHeadingIDs {
 		parserOpts = append(parserOpts, parser.WithAutoHeadingID())
 	}
-	rendererOpts := []renderer.Option{renderer.WithNodeRenderers(util.Prioritized(codeRenderer{}, 100))}
+	rendererOpts := []renderer.Option{renderer.WithNodeRenderers(
+		util.Prioritized(codeRenderer{}, 100),
+		util.Prioritized(taskRenderer{}, 100), // before the TaskList extension's own (500)
+	)}
 	if c.unsafe {
 		rendererOpts = append(rendererOpts, ghtml.WithUnsafe())
 	}
@@ -173,6 +176,26 @@ func (codeRenderer) render(w util.BufWriter, source []byte, n ast.Node, entering
 	_, _ = w.WriteString(out)
 	_ = w.WriteByte('\n')
 	return ast.WalkSkipChildren, nil
+}
+
+// taskRenderer draws a task-list checkbox with an accessible name: an unlabelled form control
+// fails WCAG 1.3.1 / 4.1.2, and "Done", checked or not, reads naturally before the item text.
+type taskRenderer struct{}
+
+func (r taskRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
+	reg.Register(east.KindTaskCheckBox, r.render)
+}
+
+func (taskRenderer) render(w util.BufWriter, _ []byte, n ast.Node, entering bool) (ast.WalkStatus, error) {
+	if !entering {
+		return ast.WalkContinue, nil
+	}
+	if n.(*east.TaskCheckBox).IsChecked {
+		_, _ = w.WriteString(`<input type="checkbox" checked="" disabled="" aria-label="Done"> `)
+	} else {
+		_, _ = w.WriteString(`<input type="checkbox" disabled="" aria-label="Done"> `)
+	}
+	return ast.WalkContinue, nil
 }
 
 // Plain returns the text of the Markdown with the markup removed, for search indexes, meta

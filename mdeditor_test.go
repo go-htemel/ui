@@ -48,7 +48,7 @@ func TestMarkdownEditorField(t *testing.T) {
 		// The toolbar follows the id Field gave the textarea.
 		`role="toolbar" aria-label="Formatting"`, `aria-controls="entry-text"`,
 		// The rest is named after the editor id (the name), and PreviewID matches.
-		`id="body-preview" role="region" aria-label="Preview" aria-live="polite"`,
+		`<div role="region" aria-label="Preview" aria-live="polite" class="min-h-40 min-w-0 px-4 py-3"><div id="body-preview" class="min-w-0">`,
 		`id="body-write-tab"`, `aria-controls="body-preview-panel"`,
 	)
 	if id := ui.MarkdownEditor("body", ui.WithPreview("x")).PreviewID(); id != "body-preview" {
@@ -186,20 +186,40 @@ func mdeditorRows() []spec {
 		m = append(m, spec{component: "MarkdownEditor", state: state, src: src, kind: k, light: light, dark: dark})
 	}
 	const surfL, surfD = "bg-white", "dark:bg-white/5"
-	add("text", "mdeditor.go:222,mdeditor.go:223", text, on("text-neutral-900", surfL).over(cardL), on("dark:text-white", surfD).over(cardD))
-	add("placeholder", "mdeditor.go:223", text, on("placeholder:text-neutral-500", surfL).over(cardL), on("dark:placeholder:text-neutral-400", surfD).over(cardD))
-	add("frame border vs card (SC 1.4.11)", "mdeditor.go:218", nonText, on("outline-field-border", "").over(cardL), on("outline-field-border", "").over(cardD))
-	add("frame border vs page (SC 1.4.11)", "mdeditor.go:218", nonText, on("outline-field-border", ""), on("outline-field-border", ""))
-	add("focus-within ring", "mdeditor.go:219,mdeditor.go:220", nonText, on("focus-within:outline-primary-600", "").over(cardL), on("dark:focus-within:outline-primary-500", "").over(cardD))
+	add("text", "mdeditor.go:228,mdeditor.go:229", text, on("text-neutral-900", surfL).over(cardL), on("dark:text-white", surfD).over(cardD))
+	add("placeholder", "mdeditor.go:229", text, on("placeholder:text-neutral-500", surfL).over(cardL), on("dark:placeholder:text-neutral-400", surfD).over(cardD))
+	add("frame border vs card (SC 1.4.11)", "mdeditor.go:224", nonText, on("outline-field-border", "").over(cardL), on("outline-field-border", "").over(cardD))
+	add("frame border vs page (SC 1.4.11)", "mdeditor.go:224", nonText, on("outline-field-border", ""), on("outline-field-border", ""))
+	add("focus-within ring", "mdeditor.go:225,mdeditor.go:226", nonText, on("focus-within:outline-primary-600", "").over(cardL), on("dark:focus-within:outline-primary-500", "").over(cardD))
 	add("toolbar icon", "button.go:20", nonText, on("text-neutral-700", surfL).over(cardL), on("dark:text-neutral-300", surfD).over(cardD))
-	add("toolbar icon, hover", "mdeditor.go:224,button.go:20", nonText, on("hover:text-neutral-900", "hover:bg-neutral-100").over(cardL), on("dark:hover:text-white", "dark:hover:bg-white/10").over(cardD))
-	add("hint link", "mdeditor.go:228,mdeditor.go:229", text, on("text-primary-600", surfL).over(cardL), on("dark:text-primary-400", surfD).over(cardD))
-	add("hint link, hover", "mdeditor.go:228,mdeditor.go:229", text, on("hover:text-primary-700", surfL).over(cardL), on("dark:hover:text-primary-300", surfD).over(cardD))
-	add("counter", "mdeditor.go:232", text, on("text-neutral-600", surfL).over(cardL), on("dark:text-neutral-400", surfD).over(cardD))
-	add("counter near the limit", "mdeditor.go:233", text, on("text-warning-800", surfL).over(cardL), on("dark:text-warning-300", surfD).over(cardD))
-	add("counter over the limit", "mdeditor.go:234", text, on("text-danger-600", surfL).over(cardL), on("dark:text-danger-400", surfD).over(cardD))
-	add("empty preview text", "mdeditor.go:231", text, on("text-neutral-600", surfL).over(cardL), on("dark:text-neutral-400", surfD).over(cardD))
-	add("counter on the page", "mdeditor.go:232", text, on("text-neutral-600", surfL), on("dark:text-neutral-400", surfD))
-	add("counter over the limit on the page", "mdeditor.go:234", text, on("text-danger-600", surfL), on("dark:text-danger-400", surfD))
+	add("toolbar icon, hover", "mdeditor.go:230,button.go:20", nonText, on("hover:text-neutral-900", "hover:bg-neutral-100").over(cardL), on("dark:hover:text-white", "dark:hover:bg-white/10").over(cardD))
+	add("hint link", "mdeditor.go:234,mdeditor.go:235", text, on("text-primary-600", surfL).over(cardL), on("dark:text-primary-400", surfD).over(cardD))
+	add("hint link, hover", "mdeditor.go:234,mdeditor.go:235", text, on("hover:text-primary-700", surfL).over(cardL), on("dark:hover:text-primary-300", surfD).over(cardD))
+	add("counter", "mdeditor.go:238", text, on("text-neutral-600", surfL).over(cardL), on("dark:text-neutral-400", surfD).over(cardD))
+	add("counter near the limit", "mdeditor.go:239", text, on("text-warning-800", surfL).over(cardL), on("dark:text-warning-300", surfD).over(cardD))
+	add("counter over the limit", "mdeditor.go:240", text, on("text-danger-600", surfL).over(cardL), on("dark:text-danger-400", surfD).over(cardD))
+	add("empty preview text", "mdeditor.go:237", text, on("text-neutral-600", surfL).over(cardL), on("dark:text-neutral-400", surfD).over(cardD))
+	add("counter on the page", "mdeditor.go:238", text, on("text-neutral-600", surfL), on("dark:text-neutral-400", surfD))
+	add("counter over the limit on the page", "mdeditor.go:240", text, on("text-danger-600", surfL), on("dark:text-danger-400", surfD))
 	return m
+}
+
+func TestMarkdownPreviewID(t *testing.T) {
+	for _, tc := range []struct{ id, want string }{{"body", "body-preview"}, {"post[body]", "post-body--preview"}} {
+		if got := ui.MarkdownPreviewID(tc.id); got != tc.want {
+			t.Errorf("MarkdownPreviewID(%q) = %q, want %q", tc.id, got, tc.want)
+		}
+	}
+	if got := ui.MarkdownEditor("post[body]", ui.WithPreview("x"), ui.WithSignal("postBody")).PreviewID(); got != ui.MarkdownPreviewID("post[body]") {
+		t.Errorf("PreviewID = %q", got)
+	}
+}
+
+func TestMarkdownPreviewRegion(t *testing.T) {
+	got := render(t, ui.MarkdownEditor("post", ui.WithPreview("x"), ui.WithSplit(), ui.WithPreviewLabel("Post preview")))
+	// The live region and its label wrap the patch target, so a patch never replaces them.
+	wantAll(t, got, `<div role="region" aria-label="Post preview" aria-live="polite" class="min-h-40 min-w-0 px-4 py-3`, `data-init="x"><div id="post-preview" class="min-w-0">`)
+	if strings.Contains(render(t, ui.MarkdownPreview("post-preview")), "role=") {
+		t.Error("MarkdownPreview should be the bare patch target")
+	}
 }

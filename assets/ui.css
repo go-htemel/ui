@@ -680,7 +680,7 @@
     list-style-type: lower-alpha;
   }
   .ui-prose li {
-    margin-block: 0.5em;
+    margin-block: 0.375em;
     padding-inline-start: 0.375em;
   }
   .ui-prose li::marker {
@@ -705,7 +705,8 @@
     padding-inline-start: 1.625em;
   }
   /* Task lists (GFM "- [x] done"): no bullet, and the read-only checkbox drawn like Checkbox. */
-  .ui-prose :where(ul:has(> li > input[type="checkbox"]:first-child), ul.contains-task-list) {
+  .ui-prose ul.contains-task-list,
+  .ui-prose ul:has(> li > input[type="checkbox"]:first-child) {
     padding-inline-start: 0.25em;
     list-style: none;
   }
@@ -850,7 +851,7 @@
   }
   /* Footnotes (goldmark's section.footnotes / div.footnotes). */
   .ui-prose .footnotes {
-    margin-top: 3em;
+    margin-top: 2em;
     color: var(--ui-prose-muted);
     font-size: 0.875em;
   }

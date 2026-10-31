@@ -68,7 +68,7 @@ type MarkdownEditorOption func(*mdConfig)
 type mdConfig struct {
 	id, signal, value, placeholder string
 	rows, maxLength                int
-	preview                        string
+	preview, previewLabel          string
 	split, autosize, mono          bool
 	tools                          []MarkdownTool
 	upload                         string
@@ -83,6 +83,12 @@ type mdConfig struct {
 // chosen; with WithSplit it runs on load and 400ms after the last keystroke.
 func WithPreview(action string) MarkdownEditorOption {
 	return func(c *mdConfig) { c.preview = action }
+}
+
+// WithPreviewLabel names the preview region (default "Preview"). Give each editor on a page its
+// own, such as "Post preview", so that assistive technology can tell the regions apart.
+func WithPreviewLabel(label string) MarkdownEditorOption {
+	return func(c *mdConfig) { c.previewLabel = label }
 }
 
 // WithSplit shows the preview beside the textarea instead of behind a tab, once the editor is
@@ -274,11 +280,11 @@ const mdDebounce = 400 * time.Millisecond
 // buttons. Each button has an aria-label and a tooltip naming its shortcut (and
 // aria-keyshortcuts). The hint and the counter describe the textarea, alongside Field's help and
 // error text. The Write / Preview tabs follow Tabs (role="tablist", roving focus, arrow keys);
-// the preview is a role="region" labelled "Preview" and a polite live region. The whole frame
+// the preview is a role="region" labelled "Preview" (WithPreviewLabel) and a polite live region. The whole frame
 // shows the focus ring while the textarea or a button has focus, and the preview tab panel fades
 // in like Tabs (no motion under prefers-reduced-motion).
 func MarkdownEditor(name string, opts ...MarkdownEditorOption) *MarkdownEditorElement {
-	c := mdConfig{rows: 8, tools: DefaultMarkdownToolbar, hint: "Markdown supported", hintHref: "https://commonmark.org/help/"}
+	c := mdConfig{rows: 8, tools: DefaultMarkdownToolbar, hint: "Markdown supported", hintHref: "https://commonmark.org/help/", previewLabel: "Preview"}
 	for _, o := range opts {
 		if o != nil {
 			o(&c)
@@ -343,7 +349,7 @@ func MarkdownEditor(name string, opts ...MarkdownEditorOption) *MarkdownEditorEl
 	case c.preview == "":
 		body = html.Div(ta)
 	case c.split:
-		preview := MarkdownPreview(id + "-preview").Attrs(datastar.Init(c.preview))
+		preview := previewRegion(id, c.previewLabel).Attrs(datastar.Init(c.preview))
 		preview.AddClass(Classes("border-t border-neutral-200 @xl:border-t-0 @xl:border-l dark:border-white/10"))
 		body = html.Div(html.Div(ta).Class("min-w-0"), preview).Class(Classes("grid grid-cols-1 @xl:grid-cols-2"))
 	default:
@@ -381,7 +387,7 @@ func MarkdownEditor(name string, opts ...MarkdownEditorOption) *MarkdownEditorEl
 			} else {
 				panel.Tabindex(0).Style(hiddenUntilDatastar).
 					AddClass(Classes("focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-500")).
-					Children(MarkdownPreview(id + "-preview"))
+					Children(previewRegion(id, c.previewLabel))
 			}
 			panels = append(panels, panel)
 		}
@@ -402,26 +408,37 @@ func MarkdownEditor(name string, opts ...MarkdownEditorOption) *MarkdownEditorEl
 
 	e := &MarkdownEditorElement{DivElement: root, control: control}
 	if c.preview != "" {
-		e.previewID = id + "-preview"
+		e.previewID = MarkdownPreviewID(id)
 	}
 	return e
 }
 
-// MarkdownPreview returns the preview element of a MarkdownEditor with the given id
-// (MarkdownEditorElement.PreviewID) holding content, usually markdown.Render(src). The editor
-// renders it empty, with a placeholder; the server answers a preview request by patching it:
+// MarkdownPreviewID returns the id of the preview of the MarkdownEditor whose id (WithEditorID,
+// by default the name with anything but letters and digits turned into hyphens) is editorID:
+// editorID + "-preview". A preview handler can use it without building the editor.
+func MarkdownPreviewID(editorID string) string { return domID(editorID) + "-preview" }
+
+// MarkdownPreview returns the patchable part of a MarkdownEditor preview: a <div> with the given
+// id (MarkdownEditorElement.PreviewID, MarkdownPreviewID) holding content, usually
+// markdown.Render(src). The editor renders it empty, showing "Nothing to preview yet."; the
+// server answers a preview request by patching it:
 //
 //	sse.PatchElements(render(ui.MarkdownPreview(ed.PreviewID(), markdown.Render(src))))
 //
-// It is a role="region" labelled "Preview" and a polite live region. With no content it shows
-// "Nothing to preview yet.".
+// The editor wraps it in the preview region (role="region", aria-label from WithPreviewLabel,
+// aria-live="polite"), which the patch never replaces, so the live region and its label stay put.
 func MarkdownPreview(id string, content ...htemel.FlowContent) *html.DivElement {
-	el := html.Div(content...).Id(id).Role("region").Aria("label", "Preview").Aria("live", "polite").
-		Class(Classes(mdPreview))
+	el := html.Div(content...).Id(id).Class("min-w-0")
 	if len(content) == 0 {
 		el.Children(html.P().Class(Classes(mdPreviewEmpty)).Text("Nothing to preview yet."))
 	}
 	return el
+}
+
+// previewRegion is the live region around the patchable MarkdownPreview of editor id.
+func previewRegion(id, label string) *html.DivElement {
+	return html.Div(MarkdownPreview(MarkdownPreviewID(id))).Role("region").Aria("label", label).Aria("live", "polite").
+		Class(Classes(mdPreview))
 }
 
 // markdownToolbar renders the tool buttons: the first is in the tab order, the others are

@@ -14,7 +14,7 @@ import (
 //   - the code blocks of the code package: <figure class="ui-code" aria-label>, <pre tabindex="0">,
 //     <code class="language-*">, <span class="line"> and <span class="tok-*">
 //   - GFM task lists: <ul class="contains-task-list">, <li class="task-list-item"> and
-//     <input type="checkbox" disabled> (checked or not)
+//     <input type="checkbox" disabled aria-label="Done"> (checked or not)
 //   - table cell alignment (align="left|center|right" on th and td)
 //   - footnotes: <div class="footnotes" role="doc-endnotes">, links with class footnote-ref /
 //     footnote-backref and role doc-noteref / doc-backlink, ids on sup and li
@@ -31,6 +31,7 @@ func Policy() *bluemonday.Policy {
 	p.AllowAttrs("class").Matching(regexp.MustCompile(`^task-list-item$`)).OnElements("li")
 	p.AllowAttrs("type").Matching(regexp.MustCompile(`^checkbox$`)).OnElements("input")
 	p.AllowAttrs("checked", "disabled").Matching(regexp.MustCompile(`^(|checked|disabled)$`)).OnElements("input")
+	p.AllowAttrs("aria-label").Matching(regexp.MustCompile(`^Done$`)).OnElements("input")
 
 	p.AllowAttrs("align").Matching(regexp.MustCompile(`^(left|center|right)$`)).OnElements("th", "td")
 

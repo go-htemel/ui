@@ -110,7 +110,7 @@ func proseRows() []spec {
 	ql := "border-" + proseVarOf("quote-border").light
 	m = append(m,
 		spec{component: "Prose", state: "blockquote bar on a card (SC 1.4.11)", src: src("quote-border"), kind: nonText, light: on(ql, "").over(cardL), dark: on(ql, "").over(cardD)},
-		spec{component: "Prose", state: "table header rule on a card (SC 1.4.11)", src: "assets/ui.css:821", kind: nonText, light: on(ql, hl).over(cardL), dark: on(ql, hd).over(cardD)},
+		spec{component: "Prose", state: "table header rule on a card (SC 1.4.11)", src: "assets/ui.css:822", kind: nonText, light: on(ql, hl).over(cardL), dark: on(ql, hd).over(cardD)},
 	)
 	kl, kd := bg("check")
 	m = append(m,
