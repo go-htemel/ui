@@ -29,7 +29,9 @@ var motionProps = map[string]bool{
 }
 
 // namedTransitions are the transition-* utilities allowed besides transition-[...].
-var namedTransitions = map[string]bool{"transition-colors": true, "transition-opacity": true, "transition-transform": true}
+// transition-shadow is allowed for ring colour changes on hover (a ring is a box-shadow, which
+// transition-colors does not cover); it still needs motion-reduce:transition-none.
+var namedTransitions = map[string]bool{"transition-colors": true, "transition-opacity": true, "transition-transform": true, "transition-shadow": true}
 
 func splitVariant(c string) (prefix, base string) {
 	i := strings.LastIndex(c, ":")
