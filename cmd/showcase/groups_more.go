@@ -30,7 +30,7 @@ func init() {
 		},
 		Group{
 			Slug: "navigation", Title: "Navigation",
-			Intro: "Navbar with a mobile menu, a sidebar with collapsible sections, breadcrumbs and steps.",
+			Intro: "Navbar that collapses into a drawer by its own width (container queries), a sidebar with collapsible sections, breadcrumbs and steps.",
 			Examples: []Example{
 				ex("Navbar", navbar),
 				ex("Sidebar", sidebarNav),

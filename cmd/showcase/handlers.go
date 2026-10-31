@@ -71,8 +71,14 @@ func pushToast(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("tone") == "danger" {
 		tone, title, msg = ui.Danger, "Something went wrong", "Also pushed over SSE; this one is red."
 	}
+	if r.URL.Query().Get("tone") == "info" {
+		tone = ui.Info
+	}
 	if t := r.URL.Query().Get("title"); t != "" {
 		title = t
+	}
+	if m, ok := r.URL.Query()["message"]; ok {
+		msg = m[0]
 	}
 	toast(dsse.NewSSE(w, r), tone, title, msg)
 }

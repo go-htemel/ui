@@ -1,6 +1,8 @@
 package main
 
 import (
+	"regexp"
+
 	"github.com/go-htemel/htemel"
 	"github.com/go-htemel/htemel/html"
 
@@ -23,7 +25,39 @@ const fontTheme = `@theme { --font-sans: "Inter", ui-sans-serif, system-ui, sans
 
 // pageCSS is the Tailwind source of every page, the browser-build counterpart of an app.css: the
 // default ui tokens, the Inter font, and the alternative token sets of the theming page.
-var pageCSS = `@import "tailwindcss";` + "\n" + ui.ThemeCSS() + "\n" + fontTheme + "\n\n" + themeDemoCSS
+//
+// It deliberately contains no @import, not even in a comment (hence the comments are stripped
+// from ui.ThemeCSS(), whose header shows an @import example). The browser build prepends
+// `@import "tailwindcss";` itself when the text of its <style type="text/tailwindcss"> blocks
+// has no "@import" anywhere, and resolves that import internally. Writing the import ourselves
+// also works for Tailwind, but Chromium's preload scanner then sees `@import "tailwindcss"` at
+// the top of a <style> element, fetches /components/tailwindcss as a stylesheet and logs
+// "Refused to apply style ... MIME type" on every page.
+var pageCSS = cssComment.ReplaceAllString(ui.ThemeCSS(), "") + "\n" + fontTheme + "\n\n" + detailsCSS + "\n\n" + themeDemoCSS
+
+// detailsCSS animates the "Show source" <details> open and closed with no script: the
+// ::details-content box goes from block-size 0 to auto (interpolate-size: allow-keywords makes
+// auto animatable) and content-visibility flips discretely at the end of the close. Chromium
+// 131+ animates; other browsers open and close instantly.
+const detailsCSS = `details.ui-details {
+  interpolate-size: allow-keywords;
+}
+details.ui-details::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition: block-size 200ms ease-out, content-visibility 200ms allow-discrete;
+}
+details.ui-details[open]::details-content {
+  block-size: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  details.ui-details::details-content {
+    transition: none;
+  }
+}`
+
+// cssComment matches a CSS comment.
+var cssComment = regexp.MustCompile(`(?s)/\*.*?\*/`)
 
 // page wraps content in the showcase document: CDN assets, the sidebar and the toast region.
 func page(title, current string, content ...htemel.FlowContent) htemel.Node {
@@ -58,7 +92,7 @@ func page(title, current string, content ...htemel.FlowContent) htemel.Node {
 
 func sidebar(current string) htemel.FlowContent {
 	link := func(href, label string, active bool) *html.LiElement {
-		cls := "block rounded-control px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white"
+		cls := "block rounded-control px-3 py-1.5 text-sm text-neutral-600 transition-colors duration-150 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/5 dark:hover:text-white"
 		a := html.A().Href(href).Text(label)
 		if active {
 			cls = "block rounded-control px-3 py-1.5 text-sm font-semibold bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-white"
@@ -100,14 +134,16 @@ func exampleView(e Example) *html.SectionElement {
 		html.Div(e.Node()).Class(ui.Classes("mt-3 min-w-0 rounded-surface bg-white p-6 ring-1 ring-neutral-950/5 dark:bg-neutral-900 dark:ring-white/10")),
 		html.Details(
 			// list-none and the -webkit- rule hide the browser's disclosure triangle; the chevron icon
-			// rotates via group-open: instead.
+			// rotates via group-open: instead, in step with the 200ms height transition of detailsCSS.
+			// focus:outline-none drops the focus rectangle a mouse click leaves; keyboard focus
+			// still gets the focus-visible outline.
 			html.Summary(
-				ui.IconChevronRight().Class("size-3.5 shrink-0 transition-transform duration-150 group-open:rotate-90 motion-reduce:transition-none"),
+				ui.IconChevronRight().Class("size-3.5 shrink-0 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none"),
 				html.Span().Text("Show source"),
-			).Class("inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-neutral-500 select-none hover:text-neutral-900 [&::-webkit-details-marker]:hidden dark:text-neutral-400 dark:hover:text-white"),
+			).Class("inline-flex cursor-pointer list-none items-center gap-1 rounded-control text-xs font-medium text-neutral-500 transition-colors duration-150 select-none hover:text-neutral-900 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-primary-600 [&::-webkit-details-marker]:hidden dark:text-neutral-400 dark:hover:text-white dark:focus-visible:outline-primary-500"),
 			html.Pre(html.Code().Text(e.Source)).
-				Class(ui.Classes("mt-2 max-h-[32rem] min-w-0 overflow-auto rounded-surface bg-neutral-900 p-4 text-xs/5 text-neutral-100 ring-1 ring-white/10 dark:bg-black/40")),
-		).Class("group mt-3"),
+				Class(ui.Classes("mt-2 max-h-[32rem] min-w-0 overflow-auto rounded-surface bg-neutral-50 p-4 text-xs/5 text-neutral-800 ring-1 ring-neutral-950/5 dark:bg-black/40 dark:text-neutral-100 dark:ring-white/10")),
+		).Class("ui-details group mt-3"),
 	).Class("mt-10")
 }
 
@@ -118,7 +154,7 @@ func indexPage() htemel.Node {
 			html.H2().Class("text-sm font-semibold text-neutral-900 dark:text-white").Text(g.Title),
 			html.P().Class("mt-1 text-sm text-neutral-600 dark:text-neutral-400").Textf("%d examples · %s", len(g.Examples), g.Intro),
 		).Href("/components/" + g.Slug).
-			Class(ui.Classes("block rounded-surface bg-white p-5 ring-1 ring-neutral-950/5 hover:ring-primary-500 dark:bg-neutral-900 dark:ring-white/10 dark:hover:ring-primary-400")))
+			Class(ui.Classes("block rounded-surface bg-white p-5 ring-1 ring-neutral-950/5 transition-shadow duration-150 motion-reduce:transition-none hover:ring-primary-500 dark:bg-neutral-900 dark:ring-white/10 dark:hover:ring-primary-400")))
 	}
 	return page("Overview", "", html.Div(
 		html.H1().Class("text-2xl font-bold tracking-tight text-neutral-900 dark:text-white").Text("go-htemel/ui"),

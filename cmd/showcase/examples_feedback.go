@@ -11,6 +11,7 @@ import (
 func alerts() htemel.FlowContent {
 	return ui.Stack(ui.Sm,
 		ui.Alert(ui.Neutral, "Draft saved", html.P().Text("Nobody else can see it yet.")),
+		ui.Alert(ui.Brand, "New: saved views", html.P().Text("Keep your filters for next time.")),
 		ui.Alert(ui.Info, "Scheduled maintenance", html.P().Text("Sunday 02:00–03:00 UTC.")),
 		ui.Alert(ui.Success, "Payment received"),
 		ui.Alert(ui.Warning, "Your trial ends in 3 days"),

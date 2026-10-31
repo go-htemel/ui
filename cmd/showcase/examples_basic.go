@@ -65,6 +65,7 @@ func buttonGroup() htemel.FlowContent {
 func badges() htemel.FlowContent {
 	return ui.Inline(ui.Sm,
 		ui.Badge(ui.Neutral, "Draft"),
+		ui.Badge(ui.Brand, "Team"),
 		ui.Badge(ui.Info, "New"),
 		ui.Badge(ui.Success, "Paid"),
 		ui.Badge(ui.Warning, "Due soon"),

@@ -53,6 +53,7 @@ var groups = []Group{
 			ex("Server-rendered error", fieldServerError),
 			ex("Textarea and Select", textareaAndSelect),
 			ex("Checkbox, Radio and Switch", choices),
+			ex("Native inputs (number, search, date, time, file, color, range)", nativeInputs),
 		},
 	},
 	{

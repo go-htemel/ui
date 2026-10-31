@@ -77,7 +77,7 @@ func peopleBody(key, dir string, page int) *html.TbodyElement {
 		body.Children(html.Tr(
 			ui.Td(htemel.Text(p.Name)),
 			ui.Td(htemel.Text(p.Role)),
-			ui.Td(ui.Badge(ui.Info, p.Team)),
+			ui.Td(ui.Badge(ui.Brand, p.Team)),
 		))
 	}
 	return body

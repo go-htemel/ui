@@ -12,6 +12,7 @@ func progressBars() htemel.FlowContent {
 	return ui.Stack(ui.Md,
 		ui.Progress(25, 100, ui.ProgressLabel("Storage used")),
 		ui.Progress(60, 100, ui.ProgressLabel("Sync progress"), ui.ProgressTone(ui.Info), ui.ProgressSize(ui.Sm)),
+		ui.Progress(35, 100, ui.ProgressLabel("Onboarding"), ui.ProgressTone(ui.Brand), ui.ProgressSize(ui.Sm)),
 		ui.Progress(100, 100, ui.ProgressLabel("Backup complete"), ui.ProgressTone(ui.Success), ui.ProgressSize(ui.Lg)),
 		ui.Progress(9, 10, ui.ProgressLabel("Error budget used"), ui.ProgressTone(ui.Danger)),
 	)

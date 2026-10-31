@@ -68,6 +68,7 @@ func themeSwitcher() htemel.FlowContent {
 			ui.Button(ui.Secondary, "Secondary"),
 			ui.Button(ui.Outline, "Outline"),
 			ui.Button(ui.Danger, "Delete"),
+			ui.Badge(ui.Brand, "Brand"),
 			ui.Badge(ui.Info, "Info"),
 			ui.Badge(ui.Success, "Success"),
 			ui.Badge(ui.Warning, "Warning"),

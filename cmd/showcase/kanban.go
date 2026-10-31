@@ -74,7 +74,8 @@ func (b *board) view() *html.DivElement {
 	cards := b.snapshot()
 	root := html.Div().Id("kanban").
 		Class("grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4").
-		Attrs(datastar.Signal("dragged", datastar.Quote(""), datastar.IfMissing()))
+		Attrs(datastar.Signal("dragged", datastar.Quote(""), datastar.IfMissing()),
+			datastar.Signal("dragged"+ui.ViaSuffix, datastar.Quote(""), datastar.IfMissing()))
 	for _, col := range columns {
 		var in []kanbanCard
 		for _, c := range cards {
