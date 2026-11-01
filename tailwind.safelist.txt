@@ -23,7 +23,9 @@
 -translate-x-1/2
 -translate-x-full
 -translate-y-px
+@2xl:[contain:inline-size]
 @2xl:border-r
+@2xl:col-start-2
 @2xl:flex
 @2xl:grid-cols-[auto_minmax(0,1fr)]
 @2xl:hidden
@@ -381,6 +383,7 @@ grid
 grid-cols-1
 grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]
 grid-rows-[0fr]
+grid-rows-[auto_minmax(0,1fr)]
 grid-rows-[minmax(0,1fr)]
 group
 group-focus-within:opacity-100
@@ -472,6 +475,7 @@ mb-2
 mb-3
 md
 min-h-0
+min-h-14
 min-h-40
 min-h-9
 min-h-full
@@ -594,6 +598,7 @@ rounded-surface
 rounded-t-surface
 rounded-xs
 row-start-1
+row-start-2
 s
 scale-[.98]
 scheme-dark
@@ -647,7 +652,6 @@ starting:open:scale-[.98]
 starting:open:translate-x-full
 starting:open:translate-y-full
 starting:translate-x-full
-sticky
 t
 tabular-nums
 text-2xl/8
@@ -676,7 +680,6 @@ text-warning-800
 text-white
 text-xs
 toasts
-top-0
 top-full
 tracking-tight
 tracking-wide
@@ -725,7 +728,6 @@ w-px
 whitespace-nowrap
 word
 xs
-z-10
 z-20
 z-30
 z-50

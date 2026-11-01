@@ -180,13 +180,13 @@ const STATES = {
         await list.waitFor({ state: "visible", timeout: 5000 });
         await page.locator("#notes-list button", { hasText: "Groceries" }).click();
         await list.waitFor({ state: "hidden", timeout: 5000 });
-        await page.locator("#note-detail h2", { hasText: "Groceries" }).first().waitFor({ timeout: 5000 });
+        await page.locator("#note-detail-header h2", { hasText: "Groceries" }).first().waitFor({ timeout: 5000 });
         await page.waitForTimeout(150);
         const focus = await page.evaluate(() => document.activeElement.id);
         if (focus !== "split-detail") throw new Error(`focus is on #${focus}, want the detail pane`);
       },
       async close(page) {
-        await page.locator("#split-detail button", { hasText: "Back" }).filter({ visible: true }).click();
+        await page.getByRole("button", { name: "Back" }).filter({ visible: true }).click();
         await page.locator("#split-list").waitFor({ timeout: 5000 });
       },
     },
@@ -360,13 +360,13 @@ const STATES = {
       async open(page) {
         await page.locator("#split-list button", { hasText: "Talk outline" }).click();
         await page.locator("#split-list").waitFor({ state: "hidden", timeout: 5000 });
-        await page.locator("#split-detail h2", { hasText: "Talk outline" }).waitFor({ timeout: 5000 });
+        await page.locator("h2", { hasText: "Talk outline" }).filter({ visible: true }).waitFor({ timeout: 5000 });
         await page.waitForTimeout(100);
         const focus = await page.evaluate(() => document.activeElement.id);
         if (focus !== "split-detail") throw new Error(`focus is on #${focus}, want the detail pane`);
       },
       async close(page) {
-        await page.locator("#split-detail button", { hasText: "Back" }).filter({ visible: true }).click();
+        await page.getByRole("button", { name: "Back" }).filter({ visible: true }).click();
         await page.locator("#split-list").waitFor({ timeout: 5000 });
         await page.waitForTimeout(100);
         const focus = await page.evaluate(() => document.activeElement.id);
@@ -455,7 +455,48 @@ const STATES = {
 
 // Behaviour checks beyond axe, keyed by page. Each returns a list of failure messages; any
 // failure fails the run (exit 1) like a WCAG violation.
+// The headers of a SplitLayout are the cells of one grid row (class row-start-1 above the panes
+// #split-list / #split-detail): wide, both cells are shown and their bottom rules line up (within
+// half a pixel) with each other and with the top of both bodies, and the first list row starts
+// there; narrow, the one shown cell ends where the shown body begins. Returns failure messages.
+async function splitAlignment(page, label) {
+  const r = await page.evaluate(() => {
+    const L = document.getElementById("split-list"), D = document.getElementById("split-detail");
+    const shown = (e) => e && e.checkVisibility();
+    const top = (e) => e.getBoundingClientRect().top, bottom = (e) => e.getBoundingClientRect().bottom;
+    const cells = [...L.parentElement.children].filter((e) => e.classList.contains("row-start-1") && shown(e));
+    const row = L.querySelector("li") || L.querySelector("button");
+    return {
+      cells: cells.map(bottom), bodies: [L, D].filter(shown).map(top),
+      row: shown(row) ? top(row) : null,
+      lists: shown(L), detail: shown(D),
+    };
+  });
+  const f = [], near = (a, b) => Math.abs(a - b) <= 0.5;
+  if (!r.cells.length) return [`${label}: no visible header cell`];
+  const want = r.cells[0];
+  for (const b of r.cells) if (!near(b, want)) f.push(`${label}: header bottoms differ (${r.cells.join(", ")})`);
+  for (const t of r.bodies) if (!near(t, want)) f.push(`${label}: a body starts at ${t}, the header rule is at ${want}`);
+  if (r.lists && r.detail && r.cells.length !== 2) f.push(`${label}: wide, but ${r.cells.length} header cells are shown`);
+  if (r.lists && r.detail && r.row !== null && !near(r.row, r.bodies[1])) f.push(`${label}: the first list row is at ${r.row}, the detail body at ${r.bodies[1]}`);
+  return f;
+}
+
 const CHECKS = {
+  "/components/layouts/frame/split": [
+    {
+      name: "split headers share a baseline (narrow)",
+      async run(page) {
+        const f = await splitAlignment(page, "phone split (list)");
+        await page.locator("#split-list button", { hasText: "Talk outline" }).click();
+        await page.locator("#split-list").waitFor({ state: "hidden", timeout: 5000 });
+        f.push(...(await splitAlignment(page, "phone split (detail)")));
+        await page.getByRole("button", { name: "Back" }).filter({ visible: true }).click();
+        await page.locator("#split-list").waitFor({ timeout: 5000 });
+        return f;
+      },
+    },
+  ],
   // ---- the Admin demo (/admin): behaviour ----
   "/admin": [
     {
@@ -624,6 +665,30 @@ const CHECKS = {
   ],
   "/admin/notes": [
     {
+      // The list header (title and search) and the note header are cells of one grid row: their
+      // rules meet, wide and narrow, and a note opened from the list keeps them aligned.
+      name: "notes headers share a baseline",
+      async run(page) {
+        const f = await splitAlignment(page, "notes (wide)");
+        await page.getByRole("searchbox", { name: "Search" }).fill("sourdough");
+        await page.waitForFunction(() => document.querySelectorAll("#notes-list li").length === 1, null, { timeout: 5000 });
+        f.push(...(await splitAlignment(page, "notes (wide, filtered)")));
+        const wide = await page.viewportSize();
+        await page.setViewportSize({ width: 600, height: 800 });
+        await page.reload({ waitUntil: "load" });
+        await page.locator("#split-list").waitFor({ state: "visible", timeout: 5000 });
+        f.push(...(await splitAlignment(page, "notes (narrow, list)")));
+        await page.locator("#notes-list button").first().click();
+        await page.locator("#split-list").waitFor({ state: "hidden", timeout: 5000 });
+        await page.locator("#note-detail-header h2").first().waitFor({ timeout: 5000 });
+        f.push(...(await splitAlignment(page, "notes (narrow, detail)")));
+        await page.setViewportSize(wide);
+        await page.reload({ waitUntil: "load" });
+        await page.locator("#split-list").waitFor({ state: "visible", timeout: 5000 });
+        return f;
+      },
+    },
+    {
       // The list searches on the server; a note opens in the detail pane; Edit swaps in the
       // editor, Save stores it (a toast) and swaps the rendered note back. Reset afterwards.
       name: "notes search, open and edit",
@@ -632,7 +697,7 @@ const CHECKS = {
         await page.getByRole("searchbox", { name: "Search" }).fill("sourdough");
         await page.waitForFunction(() => document.querySelectorAll("#notes-list li").length === 1, null, { timeout: 5000 }).catch(() => f.push("the note search did not narrow the list"));
         await page.locator("#notes-list button").first().click();
-        await page.locator("#note-detail h2", { hasText: "Groceries" }).first().waitFor({ timeout: 5000 }).catch(() => f.push("the note did not open"));
+        await page.locator("#note-detail-header h2", { hasText: "Groceries" }).first().waitFor({ timeout: 5000 }).catch(() => f.push("the note did not open"));
         const current = await page.locator('#notes-list button[aria-current="true"]').count();
         if (current !== 1) f.push(`${current} notes are aria-current`);
         await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -642,7 +707,7 @@ const CHECKS = {
         await page.locator("#note-title").fill("Groceries (edited)");
         await page.getByRole("button", { name: "Save", exact: true }).click();
         await page.locator("#toasts").getByText("Note saved").waitFor({ timeout: 5000 }).catch(() => f.push("no Note saved toast"));
-        await page.locator("#note-detail h2", { hasText: "Groceries (edited)" }).first().waitFor({ timeout: 5000 }).catch(() => f.push("the detail kept the old title"));
+        await page.locator("#note-detail-header h2", { hasText: "Groceries (edited)" }).first().waitFor({ timeout: 5000 }).catch(() => f.push("the detail kept the old title"));
         if (await page.locator("#note-title").isVisible()) f.push("the editor stays open after Save");
         await page.request.post(BASE + "/admin/reset", { headers: { "Datastar-Request": "true" } });
         return f;
@@ -910,6 +975,10 @@ const CHECKS = {
     },
   ],
   "/components/layouts": [
+    {
+      name: "split headers share a baseline",
+      run: (page) => splitAlignment(page, "layouts page split (wide)"),
+    },
     {
       // Container queries, not the viewport: in the ~930px frames the sidebar is beside the
       // content and the split shows both panes; the phone previews are three titled, lazy 390x760

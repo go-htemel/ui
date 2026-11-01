@@ -8,6 +8,7 @@ that render with htemel and behave through Datastar attributes, with no client f
 **Headline features**
 
 - A broad component set: buttons (and link buttons), forms with custom checkbox, radio and switch, native `Dialog`, `Drawer` and `Dropdown`, `Tabs`, tables with sorting and server-patchable bodies, pagination, toasts, drag and drop.
+- **`SplitLayout` headers share a row.** `WithListHeader(SplitListHeader(title, controls...))` and `WithDetailHeader(SplitDetailHeader(...))` put both headers in one grid row (`grid-rows-[auto_minmax(0,1fr)]`) above the two scrolling bodies, so the rules under them align and the bodies start together, whatever the list header holds (title plus search, or nothing). `SplitDetailHeader` no longer carries its own rule, background or `sticky`: it is the content of the header cell and belongs in `WithDetailHeader`. The showcase Layouts demo and the admin notes page use them (the notes header is patched apart from `#note-detail`), and `task a11y` measures the alignment wide and narrow.
 - Container-query layouts: `AppShell` (collapsible icon rail, dark sidebar), `SplitLayout`, `SettingsLayout`, `StackedLayout`, `PageHeader`.
 - Content: markdown rendering and `MarkdownEditor`, `Prose`, server-side highlighted code blocks, tag and file inputs.
 - Theming by CSS variables (primary aliases indigo, scoped `[data-theme]`), light/dark/system toggle, optional self-hosted Geist.

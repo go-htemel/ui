@@ -49,7 +49,11 @@ func init() {
 		golden{"app-shell-topbar", ui.AppShell(ui.WithBrand(brand), ui.WithTopbar(html.Span().Text("Search")), ui.TopbarOnly(),
 			ui.WithContent(html.P().Text("Body")))},
 		golden{"app-shell-embedded", ui.AppShell(ui.WithSidebar(shellNav()), ui.WithEmbedded("Preview"), ui.WithShellID("demo"))},
-		golden{"split-layout", ui.SplitLayout(html.P().Text("List"), html.Div(ui.SplitDetailHeader("Note", ui.Button(ui.Secondary, "Edit")), html.P().Text("Body")))},
+		golden{"split-layout", ui.SplitLayout(html.P().Text("List"), html.P().Text("Body"),
+			ui.WithListHeader(ui.SplitListHeader("Notes", html.Input())),
+			ui.WithDetailHeader(ui.SplitDetailHeader("Note", ui.Button(ui.Secondary, "Edit"))))},
+		golden{"split-layout-detail-header-only", ui.SplitLayout(html.P().Text("List"), html.P().Text("Body"),
+			ui.WithDetailHeader(ui.SplitDetailHeader("Note")))},
 		golden{"split-layout-options", ui.SplitLayout(html.P().Text("List"), html.P().Text("Detail"),
 			ui.SplitSignal("pane"), ui.WithListWidth(ui.Lg), ui.WithResizable(), ui.WithPaneLabels("Notes", "Note"))},
 		golden{"settings-layout", ui.SettingsLayout([]ui.NavItem{
@@ -161,8 +165,16 @@ func TestSplitLayout(t *testing.T) {
 		`id="split-list" tabindex="-1"`, `id="split-detail" tabindex="-1"`,
 		`data-class="{'@max-2xl:hidden': $split === 'detail'}"`,
 		`data-class="{'@max-2xl:hidden': $split !== 'detail'}"`,
-		`@2xl:grid-cols-[auto_minmax(0,1fr)]`, `@2xl:w-80`,
+		`@2xl:grid-cols-[auto_minmax(0,1fr)]`, `grid-rows-[auto_minmax(0,1fr)]`, `@2xl:w-80`,
 	)
+	if strings.Contains(got, "min-h-14") {
+		t.Error("a layout without headers drew a header cell")
+	}
+	hdrs := render(t, ui.SplitLayout(html.P().Text("L"), html.P().Text("D"),
+		ui.WithListHeader(ui.SplitListHeader("Notes", html.Input())), ui.WithDetailHeader(ui.SplitDetailHeader("Note"))))
+	wantAll(t, hdrs, `row-start-1`, `border-b`, `<h2 class="shrink-0`, `>Notes</h2>`, `>Note</h2>`, `@2xl:[contain:inline-size]`)
+	only := render(t, ui.SplitLayout(html.P().Text("L"), html.P().Text("D"), ui.WithDetailHeader(ui.SplitDetailHeader("Note"))))
+	wantAll(t, only, `aria-hidden="true"`)
 	sel := render(t, html.Button().Attrs(ui.SplitSelect("split", "@get('/n/1')")))
 	wantAll(t, sel, `$split = 'detail'; @get('/n/1'); requestAnimationFrame`, `d.focus({preventScroll: true})`)
 	head := render(t, ui.SplitDetailHeaderSignal("pane", "Note"))

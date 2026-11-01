@@ -166,31 +166,41 @@ var demoNotes = []struct{ title, date, body string }{
 // notesPanes builds the panes of the notes demo for one split signal: the list sets
 // $<signal>Note (declared by the example) and shows the detail, which renders every note and
 // shows the selected one.
-func notesPanes(signal string) (list *html.UlElement, detail *html.DivElement) {
+func notesPanes(signal string) (list *html.UlElement, detail, detailHeader *html.DivElement) {
 	noteSig := signal + "Note"
 	list = html.Ul().Role("list").Class("divide-y divide-neutral-200 dark:divide-white/10")
-	detail = html.Div()
+	detail, detailHeader = html.Div(), html.Div()
 	for i, n := range demoNotes {
 		idx := strconv.Itoa(i)
 		list.Children(html.Li(ui.SplitListItem(signal, "$"+noteSig+" === "+idx, "$"+noteSig+" = "+idx,
 			html.Span().Class("block truncate text-sm font-medium text-neutral-900 dark:text-white").Text(n.title),
 			html.Span().Class("block text-xs text-neutral-600 dark:text-neutral-400").Text(n.date),
 		)))
-		detail.Children(html.Div(
+		detailHeader.Children(html.Div(
 			ui.SplitDetailHeaderSignal(signal, n.title, ui.IconButton(ui.Ghost, ui.IconTrash(), "Delete note", ui.WithSize(ui.Sm))),
-			html.P().Class("px-4 py-6 text-sm text-neutral-700 @xl:px-6 dark:text-neutral-300").Text(n.body),
 		).Attrs(datastar.Show("$" + noteSig + " === " + idx)))
+		detail.Children(html.P().Class("px-4 py-6 text-sm text-neutral-700 @xl:px-6 dark:text-neutral-300").
+			Attrs(datastar.Show("$" + noteSig + " === " + idx)).Text(n.body))
 	}
-	return list, detail
+	return list, detail, detailHeader
+}
+
+// notesSplit is the notes demo's SplitLayout: a titled list header and the selected note's header
+// share one grid row, so their rules align.
+func notesSplit(signal string, opts ...ui.SplitOption) *html.DivElement {
+	list, detail, detailHeader := notesPanes(signal)
+	opts = append(opts, ui.WithPaneLabels("Notes", "Note"),
+		ui.WithListHeader(ui.SplitListHeader("Notes", ui.IconButton(ui.Ghost, ui.IconPlus(), "New note", ui.WithSize(ui.Sm)))),
+		ui.WithDetailHeader(detailHeader))
+	return ui.SplitLayout(list, detail, opts...)
 }
 
 func splitLayoutNotes() htemel.FlowContent {
 	// Wide: the list and the note side by side; drag the list's corner to resize it. Narrow: one
 	// pane at a time, a note opens the detail, Back returns to the list. The narrow form is the
 	// second preview, a real 390px viewport (see appShellPhone and phoneSplitPage).
-	wideList, wideNote := notesPanes("split")
 	return html.Div(
-		framed("100%", "360px", ui.SplitLayout(wideList, wideNote, ui.WithResizable(), ui.WithPaneLabels("Notes", "Note"))),
+		framed("100%", "360px", notesSplit("split", ui.WithResizable())),
 		phoneFrame("split", "Phone-width notes split"),
 	).Class("flex flex-col gap-6").Attrs(datastar.Signals(map[string]any{"splitNote": 0}))
 }
@@ -198,9 +208,8 @@ func splitLayoutNotes() htemel.FlowContent {
 // phoneSplitPage is the page of the narrow split iframe: the same panes, with the layout
 // filling the viewport. Its signals live in the frame's own document.
 func phoneSplitPage() htemel.Node {
-	list, detail := notesPanes("split")
 	return bareDocument("Phone-width notes split", "h-dvh", html.Main(
-		ui.SplitLayout(list, detail, ui.WithPaneLabels("Notes", "Note")),
+		notesSplit("split"),
 	).Class("h-full").Attrs(datastar.Signals(map[string]any{"splitNote": 0})))
 }
 

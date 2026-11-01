@@ -56,7 +56,8 @@ func layoutRows() []spec {
 	add("SettingsLayout", "link (@xl)", "layout_page.go:188,layout_page.go:188", text, on("text-neutral-600", ""), on("dark:text-neutral-400", ""))
 	add("SettingsLayout", "current link (@xl)", "layout_page.go:188,layout_page.go:190", text,
 		on("aria-[current=page]:text-primary-700", "aria-[current=page]:bg-neutral-100"), on("dark:aria-[current=page]:text-white", "dark:aria-[current=page]:bg-white/10"))
-	add("SplitDetailHeader", "title", "layout_split.go:132", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-900"))
+	add("SplitDetailHeader", "title", "layout_split.go:190,layout_split.go:156", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-900"))
+	add("SplitListHeader", "title", "layout_split.go:206,layout_split.go:156", text, on("text-neutral-900", "bg-white"), on("dark:text-white", "dark:bg-neutral-900"))
 
 	return m
 }

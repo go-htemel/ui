@@ -720,9 +720,9 @@ func TestNotes(t *testing.T) {
 
 	events, elements, _ := sseSend(t, h, http.MethodGet, "/admin/notes/2", map[string]any{})
 	checkPatches(t, "note", elements)
-	if len(elements) != 1 || !strings.Contains(elements[0], `id="note-detail"`) || !strings.Contains(elements[0], "Talk outline: layouts that adapt") ||
-		!strings.Contains(elements[0], "<blockquote>") {
-		t.Errorf("detail: %s", elements[0])
+	if len(elements) != 2 || !strings.Contains(elements[0], `id="note-detail-header"`) || !strings.Contains(elements[0], "Talk outline: layouts that adapt") ||
+		!strings.Contains(elements[1], `id="note-detail"`) || !strings.Contains(elements[1], "<blockquote>") {
+		t.Errorf("detail: %q", elements)
 	}
 	if sp := signalPatches(events); len(sp) != 1 || !strings.Contains(sp[0], `"noteId":2`) || !strings.Contains(sp[0], `"noteEdit":false`) {
 		t.Errorf("note signals %q", sp)
@@ -741,8 +741,8 @@ func TestNotes(t *testing.T) {
 	}
 	_, elements, _ = sseSend(t, h, http.MethodPost, "/admin/notes/2", map[string]any{"noteTitle": "Renamed", "noteBody": "New *body*", "nq": ""})
 	checkPatches(t, "note saved", elements)
-	if len(elements) != 3 || !strings.Contains(elements[0], "Renamed") || !strings.Contains(elements[0], "<em>body</em>") ||
-		!strings.Contains(elements[1], `id="notes-list"`) || !strings.Contains(elements[2], "Note saved") {
+	if len(elements) != 4 || !strings.Contains(elements[0], "Renamed") || !strings.Contains(elements[1], "<em>body</em>") ||
+		!strings.Contains(elements[2], `id="notes-list"`) || !strings.Contains(elements[3], "Note saved") {
 		t.Errorf("saved patches: %q", elements)
 	}
 }

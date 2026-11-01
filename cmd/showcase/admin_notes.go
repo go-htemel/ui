@@ -21,11 +21,12 @@ import (
 // button swaps the rendered note for a MarkdownEditor in place.
 
 const (
-	notesListID    = "notes-list"
-	noteDetailID   = "note-detail"
-	noteEditBtnID  = "note-edit"
-	noteTitleField = "note-title"
-	notesEditor    = "noteBody"
+	notesListID        = "notes-list"
+	noteDetailID       = "note-detail"
+	noteDetailHeaderID = "note-detail-header"
+	noteEditBtnID      = "note-edit"
+	noteTitleField     = "note-title"
+	notesEditor        = "noteBody"
 )
 
 func noteURL(id int) string { return "/admin/notes/" + strconv.Itoa(id) }
@@ -61,9 +62,9 @@ func notesListView(q string) *html.UlElement {
 	return ul
 }
 
-// noteDetailView is the detail pane's content for n: the header with the Edit toggle, the
-// rendered note, and the editor (hidden until $noteEdit).
-func noteDetailView(n adminNote) *html.DivElement {
+// noteDetailHeader is the detail header for n: the title and the Edit toggle. It sits in the
+// header row shared with the list header, outside #note-detail, so it has an id of its own.
+func noteDetailHeader(n adminNote) *html.DivElement {
 	editBtn := ui.Button(ui.Secondary, "Edit", ui.WithSize(ui.Sm), ui.WithIcon(ui.IconPencil())).Id(noteEditBtnID).
 		Attrs(datastar.Show("!$noteEdit"),
 			datastar.OnClick("$noteEdit = true; requestAnimationFrame(() => document.getElementById('"+noteTitleField+"')?.focus())"))
@@ -74,6 +75,12 @@ func noteDetailView(n adminNote) *html.DivElement {
 		Attrs(datastar.Show("$noteEdit"),
 			datastar.OnClick(ui.Then(datastar.Post(noteURL(n.ID)), "document.querySelector('#"+noteDetailID+" [aria-invalid=true]')?.focus() ?? document.getElementById('"+ui.SplitLayoutSignal+"-detail')?.focus()")))
 
+	return ui.SplitDetailHeader(n.Title, editBtn, cancel, save).Id(noteDetailHeaderID)
+}
+
+// noteDetailView is the detail pane's content for n: the rendered note, and the editor (hidden
+// until $noteEdit).
+func noteDetailView(n adminNote) *html.DivElement {
 	view := html.Div(
 		html.Div(noteDate(n), noteTags(n.Tags)).Class("flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-neutral-600 dark:text-neutral-400"),
 		html.Div(markdown.Render(n.Body, markdown.WithSize(ui.Sm), markdown.WithHeadingOffset(1), markdown.WithIDPrefix("note-md-"))).Class("mt-4"),
@@ -85,14 +92,12 @@ func noteDetailView(n adminNote) *html.DivElement {
 			ui.WithPreview(datastar.Post("/admin/preview?editor="+notesEditor)), ui.WithPreviewLabel("Note preview"))),
 	)).Style("display: none").Class("p-4 @xl:p-6").Attrs(datastar.Show("$noteEdit"))
 
-	return html.Div(
-		ui.SplitDetailHeader(n.Title, editBtn, cancel, save),
-		view, edit,
-	).Id(noteDetailID)
+	return html.Div(view, edit).Id(noteDetailID)
 }
 
 // patchNote patches the detail pane to n and sets the editor's signals.
 func patchNote(sse *dsse.ServerSentEventGenerator, n adminNote) {
+	patch(sse, noteDetailHeader(n))
 	patch(sse, noteDetailView(n))
 	patchSignals(sse, map[string]any{
 		"noteId": n.ID, "noteEdit": false, "noteTitle": n.Title, "noteBody": n.Body,
@@ -164,11 +169,10 @@ func notesPage(r *http.Request) htemel.Node {
 	if len(all) > 0 {
 		first = all[0]
 	}
+	// The page heading is the list header's title ("Notes", an <h2> in the library's header), so
+	// the h1 is visually hidden at the top of the list.
 	listPane := html.Div(
-		html.Div(
-			html.H1().Class("text-base font-semibold text-neutral-900 dark:text-white").Text("Notes"),
-			html.Div(ui.FilterSearch("nq", datastar.Get("/admin/notes/list"))).Class("mt-3 flex"),
-		).Class("sticky top-0 z-10 border-b border-neutral-200 bg-white p-4 dark:border-white/10 dark:bg-neutral-900"),
+		html.H1().Class("sr-only").Text("Notes"),
 		notesListView(""),
 	)
 	signals := map[string]any{
@@ -176,6 +180,8 @@ func notesPage(r *http.Request) htemel.Node {
 		"errors": map[string]any{"noteTitle": ""}, "nq": "",
 	}
 	split := ui.SplitLayout(listPane, noteDetailView(first),
+		ui.WithListHeader(ui.SplitListHeader("Notes", ui.FilterSearch("nq", datastar.Get("/admin/notes/list")))),
+		ui.WithDetailHeader(noteDetailHeader(first)),
 		ui.WithPaneLabels("Notes list", "Note")).Attrs(datastar.Signals(signals))
 	return adminPage("Notes", navNotes, false, r.URL.Query().Get("notice"), split)
 }

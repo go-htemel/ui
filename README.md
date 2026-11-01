@@ -58,7 +58,7 @@ component have their own types: `CardHeader`/`CardBody`/`CardFooter` return a `C
 | Code | `code.Block`, `code.Inline` (subpackage `ui/code`, server-side highlighting; see Code blocks) | ready |
 | Content | `MarkdownEditor`/`MarkdownPreview` (textarea, toolbar, server-rendered preview), `Prose`/`ProseSm`/`ProseLg`, `markdown.Render` (subpackage `ui/markdown`); see Markdown and Prose | ready; toolbar needs `ui.js` |
 | Misc | `Tooltip` (CSS only, no Escape; see below), `InputGroup` (labelled by `Field` through its inner control) | ready |
-| Layouts | `AppShell` (`SidebarFixed`, `SidebarCollapsible`, `SidebarDark`, `TopbarOnly`), `SplitLayout` (`SplitSelect`, `SplitListItem`, `SplitDetailHeader`), `SettingsLayout`, `StackedLayout`/`StackedTabs`, `PageHeader`, `SectionHeader`, `SkipLink`; `NavLink(...).Icon(...).Badge(...).Ancestor()`; all switch on their container's width (see Layouts) | ready; rail persistence uses localStorage |
+| Layouts | `AppShell` (`SidebarFixed`, `SidebarCollapsible`, `SidebarDark`, `TopbarOnly`), `SplitLayout` (`SplitSelect`, `SplitListItem`, `SplitListHeader`, `SplitDetailHeader`), `SettingsLayout`, `StackedLayout`/`StackedTabs`, `PageHeader`, `SectionHeader`, `SkipLink`; `NavLink(...).Icon(...).Badge(...).Ancestor()`; all switch on their container's width (see Layouts) | ready; rail persistence uses localStorage |
 | Content inputs | `TagInput`, `FileUpload`, `DateInput`/`DateTimeInput`/`TimeInput`, `SlugField`, `FilterBar`/`FilterSearch`/`FilterReset` (see Content inputs) | ready; tag and file editing need `ui.js` |
 | Planned | Command palette | — |
 
@@ -133,10 +133,17 @@ schemes) and `TopbarOnly`. `WithShellID` names the ids and signals when a page h
 
 **`SplitLayout(list, detail, opts...)`** is master/detail. Options: `WithListWidth` (Sm 16rem, Md
 20rem, Lg 24rem, Xl 28rem), `WithResizable` (CSS `resize-x` on the list, 14rem to 60% of the
-layout), `WithPaneLabels`, `SplitSignal`. Put `ui.SplitSelect(signal, action)` on each list item
-(it shows the detail, runs `action` such as `datastar.Get("/notes/3")` and, when narrow, focuses
-the detail pane) and `ui.SplitDetailHeader(title, actions...)` at the top of the detail (its Back
-button, shown only when narrow, returns to the list and focuses it).
+layout), `WithPaneLabels`, `SplitSignal`, `WithListHeader`, `WithDetailHeader`. Put
+`ui.SplitSelect(signal, action)` on each list item (it shows the detail, runs `action` such as
+`datastar.Get("/notes/3")` and, when narrow, focuses the detail pane). The headers are
+`WithListHeader(ui.SplitListHeader(title, controls...))` (a title and, say, a search field) and
+`WithDetailHeader(ui.SplitDetailHeader(title, actions...))` (its Back button, shown only when
+narrow, returns to the list and focuses it). The layout is one grid with two rows: row 1 holds the
+two header cells, row 2 the two scrolling bodies, so the rules under the headers always meet in
+one line (the row grows to the taller header) and both bodies start on the same y. A header
+given to one pane only gets an empty cell opposite it; with no headers row 1 is empty. The
+headers sit outside the panes, so patch a header you change (give it an id) separately from the
+detail body.
 
 **`SettingsLayout(nav, content...)`** (`SettingsLayoutLabel` to rename the nav),
 **`StackedLayout(header, content...)`** with **`StackedTabs(label, items...)`** (link tabs for the
